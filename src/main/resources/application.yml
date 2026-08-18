@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: lab-management-system-springboot
+
+  # postgres 直连（ADR 决议 2026-08-18）：lab-shared SQL 本就是 postgres 方言 V001-V013，
+  # Flyway 直接 replay，不搞 sqlite 双栈。
+  # 与 nextjs 共用一个库：默认指向 lab_dev（100.79.128.25，同 nextjs .env.local 的
+  # DATABASE_URL）。LAB_DB_URL 可切走（如空库 replay 演练 / 未来独立实例）。
+  datasource:
+    url: ${LAB_DB_URL:jdbc:postgresql://100.79.128.25:5432/lab_dev}
+    username: ${LAB_DB_USER:postgres}
+    password: ${LAB_DB_PASSWORD:qiand68+++}
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    # lab_dev 已由 nextjs 侧（shared schema 同步）建到 V013 等效状态，且无
+    # flyway_schema_history：baseline-on-migrate 在其上打 baseline 并跳过 <=13；
+    # 空库则不触发 baseline、V001-V013 全量 replay。prod 慎用。
+    baseline-on-migrate: true
+    baseline-version: "13"
+  jpa:
+    hibernate:
+      # schema 由 Flyway 管（SSOT = shared 仓 sql/migrations），Hibernate 只校验。
+      ddl-auto: validate
+    open-in-view: false
+
+server:
+  # 家族端口约定：springboot=8080（conventions §6）。CORS allowlist 见 WebConfig。
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    io.xr.lab: DEBUG

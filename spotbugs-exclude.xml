@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!--
+      codegen 产物（shared emit -> openapi-generator）不是手写代码，SpotBugs 对
+      DTO setter/getter 的 EI_EXPOSE_REP2 / NP_NULL 等是数据载体上的已知误报模式。
+      对齐 saas-springboot v0.2.0 惯例：只豁免生成包，手写代码（io.xr.harness /
+      io.xr.lab.platform 未来的 controller/service）仍全量检查。
+      与 saas 的差异：不放宽全局 Bug pattern，豁免面收窄到包级。
+    -->
+    <Match>
+        <Package name="io.xr.lab.shared.dto"/>
+    </Match>
+    <Match>
+        <Package name="io.xr.lab.platform.api"/>
+    </Match>
+</FindBugsFilter>

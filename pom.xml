@@ -41,14 +41,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        <!-- JPA + HikariCP。SQLite 方言由 hibernate-community-dialects 提供。 -->
+        <!-- JPA + HikariCP。postgres 直连（lab-shared SQL 即 postgres 方言 V001-V013）。 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.orm</groupId>
-            <artifactId>hibernate-community-dialects</artifactId>
         </dependency>
         <!-- 认证：Spring Security OAuth2 Resource Server（JWT 验证）。 -->
         <dependency>
@@ -64,15 +60,30 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-        <!-- 数据库驱动：dev=SQLite / prod=PostgreSQL。两个都带，按 profile 选用。 -->
+        <!-- codegen 产物运行时依赖（对齐 saas-springboot v0.2.0）：@Schema/@Tag 注解 + JsonNullable。 -->
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations-jakarta</artifactId>
+            <version>2.2.22</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>0.2.6</version>
+        </dependency>
+        <!-- DB 迁移：Flyway replay shared 仓 sql/migrations V001-V013（gen-shared step3 拷入）。 -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+        <!-- 数据库驱动：postgres 直连。 -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.xerial</groupId>
-            <artifactId>sqlite-jdbc</artifactId>
             <scope>runtime</scope>
         </dependency>
 
@@ -119,6 +130,7 @@
                 <artifactId>spotbugs-maven-plugin</artifactId>
                 <version>${spotbugs.version}</version>
                 <configuration>
+                    <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
                     <effort>Max</effort>
                     <threshold>Low</threshold>
                 </configuration>
