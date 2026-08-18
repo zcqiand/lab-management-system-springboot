@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "approved": true,
-  "base_sha": "fb71881",
+  "base_sha": "7b05cc4",
   "summary": "B10 M03.F05-F08 报告流程 4 阶段扩 I02-I03 共 8 个 I-级 + F-级状态从「规划」翻「已上线」：审核/批准/发放/归档 4 阶段共享 ReportFlowService.submitAction + SampleReceiptService.get 双端点，按 stage 参数路由视角；function-tree 148 功能条目（138 + 10 新），design-function-map +12 行映射。",
   "changes": [
     {

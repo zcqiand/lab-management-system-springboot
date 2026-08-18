@@ -72,6 +72,16 @@
 | M03.F08.I01 | ReportFlowController#reportFlowListFlowQueue / ReportFlowService#flowQueue | GET /api/receipts/flow/queue?stage=archived | sample_receipts（按 stage=archived 过滤） | M03.F08.I01 | - | 已上线 |
 | M03.F08.I02 | SampleReceiptController#receiptsGetReceipt / SampleReceiptService#get | GET /api/receipts/{id} | sample_receipts（archived 视角） | M03.F08.I02 | - | 已上线 |
 | M03.F08.I03 | ReportFlowController#reportFlowSubmitFlowAction / ReportFlowService#submitAction | POST /api/receipts/flow | sample_receipts.flow_status（archived → 终态/退回 issuance） | M03.F08.I03 | - | 已上线 |
+| M03.F09.I01 | SampleReceiptController#receiptsGetReceipt / SampleReceiptService#get | GET /api/receipts/{id} | sample_receipts（含 flow_history）+ 客户端组合 samples + test_records 展示 | M03.F09.I01 | - | 已上线 |
+
+> B11 说明：F-级状态统一从「规划」翻「已上线」（M00.F01/F02 + M01.F04/F05 + M02.F01 +
+> M03.F01/F02/F03/F05/F06/F07/F08/F09 + M04.F06-F09 + M05.F01/F02 + M06.F01-F08 共 27 个 F-级）。
+> F-级作为汇总行，反映其下所有 I-级 100% 已上线的状态；不再有「I-级 已上线 / F-级 规划」
+> 的语义不一致。
+> M03.F09.I01 客户端组合 3 端点（GET receipt + list samples + list test-records）展示
+> 接样-样品-检测数据三视图。
+> 总功能条目 149（148 旧 + 1 新 = 149），14 软告警（11 新 I-级无测试引用 + 1 新设计映射
+> + 2 M05 不挂流程属正常）。
 
 > B10 说明：M03.F05-F08 报告流程 4 阶段扩 I02-I03 共 8 个 I 级（view detail + stage
 > action）。实现沿用已有 ReportFlowService.submitAction（POST /api/receipts/flow）+ 
