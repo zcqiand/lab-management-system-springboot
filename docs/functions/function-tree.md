@@ -81,4 +81,18 @@
 
 ## 子项级（M0x.F0y.I0z）
 
-暂无。随实现逐波 tree-change 推进（后端 I = 端点）。
+> Batch B1（认证域，M00.F01/F02 + M01.F04/F05，对应 AuthApi 9 端点）。
+> 用户/租户来源：dev 配置式目录（镜像 lab-msw seeds：admin/dev123456 + TENANT-001/2/3），
+> 无 DB 身份表（见 open question：V014 identity 表）。
+
+| 子项 ID | 名称 | 闭环定义 | 类型 | 状态 |
+|---|---|---|---|---|
+| M00.F01.I01 | 当前会话 | GET /api/auth/me：user + 关联租户列表 + currentTenantId（token tenant_id claim，缺省 TENANT-001） | 接口 | 已上线 |
+| M00.F02.I01 | 选租户换发 | POST /api/auth/switch-tenant：校验租户归属后换发携带 tenant_id claim 的 token | 接口 | 已上线 |
+| M01.F04.I01 | 动态菜单 | GET /api/auth/menus：按角色下发导航树（5 根节点，镜像 lab-msw） | 接口 | 已上线 |
+| M01.F04.I02 | 权限集 | GET /api/auth/permissions：RBAC 权限串列表（admin 全量 11 项） | 接口 | 已上线 |
+| M01.F05.I01 | 密码登录 | POST /api/auth/login：用户名+密码校验，签发 access/refresh token + 租户列表 | 接口 | 已上线 |
+| M01.F05.I02 | SSO 跳转 | GET /api/auth/sso/authorize?redirect=：构造 saas 身份平台登录跳转 URL + state | 接口 | 已上线 |
+| M01.F05.I03 | SSO 回调 | POST /api/auth/sso/callback：dev 直发 demo 会话（真对接待 saas 端点可用） | 接口 | 已上线 |
+| M01.F05.I04 | 刷新 token | POST /api/auth/refresh：refresh token 换发新 access token | 接口 | 已上线 |
+| M01.F05.I05 | 登出 | POST /api/auth/logout：无状态 JWT 服务端无 session，前端清存储 | 接口 | 已上线 |

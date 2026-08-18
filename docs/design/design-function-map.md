@@ -8,7 +8,19 @@
 
 | 功能子项 ID | 页面/组件 | 接口 | 数据表 | 权限码 | 设计稿 | 状态 |
 |---|---|---|---|---|---|---|
-| | | | | | | |
+| M00.F01.I01 | AuthController#authGetCurrentUser / AuthService#me | GET /api/auth/me | -（配置式目录） | M00.F01.I01 | - | 已上线 |
+| M00.F02.I01 | AuthController#authSwitchTenant / AuthService#switchTenant | POST /api/auth/switch-tenant | -（配置式目录） | M00.F02.I01 | - | 已上线 |
+| M01.F04.I01 | AuthController#authGetMenus / AuthService#menus | GET /api/auth/menus | - | M01.F04.I01 | - | 已上线 |
+| M01.F04.I02 | AuthController#authGetPermissions / AuthService#permissions | GET /api/auth/permissions | - | M01.F04.I02 | - | 已上线 |
+| M01.F05.I01 | AuthController#authLogin / AuthService#login | POST /api/auth/login | -（配置式目录） | M01.F05.I01 | - | 已上线 |
+| M01.F05.I02 | AuthController#authSsoAuthorize / AuthService#ssoAuthorize | GET /api/auth/sso/authorize | - | M01.F05.I02 | - | 已上线 |
+| M01.F05.I03 | AuthController#authSsoCallback / AuthService#ssoCallback | POST /api/auth/sso/callback | - | M01.F05.I03 | - | 已上线 |
+| M01.F05.I04 | AuthController#authRefresh / AuthService#refresh | POST /api/auth/refresh | - | M01.F05.I04 | - | 已上线 |
+| M01.F05.I05 | AuthController#authLogout / AuthService#logout | POST /api/auth/logout | - | M01.F05.I05 | - | 已上线 |
+
+> B1 说明：lab_dev 无身份表（shared SQL SSOT 不含 users/tenants），认证域用户/租户走
+> `io.xr.lab.platform.directory.ConfigUserDirectory`（配置式，镜像 lab-msw seeds）。
+> 「数据表」列的 `-（配置式目录）` 即指此处；V014 identity 表落地后回填。
 
 ## 约定
 

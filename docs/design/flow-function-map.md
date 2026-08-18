@@ -4,16 +4,24 @@
 > 评审时把流程图投出来，逐行念「这一步靠哪些功能完成」。念不出来的行，
 > 要么流程是空的，要么功能是缺的。这就是对齐的全部意义。
 
-## FLOW-01 （主流程名）
+## FLOW-01 认证与会话（B1）
 
 ```mermaid
 flowchart TD
-    S01[S01 ] --> S02[S02 ]
+    S01[登录/SSO] --> S02[选租户]
+    S02 --> S03[会话使用]
+    S03 --> S04[登出]
+    S03 --> S05[token 刷新]
+    S05 --> S03
 ```
 
 | 步骤 | 名称 | 角色 | 输入 | 输出 | 状态流转 | 支撑功能子项 |
 |---|---|---|---|---|---|---|
-| S01 | | | | | | |
+| S01 | 登录（密码或 SSO 跳 saas） | 所有用户 | username/password 或 sso code | access/refresh token + 租户列表 | anonymous -> awaiting_tenant | M01.F05.I01, M01.F05.I02, M01.F05.I03 |
+| S02 | 选租户换发 token | 所有用户 | tenantId | 携带 tenant_id claim 的新 token | awaiting_tenant -> authenticated | M00.F02.I01 |
+| S03 | 会话使用（me/菜单/权限） | 所有用户 | Bearer token | user + tenants + currentTenantId / 菜单树 / 权限集 | authenticated | M00.F01.I01, M01.F04.I01, M01.F04.I02 |
+| S04 | 登出 | 所有用户 | Bearer token | 204 | authenticated -> anonymous | M01.F05.I05 |
+| S05 | token 刷新 | 所有用户 | refreshToken | 新 access token | authenticated（续期） | M01.F05.I04 |
 
 ### 评审时问这四个问题
 

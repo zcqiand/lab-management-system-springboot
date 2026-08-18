@@ -1,13 +1,25 @@
 {
   "schema": 1,
   "project": "lab-management-system-springboot",
-  "current_task": "项目已初始化，等待第一个需求",
-  "done": ["脚手架生成，门禁全绿"],
-  "next": "跑 /req <需求原话> 落第一份需求文档，同时把 docs/functions/function-tree.md 填成真实功能清单",
-  "open_questions": [],
-  "dont": [
-    "不要改 .harness/stack.json 让门变松",
-    "不要给 skip 的测试挂功能 ID"
+  "current_task": "shared 契约 + DB 底座已接入（152eba0），业务 Controller 零实现",
+  "done": [
+    "scripts/gen-shared.sh 两步 codegen 跑通：shared emit openapi.yaml -> openapi-generator 7.24 spring interfaceOnly；末端自带 AuthState oneOf 修补 + mvn spotless:apply，产物落地即 gate-ready",
+    "DB 与 nextjs 共库：application.yml 默认 jdbc:postgresql://100.79.128.25:5432/lab_dev（LAB_DB_URL 可覆盖）；Flyway baseline-on-migrate v13 与 nextjs 侧 drizzle schema 共存，app 启动实测通过",
+    "V001-V013 空库全量 replay 实证：临时库 lab_flyway_replay 上 13 migrations applied（用后已 drop）",
+    "gate L0-L5 全绿 0 软告警；suite --align --scope lab 通过（base 33/React 100/Vue 100/Next.js 156）",
+    "已推 origin（裸仓 C:/repos），父仓指针 5879c32"
   ],
-  "last_gate_passed_at": null
+  "next": "实现第一个业务 Controller：src/main/java/io/xr/lab/platform/controller/AuthController.java 实现 io.xr.lab.platform.api.AuthApi 接口（login/logout/refresh，参照 saas-springboot 的 controller+service 分层与 Mockito 单测模式），同时把 function-tree.md 对应 I 级从 规划 推进",
+  "open_questions": [
+    "8080 端口被一个残留的 saas-springboot dev 进程（PID 32064，saas.identity.platform.Application）占着，本仓家族约定端口也是 8080--是否由人确认后杀掉",
+    "lab_dev 双管理方（nextjs drizzle sync vs 本仓 Flyway）：目前靠 baseline-version=13 冻结共存，V014 起谁先迁谁负责，需定一个惯例"
+  ],
+  "dont": [
+    "openapi-generator 对 oneOf+enum discriminator 生成 `String getKind()` 接口 vs 变体嵌套 KindEnum 返回类型不兼容，编译必炸--gen-shared.sh 里的 sed 删行修补别删",
+    "生成产物不 over-engineer：spotbugs 193 个 EI_EXPOSE_REP2/NP_NULL 全在生成包，靠 spotbugs-exclude.xml 包级豁免（只豁免 io.xr.lab.shared.dto + io.xr.lab.platform.api，别扩大到手写代码）",
+    "别对 lab_dev 跑 DROP/重建式 replay 实验（nextjs 在用，contracts 有数据）；要演练 replay 就建临时库",
+    "别改 baseline-version 去重放已 baseline 的库；Flyway 不会执行 <baseline 的版本",
+    "不要改 .harness/stack.json 让门变松；不要给 skip 的测试挂功能 ID"
+  ],
+  "last_gate_passed_at": "2026-08-18T09:45:00+08:00"
 }
