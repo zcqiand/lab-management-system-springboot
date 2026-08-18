@@ -50,7 +50,8 @@
   ],
   "trace_env": {},
   "source_dirs": [
-    "src/main/java"
+    "src/main/java",
+    "src/main/resources"
   ],
   "test_dirs": [
     "src/test/java"

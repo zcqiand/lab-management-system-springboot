@@ -165,8 +165,8 @@
 
 | 子项 ID | 名称 | 闭环定义 | 类型 | 状态 |
 |---|---|---|---|---|
-| M05.F01.I01 | 报告汇总 | GET /api/summary?categoryCode=&dateFrom=&dateTo=：categoryCode=ALL 不过滤，否则按报告类别过滤当前租户接样单；输出 SummaryData{summaryName, columns(6), rows} | 查询 | 开发中 |
-| M05.F02.I01 | 仪表盘统计 | GET /api/summary/stats：合同/接样/样品 计数 + 3 桶报告状态（draft=receiving+task_assignment+data_entry；reviewing=review+approval；issued=issuance+archived）+ pendingTaskCount（task_assignment+data_entry+review） | 查询 | 开发中 |
+| M05.F01.I01 | 报告汇总 | GET /api/summary?categoryCode=&dateFrom=&dateTo=：categoryCode=ALL 不过滤，否则按报告类别过滤当前租户接样单；输出 SummaryData{summaryName, columns(6), rows}；data-fn=nextjs/react/vue 仓 SummaryPage | 查询 | 已上线 |
+| M05.F02.I01 | 仪表盘统计 | GET /api/summary/stats：合同/接样/样品 计数 + 3 桶报告状态（draft=receiving+task_assignment+data_entry；reviewing=review+approval；issued=issuance+archived）+ pendingTaskCount（task_assignment+data_entry+review）；data-fn=nextjs/react/vue 仓 dashboard | 查询 | 已上线 |
 
 > Batch B5（M06 字典 5 实体 22 端点 — 标准/参数/专项/报告名称/参数界面，平台级共享字典 per V012 不加 tenant_id）。
 > 3 实体 specialty/parameter/standard 走 InspectionDictionaryApi（12 端点，list+create+update+delete 各 4）+ 新增 2 个 AttributeConverter 写 PG enum 小写值
