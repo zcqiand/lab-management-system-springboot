@@ -1,6 +1,7 @@
 package io.xr.lab.platform.controller;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.xr.lab.platform.service.InspectionJunctionService;
 import io.xr.lab.platform.service.InspectionReportNameService;
 import io.xr.lab.shared.api.ReportNamesApi;
 import io.xr.lab.shared.dto.CreateInspectionReportNameRequest;
@@ -27,12 +28,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class InspectionReportNameController implements ReportNamesApi {
 
   private final InspectionReportNameService service;
+  private final InspectionJunctionService junctionService;
 
   @SuppressFBWarnings(
       value = "EI_EXPOSE_REP2",
       justification = "Spring DI singleton: 控制器按规范持有 service 的共享 bean 引用。")
-  public InspectionReportNameController(InspectionReportNameService service) {
+  public InspectionReportNameController(
+      InspectionReportNameService service, InspectionJunctionService junctionService) {
     this.service = service;
+    this.junctionService = junctionService;
   }
 
   @Override
@@ -63,41 +67,47 @@ public class InspectionReportNameController implements ReportNamesApi {
     return ResponseEntity.noContent().build();
   }
 
-  // === junction link/unlink（M06 — 下一批）===
+  // === junction link/unlink（B6 落地）===
 
   @Override
   public ResponseEntity<Void> reportNamesLinkObjectReportName(ObjectReportNameLink body) {
-    throw new UnsupportedOperationException(
-        "ReportName link/object endpoint deferred to next batch (needs Object entity)");
+    junctionService.linkObjectReportName(body);
+    return ResponseEntity.noContent().build();
   }
 
   @Override
   public ResponseEntity<Void> reportNamesUnlinkObjectReportName(
       io.xr.lab.shared.dto.ReportNamesUnlinkObjectReportNameRequest body) {
-    throw new UnsupportedOperationException("ReportName unlink/object deferred to next batch");
+    junctionService.unlinkObjectReportName(
+        body.getInspectionObjectCode(), body.getReportNameCode());
+    return ResponseEntity.noContent().build();
   }
 
   @Override
   public ResponseEntity<Void> reportNamesLinkReportNameParameter(ReportNameParameterLink body) {
-    throw new UnsupportedOperationException(
-        "ReportName link/parameter endpoint deferred to next batch");
+    junctionService.linkReportNameParameter(body);
+    return ResponseEntity.noContent().build();
   }
 
   @Override
   public ResponseEntity<Void> reportNamesUnlinkReportNameParameter(
       io.xr.lab.shared.dto.ReportNamesUnlinkReportNameParameterRequest body) {
-    throw new UnsupportedOperationException("ReportName unlink/parameter deferred to next batch");
+    junctionService.unlinkReportNameParameter(
+        body.getReportNameCode(), body.getInspectionParameterCode());
+    return ResponseEntity.noContent().build();
   }
 
   @Override
   public ResponseEntity<Void> reportNamesLinkReportNameStandard(ReportNameStandardLink body) {
-    throw new UnsupportedOperationException(
-        "ReportName link/standard endpoint deferred to next batch");
+    junctionService.linkReportNameStandard(body);
+    return ResponseEntity.noContent().build();
   }
 
   @Override
   public ResponseEntity<Void> reportNamesUnlinkReportNameStandard(
       io.xr.lab.shared.dto.ReportNamesUnlinkReportNameStandardRequest body) {
-    throw new UnsupportedOperationException("ReportName unlink/standard deferred to next batch");
+    junctionService.unlinkReportNameStandard(
+        body.getReportNameCode(), body.getInspectionStandardCode(), body.getRole());
+    return ResponseEntity.noContent().build();
   }
 }

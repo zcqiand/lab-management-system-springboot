@@ -11,20 +11,25 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.xr.harness.junit.Fn;
+import io.xr.lab.platform.entity.InspectionObjectEntity;
 import io.xr.lab.platform.entity.InspectionParameterEntity;
 import io.xr.lab.platform.entity.InspectionSpecialtyEntity;
 import io.xr.lab.platform.entity.InspectionStandardEntity;
+import io.xr.lab.platform.repository.InspectionObjectRepository;
 import io.xr.lab.platform.repository.InspectionParameterRepository;
 import io.xr.lab.platform.repository.InspectionSpecialtyRepository;
 import io.xr.lab.platform.repository.InspectionStandardRepository;
+import io.xr.lab.shared.dto.CreateInspectionObjectRequest;
 import io.xr.lab.shared.dto.CreateInspectionParameterRequest;
 import io.xr.lab.shared.dto.CreateInspectionSpecialtyRequest;
 import io.xr.lab.shared.dto.CreateInspectionStandardRequest;
+import io.xr.lab.shared.dto.InspectionObject;
 import io.xr.lab.shared.dto.InspectionParameter;
 import io.xr.lab.shared.dto.InspectionParameterSourceType;
 import io.xr.lab.shared.dto.InspectionSpecialty;
 import io.xr.lab.shared.dto.InspectionStandard;
 import io.xr.lab.shared.dto.InspectionStandardStatus;
+import io.xr.lab.shared.dto.UpdateInspectionObjectRequest;
 import io.xr.lab.shared.dto.UpdateInspectionParameterRequest;
 import io.xr.lab.shared.dto.UpdateInspectionSpecialtyRequest;
 import io.xr.lab.shared.dto.UpdateInspectionStandardRequest;
@@ -42,6 +47,7 @@ import org.mockito.ArgumentCaptor;
 class InspectionDictionaryServiceTest {
 
   private InspectionSpecialtyRepository specialtyRepo;
+  private InspectionObjectRepository objectRepo;
   private InspectionParameterRepository parameterRepo;
   private InspectionStandardRepository standardRepo;
   private InspectionDictionaryService service;
@@ -49,9 +55,11 @@ class InspectionDictionaryServiceTest {
   @BeforeEach
   void setUp() {
     specialtyRepo = org.mockito.Mockito.mock(InspectionSpecialtyRepository.class);
+    objectRepo = org.mockito.Mockito.mock(InspectionObjectRepository.class);
     parameterRepo = org.mockito.Mockito.mock(InspectionParameterRepository.class);
     standardRepo = org.mockito.Mockito.mock(InspectionStandardRepository.class);
-    service = new InspectionDictionaryService(specialtyRepo, parameterRepo, standardRepo);
+    service =
+        new InspectionDictionaryService(specialtyRepo, objectRepo, parameterRepo, standardRepo);
   }
 
   // ============== M06.F01 Specialty ==============
@@ -315,6 +323,92 @@ class InspectionDictionaryServiceTest {
     e.setCode(code);
     e.setName("标准-" + code);
     e.setStatus(InspectionStandardStatus.ACTIVE);
+    e.setSortOrder(0);
+    e.setCreatedAt("2026-08-18T10:00:00Z");
+    e.setUpdatedAt("2026-08-18T10:00:00Z");
+    return e;
+  }
+
+  // ============== M06.F02 Object ==============
+
+  // I01 list
+  @Test
+  @Fn({"M06.F02.I01"})
+  void listObjects_filtersBySpecialtyAndKeyword() {
+    when(objectRepo.filter("", "")).thenReturn(List.of(object("OBJ-1"), object("OBJ-2")));
+    List<InspectionObject> out = service.listObjects(null, null);
+    assertEquals(2, out.size());
+  }
+
+  // I02 create
+  @Test
+  @Fn({"M06.F02.I02"})
+  void createObject_appliesBooleanDefaults() {
+    when(objectRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+    var req = new CreateInspectionObjectRequest("OBJ-1", "S-1", "PRJ-001", "工程-001", "抗压检测");
+    InspectionObject out = service.createObject(req);
+    ArgumentCaptor<InspectionObjectEntity> captor =
+        ArgumentCaptor.forClass(InspectionObjectEntity.class);
+    verify(objectRepo).save(captor.capture());
+    InspectionObjectEntity saved = captor.getValue();
+    assertEquals(Boolean.FALSE, saved.getIsOptionalForQualification());
+    assertEquals(Boolean.TRUE, saved.getIsOfficial());
+    assertEquals(Boolean.TRUE, saved.getEnabled());
+    assertEquals(0, saved.getSortOrder());
+    assertEquals("OBJ-1", out.getCode());
+  }
+
+  // I03 update
+  @Test
+  @Fn({"M06.F02.I03"})
+  void updateObject_appliesProvidedFieldsOnly() {
+    InspectionObjectEntity existing = object("OBJ-1");
+    when(objectRepo.findById("OBJ-1")).thenReturn(Optional.of(existing));
+    when(objectRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+    InspectionObject out =
+        service.updateObject(
+            "OBJ-1", new UpdateInspectionObjectRequest().name("抗压检测v2").enabled(Boolean.FALSE));
+    assertEquals("抗压检测v2", out.getName());
+    assertFalse(out.getEnabled());
+    // 未传字段保留
+    assertEquals("S-1", out.getInspectionSpecialtyCode());
+  }
+
+  @Test
+  @Fn({"M06.F02.I03"})
+  void updateObject_missing_throws404() {
+    when(objectRepo.findById("X")).thenReturn(Optional.empty());
+    assertThrows(
+        NoSuchElementException.class,
+        () -> service.updateObject("X", new UpdateInspectionObjectRequest()));
+  }
+
+  // I04 delete
+  @Test
+  @Fn({"M06.F02.I04"})
+  void deleteObject_existing_succeeds() {
+    when(objectRepo.existsById("OBJ-1")).thenReturn(true);
+    service.deleteObject("OBJ-1");
+    verify(objectRepo, times(1)).deleteById("OBJ-1");
+  }
+
+  @Test
+  @Fn({"M06.F02.I04"})
+  void deleteObject_missing_throws404() {
+    when(objectRepo.existsById("X")).thenReturn(false);
+    assertThrows(NoSuchElementException.class, () -> service.deleteObject("X"));
+  }
+
+  private static InspectionObjectEntity object(String code) {
+    InspectionObjectEntity e = new InspectionObjectEntity();
+    e.setCode(code);
+    e.setInspectionSpecialtyCode("S-1");
+    e.setSourceProjectNo("PRJ-001");
+    e.setSourceProjectName("工程-001");
+    e.setName("对象-" + code);
+    e.setIsOptionalForQualification(false);
+    e.setIsOfficial(true);
+    e.setEnabled(true);
     e.setSortOrder(0);
     e.setCreatedAt("2026-08-18T10:00:00Z");
     e.setUpdatedAt("2026-08-18T10:00:00Z");

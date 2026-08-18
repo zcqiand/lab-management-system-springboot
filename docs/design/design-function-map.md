@@ -86,11 +86,46 @@
 | M06.F08.I03 | ParamInterfaceController#paramInterfacesCreateParamInterface / ParamInterfaceService#create | POST /api/param-interfaces | param_interfaces | M06.F08.I03 | - | 已上线 |
 | M06.F08.I04 | ParamInterfaceController#paramInterfacesUpdateParamInterface / ParamInterfaceService#update | PUT /api/param-interfaces/{code} | param_interfaces | M06.F08.I04 | - | 已上线 |
 | M06.F08.I05 | ParamInterfaceController#paramInterfacesDeleteParamInterface / ParamInterfaceService#delete | DELETE /api/param-interfaces/{code} | param_interfaces | M06.F08.I05 | - | 已上线 |
+| M06.F02.I01 | InspectionDictionaryController#inspectionDictionaryListObjects / InspectionDictionaryService#listObjects | GET /api/inspection/objects?inspectionSpecialtyCode=&keyword= | inspection_objects（V008，平台级） | M06.F02.I01 | - | 已上线 |
+| M06.F02.I02 | InspectionDictionaryController#inspectionDictionaryCreateObject / InspectionDictionaryService#createObject | POST /api/inspection/objects | inspection_objects（FK inspection_specialty_code V008 RESTRICT） | M06.F02.I02 | - | 已上线 |
+| M06.F02.I03 | InspectionDictionaryController#inspectionDictionaryUpdateObject / InspectionDictionaryService#updateObject | PUT /api/inspection/objects/{code} | inspection_objects | M06.F02.I03 | - | 已上线 |
+| M06.F02.I04 | InspectionDictionaryController#inspectionDictionaryDeleteObject / InspectionDictionaryService#deleteObject | DELETE /api/inspection/objects/{code} | inspection_objects | M06.F02.I04 | - | 已上线 |
+| M06.F01.I05 | InspectionDictionaryController#inspectionDictionaryLinkSpecialtyObject / InspectionJunctionService#linkSpecialtyObject | POST /api/inspection/links/specialty-object | inspection_specialty_objects（V008，PK 复合 SpecialtyObjectKey） | M06.F01.I05 | - | 已上线 |
+| M06.F01.I06 | InspectionDictionaryController#inspectionDictionaryUnlinkSpecialtyObject / InspectionJunctionService#unlinkSpecialtyObject | DELETE /api/inspection/links/specialty-object | inspection_specialty_objects | M06.F01.I06 | - | 已上线 |
+| M06.F02.I07 | InspectionDictionaryController#inspectionDictionaryLinkObjectParameter / InspectionJunctionService#linkObjectParameter | POST /api/inspection/links/object-parameter | inspection_object_parameters（qualification_level PG enum，@Enumerated(STRING) 大写） | M06.F02.I07 | - | 已上线 |
+| M06.F02.I08 | InspectionDictionaryController#inspectionDictionaryUnlinkObjectParameter / InspectionJunctionService#unlinkObjectParameter | DELETE /api/inspection/links/object-parameter | inspection_object_parameters | M06.F02.I08 | - | 已上线 |
+| M06.F02.I05 | InspectionDictionaryController#inspectionDictionaryLinkObjectStandard / InspectionJunctionService#linkObjectStandard | POST /api/inspection/links/object-standard | inspection_object_standards（role PK，PK 复合 ObjectStandardKey） | M06.F02.I05 | - | 已上线 |
+| M06.F02.I06 | InspectionDictionaryController#inspectionDictionaryUnlinkObjectStandard / InspectionJunctionService#unlinkObjectStandard | DELETE /api/inspection/links/object-standard | inspection_object_standards | M06.F02.I06 | - | 已上线 |
+| M06.F03.I05 | InspectionDictionaryController#inspectionDictionaryLinkStandardParameter / InspectionJunctionService#linkStandardParameter | POST /api/inspection/links/standard-parameter | inspection_standard_parameters（PK 复合 StandardParameterKey） | M06.F03.I05 | - | 已上线 |
+| M06.F03.I06 | InspectionDictionaryController#inspectionDictionaryUnlinkStandardParameter / InspectionJunctionService#unlinkStandardParameter | DELETE /api/inspection/links/standard-parameter | inspection_standard_parameters | M06.F03.I06 | - | 已上线 |
+| M06.F07.I06 | InspectionReportNameController#reportNamesLinkObjectReportName / InspectionJunctionService#linkObjectReportName | POST /api/report-names/links/object | inspection_object_report_names（V009，PK 复合 ObjectReportNameKey） | M06.F07.I06 | - | 已上线 |
+| M06.F04.I05 | InspectionReportNameController#reportNamesUnlinkObjectReportName / InspectionJunctionService#unlinkObjectReportName | DELETE /api/report-names/links/object | inspection_object_report_names | M06.F04.I05 | - | 已上线 |
+| M06.F07.I07 | InspectionReportNameController#reportNamesLinkReportNameStandard / InspectionJunctionService#linkReportNameStandard | POST /api/report-names/links/standard | inspection_report_name_standards（role PK，PK 复合 ReportNameStandardKey） | M06.F07.I07 | - | 已上线 |
+| M06.F04.I07 | InspectionReportNameController#reportNamesUnlinkReportNameStandard / InspectionJunctionService#unlinkReportNameStandard | DELETE /api/report-names/links/standard | inspection_report_name_standards | M06.F04.I07 | - | 已上线 |
+| M06.F07.I08 | InspectionReportNameController#reportNamesLinkReportNameParameter / InspectionJunctionService#linkReportNameParameter | POST /api/report-names/links/parameter | inspection_report_name_parameters（PK 复合 ReportNameParameterKey） | M06.F07.I08 | - | 已上线 |
+| M06.F04.I06 | InspectionReportNameController#reportNamesUnlinkReportNameParameter / InspectionJunctionService#unlinkReportNameParameter | DELETE /api/report-names/links/parameter | inspection_report_name_parameters | M06.F04.I06 | - | 已上线 |
+| M06.F08.I06 | ParamInterfaceController#paramInterfacesLinkParamInterface / InspectionJunctionService#linkParamInterface | POST /api/param-interfaces/links | param_interface_links（V010，PK 复合 ParamInterfaceLinkKey，config 走 jsonb） | M06.F08.I06 | - | 已上线 |
+| M06.F03.I07 | ParamInterfaceController#paramInterfacesUnlinkParamInterface / InspectionJunctionService#unlinkParamInterface | DELETE /api/param-interfaces/links | param_interface_links | M06.F03.I07 | - | 已上线 |
 
 > B4 说明：SummaryApi 2 端点（GET /api/summary 报告汇总 + GET /api/summary/stats 仪表盘）。tenant 收口走
 > `ConfigUserDirectory` 默认租户 TENANT-001，dev fallback。报告汇总 column 6 列固定（委托编号/报告类别/工程名称/流程状态/结论/报告编号），
 > row 走 `Map<String,String>` 动态；categoryCode=ALL 不过滤。仪表盘 3 桶（draft=receiving+task_assignment+data_entry；
 > reviewing=review+approval；issued=issuance+archived）+ pendingTask（task_assignment+data_entry+review）。
+
+> B6 说明：M06.F02 objects 4 CRUD + 8 个 junction link/unlink 端点（4 字典 junction + 3 报告名 junction + 1 参数界面 link）= 20 端点 / 20 I。
+> 8 张 junction 表都已在 V008/V009/V010 落地，本仓直读 Flyway baseline：
+> - inspection_specialty_objects（specialty↔object）— PK 复合 SpecialtyObjectKey
+> - inspection_object_parameters（object↔parameter）— PK 复合 ObjectParameterKey，qualification_level PG enum 用 @Enumerated(STRING) 写大写
+> - inspection_object_standards（object↔standard with role）— PK 复合 ObjectStandardKey（3 字段含 role）
+> - inspection_standard_parameters（standard↔parameter）— PK 复合 StandardParameterKey
+> - inspection_object_report_names（object↔report-name）— PK 复合 ObjectReportNameKey
+> - inspection_report_name_standards（report-name↔standard with role）— PK 复合 ReportNameStandardKey
+> - inspection_report_name_parameters（report-name↔parameter）— PK 复合 ReportNameParameterKey
+> - param_interface_links（parameter↔interface）— PK 复合 ParamInterfaceLinkKey，config 走 jsonb 序列化 String
+>
+> 所有 @IdClass 实体都 implements Serializable + serialVersionUID = 1L（SpotBugs SE_NO_SERIALVERSIONID）。
+> link 走 save()（upsert 语义：同 PK 重复时覆盖），unlink 走 existsById + deleteById 兜底 404（@Fn 标记 16 I）。
+> service 8 个 Repository + 1 个 InspectionJunctionService 集中处理 16 junction 端点，3 controller 共享同一 service。
 
 > B5 说明：InspectionDictionaryApi + ReportNamesApi + ParamInterfacesApi 共 22 端点上线（M06.F01/F03/F04/F07/F08 5 实体 CRUD）。
 > 3 张表 inspection_specialties/inspection_parameters/inspection_standards（V008）+ inspection_report_names（V009）+ param_interfaces（V010），

@@ -200,3 +200,38 @@
 | M06.F08.I03 | 创建参数界面 | POST /api/param-interfaces：code/componentPath 必填；config 默认 {} | 接口 | 已上线 |
 | M06.F08.I04 | 更新参数界面 | PUT /api/param-interfaces/{code}：PATCH 语义 | 接口 | 已上线 |
 | M06.F08.I05 | 删除参数界面 | DELETE /api/param-interfaces/{code}：204 if exists | 接口 | 已上线 |
+
+> Batch B6（M06.F02 objects 4 CRUD + 8 个 junction link/unlink 端点 = 20 端点 / 20 I）：
+> 4 CRUD object 走 InspectionDictionaryApi（list+create+update+delete）；
+> 4 个 junction 表（specialty-object / object-parameter / object-standard(role) / standard-parameter）
+> + 3 个 report-name junction（object / parameter / standard(role)）+ 1 个 param-interface link = 8 link/unlink 对。
+> junction key 设计：4 字典 junction 都用复合主键（SpecialtyObjectKey / ObjectParameterKey /
+> ObjectStandardKey(role) / StandardParameterKey）；3 报告名 junction 用 ObjectReportNameKey /
+> ReportNameParameterKey / ReportNameStandardKey(role)；1 参数界面用 ParamInterfaceLinkKey。
+> 实体 PK 全部 id 端走 @IdClass（Serializable + serialVersionUID，SpotBugs SE_NO_SERIALVERSIONID）。
+> 3 张 role-based junction（ObjectStandardKey、ReportNameStandardKey、InspectionObjectStandardEntity.role）走
+> @Enumerated(STRING) 写大写常量名（与 PG enum 标签同款），无需 AttributeConverter。
+> param_interface_links.config 走 jsonb 序列化 String（M06.F08.I06 链路）。
+
+| 子项 ID | 名称 | 闭环定义 | 类型 | 状态 |
+|---|---|---|---|---|
+| M06.F02.I01 | 项目列表 | GET /api/inspection/objects?inspectionSpecialtyCode=&keyword=：按 code/name 模糊 + 专项过滤 | 接口 | 已上线 |
+| M06.F02.I02 | 创建项目 | POST /api/inspection/objects：code/inspectionSpecialtyCode/sourceProjectNo/sourceProjectName/name 必填；isOptionalForQualification 默认 false；isOfficial/enabled 默认 true | 接口 | 已上线 |
+| M06.F02.I03 | 更新项目 | PUT /api/inspection/objects/{code}：PATCH 语义 | 接口 | 已上线 |
+| M06.F02.I04 | 删除项目 | DELETE /api/inspection/objects/{code}：204 if exists | 接口 | 已上线 |
+| M06.F02.I05 | 专项↔项目 link | POST /api/inspection/links/specialty-object：建立 specialty→object 关联，remark 可选 | 接口 | 已上线 |
+| M06.F02.I06 | 专项↔项目 unlink | DELETE /api/inspection/links/specialty-object：404 if 不存在 | 接口 | 已上线 |
+| M06.F02.I07 | 项目↔参数 link | POST /api/inspection/links/object-parameter：建立 object→parameter 关联，qualificationLevel 默认 QUALIFIED，sourcePage/remark 可选 | 接口 | 已上线 |
+| M06.F02.I08 | 项目↔参数 unlink | DELETE /api/inspection/links/object-parameter：404 if 不存在 | 接口 | 已上线 |
+| M06.F01.I05 | 项目↔标准 link | POST /api/inspection/links/object-standard：建立 object→standard(role) 关联，role 必填（TESTING/JUDGMENT） | 接口 | 已上线 |
+| M06.F01.I06 | 项目↔标准 unlink | DELETE /api/inspection/links/object-standard：404 if 不存在 | 接口 | 已上线 |
+| M06.F03.I05 | 标准↔参数 link | POST /api/inspection/links/standard-parameter：建立 standard→parameter 关联 | 接口 | 已上线 |
+| M06.F03.I06 | 标准↔参数 unlink | DELETE /api/inspection/links/standard-parameter：404 if 不存在 | 接口 | 已上线 |
+| M06.F07.I06 | 项目↔报告名称 link | POST /api/report-names/links/object：建立 object→report-name 关联，remark 可选 | 接口 | 已上线 |
+| M06.F07.I07 | 报告名称↔标准 link | POST /api/report-names/links/standard：建立 report-name→standard(role) 关联，role 必填 | 接口 | 已上线 |
+| M06.F07.I08 | 报告名称↔参数 link | POST /api/report-names/links/parameter：建立 report-name→parameter 关联 | 接口 | 已上线 |
+| M06.F04.I07 | 报告名称↔标准 unlink | DELETE /api/report-names/links/standard：404 if 不存在 | 接口 | 已上线 |
+| M06.F04.I06 | 报告名称↔参数 unlink | DELETE /api/report-names/links/parameter：404 if 不存在 | 接口 | 已上线 |
+| M06.F04.I05 | 项目↔报告名称 unlink | DELETE /api/report-names/links/object：404 if 不存在 | 接口 | 已上线 |
+| M06.F08.I06 | 参数↔界面 link | POST /api/param-interfaces/links：建立 parameter→interface 关联，reportNameCode/config 可选（config 走 jsonb） | 接口 | 已上线 |
+| M06.F03.I07 | 参数↔界面 unlink | DELETE /api/param-interfaces/links：404 if 不存在 | 接口 | 已上线 |

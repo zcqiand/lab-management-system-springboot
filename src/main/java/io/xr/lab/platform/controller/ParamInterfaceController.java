@@ -1,6 +1,7 @@
 package io.xr.lab.platform.controller;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.xr.lab.platform.service.InspectionJunctionService;
 import io.xr.lab.platform.service.ParamInterfaceService;
 import io.xr.lab.shared.api.ParamInterfacesApi;
 import io.xr.lab.shared.dto.CreateParamInterfaceRequest;
@@ -20,12 +21,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class ParamInterfaceController implements ParamInterfacesApi {
 
   private final ParamInterfaceService service;
+  private final InspectionJunctionService junctionService;
 
   @SuppressFBWarnings(
       value = "EI_EXPOSE_REP2",
       justification = "Spring DI singleton: 控制器按规范持有 service 的共享 bean 引用。")
-  public ParamInterfaceController(ParamInterfaceService service) {
+  public ParamInterfaceController(
+      ParamInterfaceService service, InspectionJunctionService junctionService) {
     this.service = service;
+    this.junctionService = junctionService;
   }
 
   @Override
@@ -56,17 +60,19 @@ public class ParamInterfaceController implements ParamInterfacesApi {
     return ResponseEntity.noContent().build();
   }
 
-  // === junction link/unlink（M06 — 下一批）===
+  // === junction link/unlink（B6 落地）===
 
   @Override
   public ResponseEntity<Void> paramInterfacesLinkParamInterface(ParamInterfaceLink body) {
-    throw new UnsupportedOperationException("ParamInterface link endpoint deferred to next batch");
+    junctionService.linkParamInterface(body);
+    return ResponseEntity.noContent().build();
   }
 
   @Override
   public ResponseEntity<Void> paramInterfacesUnlinkParamInterface(
       io.xr.lab.shared.dto.ParamInterfacesUnlinkParamInterfaceRequest body) {
-    throw new UnsupportedOperationException(
-        "ParamInterface unlink endpoint deferred to next batch");
+    junctionService.unlinkParamInterface(
+        body.getInspectionParameterCode(), body.getParamInterfaceCode());
+    return ResponseEntity.noContent().build();
   }
 }

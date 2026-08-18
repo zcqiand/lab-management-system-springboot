@@ -2,6 +2,7 @@ package io.xr.lab.platform.controller;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.xr.lab.platform.service.InspectionDictionaryService;
+import io.xr.lab.platform.service.InspectionJunctionService;
 import io.xr.lab.shared.api.InspectionDictionaryApi;
 import io.xr.lab.shared.dto.CreateInspectionObjectRequest;
 import io.xr.lab.shared.dto.CreateInspectionParameterRequest;
@@ -33,12 +34,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class InspectionDictionaryController implements InspectionDictionaryApi {
 
   private final InspectionDictionaryService service;
+  private final InspectionJunctionService junctionService;
 
   @SuppressFBWarnings(
       value = "EI_EXPOSE_REP2",
       justification = "Spring DI singleton: 控制器按规范持有 service 的共享 bean 引用。")
-  public InspectionDictionaryController(InspectionDictionaryService service) {
+  public InspectionDictionaryController(
+      InspectionDictionaryService service, InspectionJunctionService junctionService) {
     this.service = service;
+    this.junctionService = junctionService;
   }
 
   // === M06.F01 Specialty ===
@@ -119,72 +123,83 @@ public class InspectionDictionaryController implements InspectionDictionaryApi {
     return ResponseEntity.noContent().build();
   }
 
-  // === M06.F02 Object + 4 junction 端点（下一批实现）===
+  // === M06.F02 Object + 4 junction 端点（B6 落地）===
 
   @Override
   public ResponseEntity<List<InspectionObject>> inspectionDictionaryListObjects(
       String inspectionSpecialtyCode, String keyword) {
-    throw new UnsupportedOperationException("M06.F02 objects endpoint deferred to next batch (B6)");
+    return ResponseEntity.ok(service.listObjects(inspectionSpecialtyCode, keyword));
   }
 
   @Override
   public ResponseEntity<InspectionObject> inspectionDictionaryCreateObject(
       CreateInspectionObjectRequest body) {
-    throw new UnsupportedOperationException("M06.F02 objects endpoint deferred to next batch (B6)");
+    return ResponseEntity.ok(service.createObject(body));
   }
 
   @Override
   public ResponseEntity<InspectionObject> inspectionDictionaryUpdateObject(
       String code, UpdateInspectionObjectRequest body) {
-    throw new UnsupportedOperationException("M06.F02 objects endpoint deferred to next batch (B6)");
+    return ResponseEntity.ok(service.updateObject(code, body));
   }
 
   @Override
   public ResponseEntity<Void> inspectionDictionaryDeleteObject(String code) {
-    throw new UnsupportedOperationException("M06.F02 objects endpoint deferred to next batch (B6)");
+    service.deleteObject(code);
+    return ResponseEntity.noContent().build();
   }
 
   @Override
   public ResponseEntity<Void> inspectionDictionaryLinkSpecialtyObject(SpecialtyObjectLink body) {
-    throw new UnsupportedOperationException("M06 junction link deferred to B6 (needs Object)");
+    junctionService.linkSpecialtyObject(body);
+    return ResponseEntity.noContent().build();
   }
 
   @Override
   public ResponseEntity<Void> inspectionDictionaryUnlinkSpecialtyObject(SpecialtyObjectLink body) {
-    throw new UnsupportedOperationException("M06 junction unlink deferred to B6");
+    junctionService.unlinkSpecialtyObject(body);
+    return ResponseEntity.noContent().build();
   }
 
   @Override
   public ResponseEntity<Void> inspectionDictionaryLinkObjectParameter(ObjectParameterLink body) {
-    throw new UnsupportedOperationException("M06 junction link deferred to B6 (needs Object)");
+    junctionService.linkObjectParameter(body);
+    return ResponseEntity.noContent().build();
   }
 
   @Override
   public ResponseEntity<Void> inspectionDictionaryUnlinkObjectParameter(
       io.xr.lab.shared.dto.InspectionDictionaryUnlinkObjectParameterRequest body) {
-    throw new UnsupportedOperationException("M06 junction unlink deferred to B6");
+    junctionService.unlinkObjectParameter(
+        body.getInspectionObjectCode(), body.getInspectionParameterCode());
+    return ResponseEntity.noContent().build();
   }
 
   @Override
   public ResponseEntity<Void> inspectionDictionaryLinkObjectStandard(ObjectStandardLink body) {
-    throw new UnsupportedOperationException("M06 junction link deferred to B6 (needs Object)");
+    junctionService.linkObjectStandard(body);
+    return ResponseEntity.noContent().build();
   }
 
   @Override
   public ResponseEntity<Void> inspectionDictionaryUnlinkObjectStandard(
       io.xr.lab.shared.dto.InspectionDictionaryUnlinkObjectStandardRequest body) {
-    throw new UnsupportedOperationException("M06 junction unlink deferred to B6");
+    junctionService.unlinkObjectStandard(
+        body.getInspectionObjectCode(), body.getInspectionStandardCode(), body.getRole());
+    return ResponseEntity.noContent().build();
   }
 
   @Override
   public ResponseEntity<Void> inspectionDictionaryLinkStandardParameter(
       StandardParameterLink body) {
-    throw new UnsupportedOperationException("M06 junction link deferred to B6 (needs Object)");
+    junctionService.linkStandardParameter(body);
+    return ResponseEntity.noContent().build();
   }
 
   @Override
   public ResponseEntity<Void> inspectionDictionaryUnlinkStandardParameter(
       StandardParameterLink body) {
-    throw new UnsupportedOperationException("M06 junction unlink deferred to B6");
+    junctionService.unlinkStandardParameter(body);
+    return ResponseEntity.noContent().build();
   }
 }

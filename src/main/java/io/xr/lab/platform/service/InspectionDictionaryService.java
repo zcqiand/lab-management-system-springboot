@@ -1,20 +1,25 @@
 package io.xr.lab.platform.service;
 
+import io.xr.lab.platform.entity.InspectionObjectEntity;
 import io.xr.lab.platform.entity.InspectionParameterEntity;
 import io.xr.lab.platform.entity.InspectionSpecialtyEntity;
 import io.xr.lab.platform.entity.InspectionStandardEntity;
 import io.xr.lab.platform.mapper.InspectionDictionaryMapper;
+import io.xr.lab.platform.repository.InspectionObjectRepository;
 import io.xr.lab.platform.repository.InspectionParameterRepository;
 import io.xr.lab.platform.repository.InspectionSpecialtyRepository;
 import io.xr.lab.platform.repository.InspectionStandardRepository;
+import io.xr.lab.shared.dto.CreateInspectionObjectRequest;
 import io.xr.lab.shared.dto.CreateInspectionParameterRequest;
 import io.xr.lab.shared.dto.CreateInspectionSpecialtyRequest;
 import io.xr.lab.shared.dto.CreateInspectionStandardRequest;
+import io.xr.lab.shared.dto.InspectionObject;
 import io.xr.lab.shared.dto.InspectionParameter;
 import io.xr.lab.shared.dto.InspectionParameterSourceType;
 import io.xr.lab.shared.dto.InspectionSpecialty;
 import io.xr.lab.shared.dto.InspectionStandard;
 import io.xr.lab.shared.dto.InspectionStandardStatus;
+import io.xr.lab.shared.dto.UpdateInspectionObjectRequest;
 import io.xr.lab.shared.dto.UpdateInspectionParameterRequest;
 import io.xr.lab.shared.dto.UpdateInspectionSpecialtyRequest;
 import io.xr.lab.shared.dto.UpdateInspectionStandardRequest;
@@ -30,14 +35,17 @@ import org.springframework.stereotype.Service;
 public class InspectionDictionaryService {
 
   private final InspectionSpecialtyRepository specialtyRepo;
+  private final InspectionObjectRepository objectRepo;
   private final InspectionParameterRepository parameterRepo;
   private final InspectionStandardRepository standardRepo;
 
   public InspectionDictionaryService(
       InspectionSpecialtyRepository specialtyRepo,
+      InspectionObjectRepository objectRepo,
       InspectionParameterRepository parameterRepo,
       InspectionStandardRepository standardRepo) {
     this.specialtyRepo = specialtyRepo;
+    this.objectRepo = objectRepo;
     this.parameterRepo = parameterRepo;
     this.standardRepo = standardRepo;
   }
@@ -70,6 +78,36 @@ public class InspectionDictionaryService {
       throw new NoSuchElementException("Specialty not found: " + code);
     }
     specialtyRepo.deleteById(code);
+  }
+
+  // === M06.F02 Object ===
+
+  public List<InspectionObject> listObjects(String inspectionSpecialtyCode, String keyword) {
+    return objectRepo.filter(n(inspectionSpecialtyCode), n(keyword)).stream()
+        .map(InspectionDictionaryMapper::toDto)
+        .toList();
+  }
+
+  public InspectionObject createObject(CreateInspectionObjectRequest req) {
+    String now = nowIso();
+    return InspectionDictionaryMapper.toDto(
+        objectRepo.save(InspectionDictionaryMapper.fromCreateObject(req, now)));
+  }
+
+  public InspectionObject updateObject(String code, UpdateInspectionObjectRequest req) {
+    InspectionObjectEntity entity =
+        objectRepo
+            .findById(code)
+            .orElseThrow(() -> new NoSuchElementException("Object not found: " + code));
+    InspectionDictionaryMapper.applyUpdateObject(entity, req, nowIso());
+    return InspectionDictionaryMapper.toDto(objectRepo.save(entity));
+  }
+
+  public void deleteObject(String code) {
+    if (!objectRepo.existsById(code)) {
+      throw new NoSuchElementException("Object not found: " + code);
+    }
+    objectRepo.deleteById(code);
   }
 
   // === M06.F03 Parameter ===

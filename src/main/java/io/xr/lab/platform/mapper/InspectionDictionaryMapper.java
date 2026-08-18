@@ -2,17 +2,21 @@ package io.xr.lab.platform.mapper;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.xr.lab.platform.entity.InspectionObjectEntity;
 import io.xr.lab.platform.entity.InspectionParameterEntity;
 import io.xr.lab.platform.entity.InspectionSpecialtyEntity;
 import io.xr.lab.platform.entity.InspectionStandardEntity;
+import io.xr.lab.shared.dto.CreateInspectionObjectRequest;
 import io.xr.lab.shared.dto.CreateInspectionParameterRequest;
 import io.xr.lab.shared.dto.CreateInspectionSpecialtyRequest;
 import io.xr.lab.shared.dto.CreateInspectionStandardRequest;
+import io.xr.lab.shared.dto.InspectionObject;
 import io.xr.lab.shared.dto.InspectionParameter;
 import io.xr.lab.shared.dto.InspectionParameterSourceType;
 import io.xr.lab.shared.dto.InspectionSpecialty;
 import io.xr.lab.shared.dto.InspectionStandard;
 import io.xr.lab.shared.dto.InspectionStandardStatus;
+import io.xr.lab.shared.dto.UpdateInspectionObjectRequest;
 import io.xr.lab.shared.dto.UpdateInspectionParameterRequest;
 import io.xr.lab.shared.dto.UpdateInspectionSpecialtyRequest;
 import io.xr.lab.shared.dto.UpdateInspectionStandardRequest;
@@ -73,6 +77,81 @@ public final class InspectionDictionaryMapper {
     }
     if (req.getName() != null) {
       e.setName(req.getName());
+    }
+    if (req.getIsOfficial() != null) {
+      e.setIsOfficial(req.getIsOfficial());
+    }
+    if (req.getEnabled() != null) {
+      e.setEnabled(req.getEnabled());
+    }
+    if (req.getSortOrder() != null) {
+      e.setSortOrder(req.getSortOrder());
+    }
+    e.setUpdatedAt(now);
+  }
+
+  // === Object (M06.F02) ===
+
+  public static InspectionObject toDto(InspectionObjectEntity e) {
+    return new InspectionObject()
+        .code(e.getCode())
+        .inspectionSpecialtyCode(e.getInspectionSpecialtyCode())
+        .sourceProjectNo(e.getSourceProjectNo())
+        .sourceProjectName(e.getSourceProjectName())
+        .name(e.getName())
+        .isOptionalForQualification(e.getIsOptionalForQualification())
+        .isOfficial(e.getIsOfficial())
+        .enabled(e.getEnabled())
+        .sortOrder(e.getSortOrder())
+        .createdAt(e.getCreatedAt())
+        .updatedAt(e.getUpdatedAt());
+  }
+
+  public static InspectionObjectEntity fromCreateObject(
+      CreateInspectionObjectRequest req, String now) {
+    if (req.getCode() == null
+        || req.getInspectionSpecialtyCode() == null
+        || req.getSourceProjectNo() == null
+        || req.getSourceProjectName() == null
+        || req.getName() == null) {
+      throw new IllegalArgumentException(
+          "code, inspectionSpecialtyCode, sourceProjectNo, sourceProjectName and name are required");
+    }
+    InspectionObjectEntity e = new InspectionObjectEntity();
+    e.setCode(req.getCode());
+    e.setInspectionSpecialtyCode(req.getInspectionSpecialtyCode());
+    e.setSourceProjectNo(req.getSourceProjectNo());
+    e.setSourceProjectName(req.getSourceProjectName());
+    e.setName(req.getName());
+    Boolean opt = req.getIsOptionalForQualification();
+    e.setIsOptionalForQualification(opt != null ? opt : Boolean.FALSE);
+    Boolean off = req.getIsOfficial();
+    e.setIsOfficial(off != null ? off : Boolean.TRUE);
+    Boolean en = req.getEnabled();
+    e.setEnabled(en != null ? en : Boolean.TRUE);
+    Integer sort = req.getSortOrder();
+    e.setSortOrder(sort != null ? sort : 0);
+    e.setCreatedAt(now);
+    e.setUpdatedAt(now);
+    return e;
+  }
+
+  public static void applyUpdateObject(
+      InspectionObjectEntity e, UpdateInspectionObjectRequest req, String now) {
+    if (req.getInspectionSpecialtyCode() != null) {
+      e.setInspectionSpecialtyCode(req.getInspectionSpecialtyCode());
+    }
+    if (req.getSourceProjectNo() != null) {
+      e.setSourceProjectNo(req.getSourceProjectNo());
+    }
+    if (req.getSourceProjectName() != null) {
+      e.setSourceProjectName(req.getSourceProjectName());
+    }
+    if (req.getName() != null) {
+      e.setName(req.getName());
+    }
+    if (req.getIsOptionalForQualification() != null) {
+      e.setIsOptionalForQualification(req.getIsOptionalForQualification());
     }
     if (req.getIsOfficial() != null) {
       e.setIsOfficial(req.getIsOfficial());

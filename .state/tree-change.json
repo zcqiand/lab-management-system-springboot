@@ -1,152 +1,128 @@
 {
   "schema": 1,
   "approved": true,
-  "base_sha": "b5a03cd46e27ae6b111ac8bbadab6186b193228c",
-  "summary": "B4 报告汇总（M05.F01 + M05.F02 仪表盘，2 端点）+ B5 M06 字典 5 实体 22 端点（specialty/parameter/standard 12 + report-name 5 + param-interface 5）= 共 24 端点 / 24 I。M05.F02 仪表盘是 M05 新增二级功能（数据统计范畴）",
+  "base_sha": "d1f54a7",
+  "summary": "B6 M06.F02 objects 4 端点 + 8 个 junction link/unlink（4 字典 + 3 报告名 + 1 参数界面）= 共 20 端点 / 20 I。FK 由 V008/V009/V010 + V011 真实约束。",
   "changes": [
     {
-      "id": "M05.F01.I01",
+      "id": "M06.F02.I01",
       "action": "新增",
-      "name": "报告汇总",
-      "reason": "B4 推进：M05 报告汇总表，按 categoryCode + dateFrom/dateTo 过滤"
+      "name": "项目列表",
+      "reason": "B6 推进：M06.F02 检测项目 CRUD"
     },
     {
-      "id": "M05.F02.I01",
+      "id": "M06.F02.I02",
       "action": "新增",
-      "name": "仪表盘统计",
-      "reason": "B4 推进：M05 数据统计，3 桶报告状态 + 任务计数"
+      "name": "创建项目",
+      "reason": "B6 推进：M06.F02 检测项目 CRUD"
     },
     {
-      "id": "M06.F01.I01",
+      "id": "M06.F02.I03",
       "action": "新增",
-      "name": "专项列表",
-      "reason": "B5 推进：M06 检测专项字典"
+      "name": "更新项目",
+      "reason": "B6 推进：M06.F02 检测项目 CRUD"
     },
     {
-      "id": "M06.F01.I02",
+      "id": "M06.F02.I04",
       "action": "新增",
-      "name": "创建专项",
-      "reason": "B5 推进：M06 检测专项字典"
+      "name": "删除项目",
+      "reason": "B6 推进：M06.F02 检测项目 CRUD"
     },
     {
-      "id": "M06.F01.I03",
+      "id": "M06.F01.I05",
       "action": "新增",
-      "name": "更新专项",
-      "reason": "B5 推进：M06 检测专项字典"
+      "name": "项目↔标准 link",
+      "reason": "B6 推进：M06 dictionary junction（inspection_object_standards V008）"
     },
     {
-      "id": "M06.F01.I04",
+      "id": "M06.F01.I06",
       "action": "新增",
-      "name": "删除专项",
-      "reason": "B5 推进：M06 检测专项字典"
+      "name": "项目↔标准 unlink",
+      "reason": "B6 推进：M06 dictionary junction（inspection_object_standards V008）"
     },
     {
-      "id": "M06.F03.I01",
+      "id": "M06.F02.I05",
       "action": "新增",
-      "name": "参数列表",
-      "reason": "B5 推进：M06 检测参数字典"
+      "name": "项目↔标准 link",
+      "reason": "B6 推进：M06 dictionary junction（inspection_object_standards V008）"
     },
     {
-      "id": "M06.F03.I02",
+      "id": "M06.F02.I06",
       "action": "新增",
-      "name": "创建参数",
-      "reason": "B5 推进：M06 检测参数字典"
+      "name": "项目↔标准 unlink",
+      "reason": "B6 推进：M06 dictionary junction（inspection_object_standards V008）"
     },
     {
-      "id": "M06.F03.I03",
+      "id": "M06.F02.I07",
       "action": "新增",
-      "name": "更新参数",
-      "reason": "B5 推进：M06 检测参数字典"
+      "name": "项目↔参数 link",
+      "reason": "B6 推进：M06 dictionary junction（inspection_object_parameters V008）"
     },
     {
-      "id": "M06.F03.I04",
+      "id": "M06.F02.I08",
       "action": "新增",
-      "name": "删除参数",
-      "reason": "B5 推进：M06 检测参数字典"
+      "name": "项目↔参数 unlink",
+      "reason": "B6 推进：M06 dictionary junction（inspection_object_parameters V008）"
     },
     {
-      "id": "M06.F04.I01",
+      "id": "M06.F03.I05",
       "action": "新增",
-      "name": "标准列表",
-      "reason": "B5 推进：M06 检测标准字典"
+      "name": "标准↔参数 link",
+      "reason": "B6 推进：M06 dictionary junction（inspection_standard_parameters V008）"
     },
     {
-      "id": "M06.F04.I02",
+      "id": "M06.F03.I06",
       "action": "新增",
-      "name": "创建标准",
-      "reason": "B5 推进：M06 检测标准字典"
+      "name": "标准↔参数 unlink",
+      "reason": "B6 推进：M06 dictionary junction（inspection_standard_parameters V008）"
     },
     {
-      "id": "M06.F04.I03",
+      "id": "M06.F03.I07",
       "action": "新增",
-      "name": "更新标准",
-      "reason": "B5 推进：M06 检测标准字典"
+      "name": "参数↔界面 unlink",
+      "reason": "B6 推进：M06.F08 junction（param_interface_links V010）"
     },
     {
-      "id": "M06.F04.I04",
+      "id": "M06.F04.I05",
       "action": "新增",
-      "name": "删除标准",
-      "reason": "B5 推进：M06 检测标准字典"
+      "name": "项目↔报告名称 unlink",
+      "reason": "B6 推进：M06.F07 junction（inspection_object_report_names V009）"
     },
     {
-      "id": "M06.F07.I01",
+      "id": "M06.F04.I06",
       "action": "新增",
-      "name": "报告名称列表",
-      "reason": "B5 推进：M06 报告名称字典"
+      "name": "报告名称↔参数 unlink",
+      "reason": "B6 推进：M06.F07 junction（inspection_report_name_parameters V009）"
     },
     {
-      "id": "M06.F07.I02",
+      "id": "M06.F04.I07",
       "action": "新增",
-      "name": "报告名称详情",
-      "reason": "B5 推进：M06 报告名称字典"
+      "name": "报告名称↔标准 unlink",
+      "reason": "B6 推进：M06.F07 junction（inspection_report_name_standards V009）"
     },
     {
-      "id": "M06.F07.I03",
+      "id": "M06.F07.I06",
       "action": "新增",
-      "name": "创建报告名称",
-      "reason": "B5 推进：M06 报告名称字典"
+      "name": "项目↔报告名称 link",
+      "reason": "B6 推进：M06.F07 junction（inspection_object_report_names V009）"
     },
     {
-      "id": "M06.F07.I04",
+      "id": "M06.F07.I07",
       "action": "新增",
-      "name": "更新报告名称",
-      "reason": "B5 推进：M06 报告名称字典"
+      "name": "报告名称↔标准 link",
+      "reason": "B6 推进：M06.F07 junction（inspection_report_name_standards V009）"
     },
     {
-      "id": "M06.F07.I05",
+      "id": "M06.F07.I08",
       "action": "新增",
-      "name": "删除报告名称",
-      "reason": "B5 推进：M06 报告名称字典"
+      "name": "报告名称↔参数 link",
+      "reason": "B6 推进：M06.F07 junction（inspection_report_name_parameters V009）"
     },
     {
-      "id": "M06.F08.I01",
+      "id": "M06.F08.I06",
       "action": "新增",
-      "name": "参数界面列表",
-      "reason": "B5 推进：M06 参数界面字典"
-    },
-    {
-      "id": "M06.F08.I02",
-      "action": "新增",
-      "name": "参数界面详情",
-      "reason": "B5 推进：M06 参数界面字典"
-    },
-    {
-      "id": "M06.F08.I03",
-      "action": "新增",
-      "name": "创建参数界面",
-      "reason": "B5 推进：M06 参数界面字典"
-    },
-    {
-      "id": "M06.F08.I04",
-      "action": "新增",
-      "name": "更新参数界面",
-      "reason": "B5 推进：M06 参数界面字典"
-    },
-    {
-      "id": "M06.F08.I05",
-      "action": "新增",
-      "name": "删除参数界面",
-      "reason": "B5 推进：M06 参数界面字典"
+      "name": "参数↔界面 link",
+      "reason": "B6 推进：M06.F08 junction（param_interface_links V010）"
     }
   ],
   "sync_files": [
