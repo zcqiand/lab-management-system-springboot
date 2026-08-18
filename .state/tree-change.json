@@ -123,6 +123,42 @@
       "action": "新增",
       "name": "参数↔界面 link",
       "reason": "B6 推进：M06.F08 junction（param_interface_links V010）"
+    },
+    {
+      "id": "M03.F03.I06",
+      "action": "新增",
+      "name": "检测记录列表",
+      "reason": "B9.3 推进：M03.F03 数据录入（test_records V003）"
+    },
+    {
+      "id": "M03.F03.I07",
+      "action": "新增",
+      "name": "检测记录详情",
+      "reason": "B9.3 推进：M03.F03 数据录入（test_records V003）"
+    },
+    {
+      "id": "M03.F03.I08",
+      "action": "新增",
+      "name": "创建检测记录",
+      "reason": "B9.3 推进：M03.F03 数据录入（test_records V003）"
+    },
+    {
+      "id": "M03.F03.I09",
+      "action": "新增",
+      "name": "更新检测记录",
+      "reason": "B9.3 推进：M03.F03 数据录入（test_records V003）"
+    },
+    {
+      "id": "M03.F03.I10",
+      "action": "新增",
+      "name": "删除检测记录",
+      "reason": "B9.3 推进：M03.F03 数据录入（test_records V003）"
+    },
+    {
+      "id": "M03.F03.I11",
+      "action": "新增",
+      "name": "检测记录改判",
+      "reason": "B9.3 推进：M03.F03 数据录入（test_records V003）"
     }
   ],
   "sync_files": [

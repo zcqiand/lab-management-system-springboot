@@ -62,6 +62,20 @@
 | M03.F03.I05 | SampleController#samplesDeleteSample / SampleService#delete | DELETE /api/samples/{id} | samples | M03.F03.I05 | - | 已上线 |
 | M03.F05.I01 | ReportFlowController#reportFlowListFlowQueue / ReportFlowService#flowQueue | GET /api/receipts/flow/queue?stage= | sample_receipts（按 flow_status 过滤 + tenant 收口，cap 默认 50） | M03.F05.I01 | - | 已上线 |
 | M03.F06.I01 | ReportFlowController#reportFlowSubmitFlowAction / ReportFlowService#submitAction | POST /api/receipts/flow | sample_receipts.flow_status + flow_history | M03.F06.I01 | - | 已上线 |
+| M03.F03.I06 | TestRecordController#testRecordsListTestRecords / TestRecordService#list | GET /api/test-records?sampleId=&page=&pageSize= | test_records（V003，tenant-scoped） | M03.F03.I06 | - | 已上线 |
+| M03.F03.I07 | TestRecordController#testRecordsGetTestRecord / TestRecordService#get | GET /api/test-records/{id} | test_records | M03.F03.I07 | - | 已上线 |
+| M03.F03.I08 | TestRecordController#testRecordsCreateTestRecord / TestRecordService#create | POST /api/test-records | test_records（sampleId/parameterCode/requirement/result 必填，tenant 从 token claim 注入） | M03.F03.I08 | - | 已上线 |
+| M03.F03.I09 | TestRecordController#testRecordsUpdateTestRecord / TestRecordService#update | PUT /api/test-records/{id} | test_records | M03.F03.I09 | - | 已上线 |
+| M03.F03.I10 | TestRecordController#testRecordsDeleteTestRecord / TestRecordService#delete | DELETE /api/test-records/{id} | test_records | M03.F03.I10 | - | 已上线 |
+| M03.F03.I11 | TestRecordController#testRecordsSetVerdict / TestRecordService#setVerdict | PUT /api/test-records/{id}/verdict | test_records.verdict（人工改判，M03.F05/F06 报告流程可触发） | M03.F03.I11 | - | 已上线 |
+
+> B9.3 说明：M03.F03 数据录入子项从 5（Sample CRUD）扩到 11（Sample + TestRecord CRUD + setVerdict）。
+> TestRecord 表 V003（test_records 实体表）+ V012（tenant_id 加列）已就绪，本仓直读 Flyway baseline。
+> 6 端点 tenant 收口走 JWT claim + dev fallback TENANT-001（与 ContractController 模式一致）。
+> sampleId/parameterCode/standardCode/requirementCode 是逻辑 FK 到 M06 字典 + M04 技术要求
+> （V011 已加真实 FK 约束，本仓端用参数名直接存），不强制。
+> nextjs 仓 `src/app/api/test-records/route.ts` 已加 @entry M03.F03.I06/I08（API route 由
+> msw fixtures 切到本仓后端时复用此 entry 锚点）。
 | M05.F01.I01 | SummaryController#summaryGetReportSummary / SummaryService#getReportSummary | GET /api/summary?categoryCode=&dateFrom=&dateTo= | sample_receipts（按 commissionDate DESC + categoryCode 过滤） | M05.F01.I01 | - | 已上线 |
 | M05.F02.I01 | SummaryController#summaryGetDashboardStats / SummaryService#getDashboardStats | GET /api/summary/stats | sample_receipts / contracts / samples 计数 | M05.F02.I01 | - | 已上线 |
 | M06.F01.I01 | InspectionDictionaryController#inspectionDictionaryListSpecialties / InspectionDictionaryService#listSpecialties | GET /api/inspection/specialties?keyword= | inspection_specialties（V008，平台级） | M06.F01.I01 | - | 已上线 |

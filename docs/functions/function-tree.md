@@ -156,6 +156,12 @@
 | M03.F03.I03 | 创建样品 | POST /api/samples：receipt_id FK 必存在；ext 默认 {} | 接口 | 已上线 |
 | M03.F03.I04 | 更新样品 | PUT /api/samples/{id}：PATCH 语义 | 接口 | 已上线 |
 | M03.F03.I05 | 删除样品 | DELETE /api/samples/{id}：204 | 接口 | 已上线 |
+| M03.F03.I06 | 检测记录列表 | GET /api/test-records?sampleId=&page=&pageSize=：tenant 收口 + sampleId 过滤 + 分页；data-fn=nextjs/react/vue 仓 test-records 页面 | 接口 | 已上线 |
+| M03.F03.I07 | 检测记录详情 | GET /api/test-records/{id}：返回 TestRecord | 接口 | 已上线 |
+| M03.F03.I08 | 创建检测记录 | POST /api/test-records：sampleId/parameterCode/requirement/result 必填；tenant 从 token claim 注入 | 接口 | 已上线 |
+| M03.F03.I09 | 更新检测记录 | PUT /api/test-records/{id}：PATCH 语义，未传字段保留 | 接口 | 已上线 |
+| M03.F03.I10 | 删除检测记录 | DELETE /api/test-records/{id}：204 if exists | 接口 | 已上线 |
+| M03.F03.I11 | 检测记录改判 | PUT /api/test-records/{id}/verdict：人工改判（M03.F05/F06 报告流程可触发） | 接口 | 已上线 |
 | M03.F05.I01 | 审核队列 | GET /api/receipts/flow/queue?stage=：按 stage 过滤+按 tenant 收口，返回 ReceiptsListReceipts200Response（pageSize 默认 50，cap 200） | 接口 | 已上线 |
 | M03.F06.I01 | 报告阶段审批推进 | POST /api/receipts/flow：FlowActionRequest{ids, action, operator, reason}；action=SUBMIT/RETURN/WITHDRAW；FAIL 单条结果进 FlowActionResult{ok, message} | 接口 | 已上线 |
 
