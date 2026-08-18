@@ -17,10 +17,38 @@
 | M01.F05.I03 | AuthController#authSsoCallback / AuthService#ssoCallback | POST /api/auth/sso/callback | - | M01.F05.I03 | - | 已上线 |
 | M01.F05.I04 | AuthController#authRefresh / AuthService#refresh | POST /api/auth/refresh | - | M01.F05.I04 | - | 已上线 |
 | M01.F05.I05 | AuthController#authLogout / AuthService#logout | POST /api/auth/logout | - | M01.F05.I05 | - | 已上线 |
+| M04.F06.I01 | InspectionCatalogController#catalogListModels / CatalogService#listModels | GET /api/catalog/models | inspection_models（V004，tenant_id V012） | M04.F06.I01 | - | 已上线 |
+| M04.F06.I02 | InspectionCatalogController#catalogCreateModel / CatalogService#createModel | POST /api/catalog/models | inspection_models | M04.F06.I02 | - | 已上线 |
+| M04.F06.I03 | InspectionCatalogController#catalogUpdateModel / CatalogService#updateModel | PUT /api/catalog/models/{code} | inspection_models | M04.F06.I03 | - | 已上线 |
+| M04.F06.I04 | InspectionCatalogController#catalogDeleteModel / CatalogService#deleteModel | DELETE /api/catalog/models/{code} | inspection_models | M04.F06.I04 | - | 已上线 |
+| M04.F07.I01 | InspectionCatalogController#catalogListSpecs / CatalogService#listSpecs | GET /api/catalog/specs | inspection_specs（V004） | M04.F07.I01 | - | 已上线 |
+| M04.F07.I02 | InspectionCatalogController#catalogCreateSpec / CatalogService#createSpec | POST /api/catalog/specs | inspection_specs | M04.F07.I02 | - | 已上线 |
+| M04.F07.I03 | InspectionCatalogController#catalogUpdateSpec / CatalogService#updateSpec | PUT /api/catalog/specs/{code} | inspection_specs | M04.F07.I03 | - | 已上线 |
+| M04.F07.I04 | InspectionCatalogController#catalogDeleteSpec / CatalogService#deleteSpec | DELETE /api/catalog/specs/{code} | inspection_specs | M04.F07.I04 | - | 已上线 |
+| M04.F08.I01 | InspectionCatalogController#catalogListGrades / CatalogService#listGrades | GET /api/catalog/grades | inspection_grades（V004） | M04.F08.I01 | - | 已上线 |
+| M04.F08.I02 | InspectionCatalogController#catalogCreateGrade / CatalogService#createGrade | POST /api/catalog/grades | inspection_grades | M04.F08.I02 | - | 已上线 |
+| M04.F08.I03 | InspectionCatalogController#catalogUpdateGrade / CatalogService#updateGrade | PUT /api/catalog/grades/{code} | inspection_grades | M04.F08.I03 | - | 已上线 |
+| M04.F08.I04 | InspectionCatalogController#catalogDeleteGrade / CatalogService#deleteGrade | DELETE /api/catalog/grades/{code} | inspection_grades | M04.F08.I04 | - | 已上线 |
+| M04.F09.I01 | InspectionCatalogController#catalogListBrands / CatalogService#listBrands | GET /api/catalog/brands | inspection_brands（V004） | M04.F09.I01 | - | 已上线 |
+| M04.F09.I02 | InspectionCatalogController#catalogCreateBrand / CatalogService#createBrand | POST /api/catalog/brands | inspection_brands | M04.F09.I02 | - | 已上线 |
+| M04.F09.I03 | InspectionCatalogController#catalogUpdateBrand / CatalogService#updateBrand | PUT /api/catalog/brands/{code} | inspection_brands | M04.F09.I03 | - | 已上线 |
+| M04.F09.I04 | InspectionCatalogController#catalogDeleteBrand / CatalogService#deleteBrand | DELETE /api/catalog/brands/{code} | inspection_brands | M04.F09.I04 | - | 已上线 |
+| M06.F05.I01 | CalculationRuleController#calculationRulesListCalculationRules / CalculationRuleService#list | GET /api/calculation-rules | inspection_calculation_rules（V009，平台级无 tenant_id） | M06.F05.I01 | - | 已上线 |
+| M06.F05.I02 | CalculationRuleController#calculationRulesGetCalculationRule / CalculationRuleService#get | GET /api/calculation-rules/{object}/{parameter} | inspection_calculation_rules | M06.F05.I02 | - | 已上线 |
+| M06.F05.I03 | CalculationRuleController#calculationRulesCreateCalculationRule / CalculationRuleService#create | POST /api/calculation-rules | inspection_calculation_rules | M06.F05.I03 | - | 已上线 |
+| M06.F05.I04 | CalculationRuleController#calculationRulesUpdateCalculationRule / CalculationRuleService#update | PUT /api/calculation-rules/{object}/{parameter} | inspection_calculation_rules | M06.F05.I04 | - | 已上线 |
+| M06.F05.I05 | CalculationRuleController#calculationRulesDeleteCalculationRule / CalculationRuleService#delete | DELETE /api/calculation-rules/{object}/{parameter} | inspection_calculation_rules | M06.F05.I05 | - | 已上线 |
+| M06.F06.I01 | TechnicalRequirementController#technicalRequirementsListTechnicalRequirements / TechnicalRequirementService#list | GET /api/technical-requirements | inspection_technical_requirements（V005，V012 加 tenant_id） | M06.F06.I01 | - | 已上线 |
+| M06.F06.I02 | TechnicalRequirementController#technicalRequirementsGetTechnicalRequirement / TechnicalRequirementService#get | GET /api/technical-requirements/{object}/{parameter}/{standard} | inspection_technical_requirements | M06.F06.I02 | - | 已上线 |
+| M06.F06.I03 | TechnicalRequirementController#technicalRequirementsCreateTechnicalRequirement / TechnicalRequirementService#create | POST /api/technical-requirements | inspection_technical_requirements | M06.F06.I03 | - | 已上线 |
+| M06.F06.I04 | TechnicalRequirementController#technicalRequirementsUpdateTechnicalRequirement / TechnicalRequirementService#update | PUT /api/technical-requirements/{object}/{parameter}/{standard} | inspection_technical_requirements | M06.F06.I04 | - | 已上线 |
+| M06.F06.I05 | TechnicalRequirementController#technicalRequirementsDeleteTechnicalRequirement / TechnicalRequirementService#delete | DELETE /api/technical-requirements/{object}/{parameter}/{standard} | inspection_technical_requirements | M06.F06.I05 | - | 已上线 |
 
 > B1 说明：lab_dev 无身份表（shared SQL SSOT 不含 users/tenants），认证域用户/租户走
 > `io.xr.lab.platform.directory.ConfigUserDirectory`（配置式，镜像 lab-msw seeds）。
 > 「数据表」列的 `-（配置式目录）` 即指此处；V014 identity 表落地后回填。
+
+> B2 说明：码表 4 表 + 计算规则 + 技术要求共 6 表都已在 shared 仓 sql/migrations V004/V005/V009 + V012 落地，本仓直接读 Flyway baseline。PK 设计：码表 4 表 = (tenant_id, code) 复合主键（V012 约束对齐）；计算规则 = (object, parameter) 复合主键；技术要求 PK = 业务三键 (object, parameter, standard)，tenant_id 走 WHERE 过滤。
 
 ## 约定
 

@@ -96,3 +96,36 @@
 | M01.F05.I03 | SSO 回调 | POST /api/auth/sso/callback：dev 直发 demo 会话（真对接待 saas 端点可用） | 接口 | 已上线 |
 | M01.F05.I04 | 刷新 token | POST /api/auth/refresh：refresh token 换发新 access token | 接口 | 已上线 |
 | M01.F05.I05 | 登出 | POST /api/auth/logout：无状态 JWT 服务端无 session，前端清存储 | 接口 | 已上线 |
+
+> Batch B2（码表+规则+技术要求，M04.F06-09 + M06.F05-06，对应 InspectionCatalogApi 16 + CalculationRulesApi 5 + TechnicalRequirementsApi 5 共 26 端点）。
+> 4 码表结构一致（code+name+inspectionObjectCode+remark+sortOrder+tenantId）；4 表都已加 tenant_id 隔离（V012）；FK 引用关系见 technical_requirements 表 V005。
+> 计算规则平台级（per V012 不加 tenant_id）；技术要求 tenant-scoped。
+
+| 子项 ID | 名称 | 闭环定义 | 类型 | 状态 |
+|---|---|---|---|---|
+| M04.F06.I01 | 型号列表 | GET /api/catalog/models?inspectionObjectCode=&keyword=：按 tenant 收口 + 2 过滤，返回 InspectionModel[] | 接口 | 已上线 |
+| M04.F06.I02 | 创建型号 | POST /api/catalog/models：body CreateCatalogEntryRequest（code/name 必填 + 可选 inspectionObjectCode/remark/sortOrder），返回 InspectionModel | 接口 | 已上线 |
+| M04.F06.I03 | 更新型号 | PUT /api/catalog/models/{code}：body UpdateCatalogEntryRequest（PATCH 语义，未传字段保留），404 if 不存在 | 接口 | 已上线 |
+| M04.F06.I04 | 删除型号 | DELETE /api/catalog/models/{code}：204；FK 被 technical_requirements.model 引用时 DB SET NULL | 接口 | 已上线 |
+| M04.F07.I01 | 规格列表 | GET /api/catalog/specs?inspectionObjectCode=&keyword= | 接口 | 已上线 |
+| M04.F07.I02 | 创建规格 | POST /api/catalog/specs | 接口 | 已上线 |
+| M04.F07.I03 | 更新规格 | PUT /api/catalog/specs/{code} | 接口 | 已上线 |
+| M04.F07.I04 | 删除规格 | DELETE /api/catalog/specs/{code} | 接口 | 已上线 |
+| M04.F08.I01 | 等级列表 | GET /api/catalog/grades?inspectionObjectCode=&keyword= | 接口 | 已上线 |
+| M04.F08.I02 | 创建等级 | POST /api/catalog/grades | 接口 | 已上线 |
+| M04.F08.I03 | 更新等级 | PUT /api/catalog/grades/{code} | 接口 | 已上线 |
+| M04.F08.I04 | 删除等级 | DELETE /api/catalog/grades/{code} | 接口 | 已上线 |
+| M04.F09.I01 | 牌号列表 | GET /api/catalog/brands?inspectionObjectCode=&keyword= | 接口 | 已上线 |
+| M04.F09.I02 | 创建牌号 | POST /api/catalog/brands | 接口 | 已上线 |
+| M04.F09.I03 | 更新牌号 | PUT /api/catalog/brands/{code} | 接口 | 已上线 |
+| M04.F09.I04 | 删除牌号 | DELETE /api/catalog/brands/{code} | 接口 | 已上线 |
+| M06.F05.I01 | 计算规则列表 | GET /api/calculation-rules?inspectionObjectCode=&inspectionParameterCode=：平台级（无 tenant 过滤） | 接口 | 已上线 |
+| M06.F05.I02 | 计算规则详情 | GET /api/calculation-rules/{inspectionObjectCode}/{inspectionParameterCode}：复合主键 | 接口 | 已上线 |
+| M06.F05.I03 | 创建计算规则 | POST /api/calculation-rules：body CreateCalculationRuleRequest，algorithmType 默认 MANUAL、specimenCount 默认 1 | 接口 | 已上线 |
+| M06.F05.I04 | 更新计算规则 | PUT /api/calculation-rules/{...}：PATCH 语义 | 接口 | 已上线 |
+| M06.F05.I05 | 删除计算规则 | DELETE /api/calculation-rules/{...}：204 | 接口 | 已上线 |
+| M06.F06.I01 | 技术要求列表 | GET /api/technical-requirements?inspectionObjectCode=&inspectionParameterCode=&judgmentStandardCode=&verificationStatus=：tenant 收口 + 4 过滤 | 接口 | 已上线 |
+| M06.F06.I02 | 技术要求详情 | GET /api/technical-requirements/{object}/{param}/{standard}：复合三键 | 接口 | 已上线 |
+| M06.F06.I03 | 创建技术要求 | POST /api/technical-requirements：tenant 从 token claim 注入；默认值 numeric/≥/manual/draft | 接口 | 已上线 |
+| M06.F06.I04 | 更新技术要求 | PUT /api/technical-requirements/{...}：PATCH 语义 | 接口 | 已上线 |
+| M06.F06.I05 | 删除技术要求 | DELETE /api/technical-requirements/{...}：204 | 接口 | 已上线 |
