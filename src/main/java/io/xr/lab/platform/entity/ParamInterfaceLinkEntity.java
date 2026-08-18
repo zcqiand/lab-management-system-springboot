@@ -11,7 +11,7 @@ import org.hibernate.type.SqlTypes;
 
 /** V010 — 参数↔界面 junction（M06.F08）。PK = (parameter_code, interface_code)。config 走 jsonb。 */
 @Entity
-@Table(name = "param_interface_links")
+@Table(name = "inspection_param_interface_links")
 @IdClass(ParamInterfaceLinkKey.class)
 public class ParamInterfaceLinkEntity {
 

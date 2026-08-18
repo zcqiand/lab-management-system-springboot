@@ -12,7 +12,7 @@ import org.hibernate.type.SqlTypes;
  * 是 jsonb（Map<String,Object>），写库时序列化 JSON 字符串。
  */
 @Entity
-@Table(name = "param_interfaces")
+@Table(name = "inspection_param_interfaces")
 public class ParamInterfaceEntity {
 
   @Id
