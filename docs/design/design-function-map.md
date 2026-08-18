@@ -62,6 +62,23 @@
 | M03.F03.I05 | SampleController#samplesDeleteSample / SampleService#delete | DELETE /api/samples/{id} | samples | M03.F03.I05 | - | 已上线 |
 | M03.F05.I01 | ReportFlowController#reportFlowListFlowQueue / ReportFlowService#flowQueue | GET /api/receipts/flow/queue?stage= | sample_receipts（按 flow_status 过滤 + tenant 收口，cap 默认 50） | M03.F05.I01 | - | 已上线 |
 | M03.F06.I01 | ReportFlowController#reportFlowSubmitFlowAction / ReportFlowService#submitAction | POST /api/receipts/flow | sample_receipts.flow_status + flow_history | M03.F06.I01 | - | 已上线 |
+| M03.F05.I02 | SampleReceiptController#receiptsGetReceipt / SampleReceiptService#get | GET /api/receipts/{id} | sample_receipts（review 视角，含 flow_history） | M03.F05.I02 | - | 已上线 |
+| M03.F05.I03 | ReportFlowController#reportFlowSubmitFlowAction / ReportFlowService#submitAction | POST /api/receipts/flow | sample_receipts.flow_status（review → approval/退回 data_entry） | M03.F05.I03 | - | 已上线 |
+| M03.F06.I02 | SampleReceiptController#receiptsGetReceipt / SampleReceiptService#get | GET /api/receipts/{id} | sample_receipts（approval 视角） | M03.F06.I02 | - | 已上线 |
+| M03.F06.I03 | ReportFlowController#reportFlowSubmitFlowAction / ReportFlowService#submitAction | POST /api/receipts/flow | sample_receipts.flow_status（approval → issuance/退回 review） | M03.F06.I03 | - | 已上线 |
+| M03.F07.I01 | ReportFlowController#reportFlowListFlowQueue / ReportFlowService#flowQueue | GET /api/receipts/flow/queue?stage=issuance | sample_receipts（按 stage=issuance 过滤） | M03.F07.I01 | - | 已上线 |
+| M03.F07.I02 | SampleReceiptController#receiptsGetReceipt / SampleReceiptService#get | GET /api/receipts/{id} | sample_receipts（issuance 视角，含 issued_at） | M03.F07.I02 | - | 已上线 |
+| M03.F07.I03 | ReportFlowController#reportFlowSubmitFlowAction / ReportFlowService#submitAction | POST /api/receipts/flow | sample_receipts.flow_status（issuance → archived/退回 approval） | M03.F07.I03 | - | 已上线 |
+| M03.F08.I01 | ReportFlowController#reportFlowListFlowQueue / ReportFlowService#flowQueue | GET /api/receipts/flow/queue?stage=archived | sample_receipts（按 stage=archived 过滤） | M03.F08.I01 | - | 已上线 |
+| M03.F08.I02 | SampleReceiptController#receiptsGetReceipt / SampleReceiptService#get | GET /api/receipts/{id} | sample_receipts（archived 视角） | M03.F08.I02 | - | 已上线 |
+| M03.F08.I03 | ReportFlowController#reportFlowSubmitFlowAction / ReportFlowService#submitAction | POST /api/receipts/flow | sample_receipts.flow_status（archived → 终态/退回 issuance） | M03.F08.I03 | - | 已上线 |
+
+> B10 说明：M03.F05-F08 报告流程 4 阶段扩 I02-I03 共 8 个 I 级（view detail + stage
+> action）。实现沿用已有 ReportFlowService.submitAction（POST /api/receipts/flow）+ 
+> SampleReceiptService.get（GET /api/receipts/{id}）双端点，按 stage 参数路由不同视角。
+> 4 阶段共享同一状态机（receiving → task_assignment → data_entry → review → approval
+> → issuance → archived 7 阶段），每阶段仅在 view/act 语义上区分（review 看测试数据 +
+> 技术要求，approval 看签字位，issuance 写 issued_at，archived 锁终态）。
 | M03.F03.I06 | TestRecordController#testRecordsListTestRecords / TestRecordService#list | GET /api/test-records?sampleId=&page=&pageSize= | test_records（V003，tenant-scoped） | M03.F03.I06 | - | 已上线 |
 | M03.F03.I07 | TestRecordController#testRecordsGetTestRecord / TestRecordService#get | GET /api/test-records/{id} | test_records | M03.F03.I07 | - | 已上线 |
 | M03.F03.I08 | TestRecordController#testRecordsCreateTestRecord / TestRecordService#create | POST /api/test-records | test_records（sampleId/parameterCode/requirement/result 必填，tenant 从 token claim 注入） | M03.F03.I08 | - | 已上线 |

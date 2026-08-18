@@ -58,10 +58,10 @@
 | M03.F01 | 接样管理 | 接样单 CRUD、报告类别关联、流程状态 | 接口 | 规划 |
 | M03.F02 | 任务分配 | 接样提交后安排检测人员/计划日期，提交进入数据录入；任务字段挂 SampleReceipt | 接口 | 规划 |
 | M03.F03 | 数据录入 | 样品检测数据录入 | 接口 | 规划 |
-| M03.F05 | 报告审核 | 报告审核流程 | 接口 | 规划 |
-| M03.F06 | 报告批准 | 报告批准流程 | 接口 | 规划 |
-| M03.F07 | 报告发放 | 报告发放流程 | 接口 | 规划 |
-| M03.F08 | 报告归档 | 报告归档流程 | 接口 | 规划 |
+| M03.F05 | 报告审核 | 报告审核流程 | 接口 | 已上线 |
+| M03.F06 | 报告批准 | 报告批准流程 | 接口 | 已上线 |
+| M03.F07 | 报告发放 | 报告发放流程 | 接口 | 已上线 |
+| M03.F08 | 报告归档 | 报告归档流程 | 接口 | 已上线 |
 | M03.F09 | 接样单详情 | 接样单查看（接样信息+样品信息+检测数据） | 接口 | 规划 |
 | M04.F06 | 型号维护 | InspectionModel 官方数据码表维护，列表按检测专项过滤 | 接口 | 规划 |
 | M04.F07 | 规格维护 | InspectionSpec 官方数据码表维护，列表按检测专项过滤 | 接口 | 规划 |
@@ -163,7 +163,17 @@
 | M03.F03.I10 | 删除检测记录 | DELETE /api/test-records/{id}：204 if exists | 接口 | 已上线 |
 | M03.F03.I11 | 检测记录改判 | PUT /api/test-records/{id}/verdict：人工改判（M03.F05/F06 报告流程可触发） | 接口 | 已上线 |
 | M03.F05.I01 | 审核队列 | GET /api/receipts/flow/queue?stage=：按 stage 过滤+按 tenant 收口，返回 ReceiptsListReceipts200Response（pageSize 默认 50，cap 200） | 接口 | 已上线 |
+| M03.F05.I02 | 报告审核-查看详情 | GET /api/receipts/{id}：返回 SampleReceipt（含 flow_history）走 review 视角 | 接口 | 已上线 |
+| M03.F05.I03 | 报告审核-通过/退回 | POST /api/receipts/flow：FlowActionRequest{ids, action, operator, reason}；review 视角下 action=SUBMIT 推进到 approval / RETURN 退回 data_entry | 接口 | 已上线 |
 | M03.F06.I01 | 报告阶段审批推进 | POST /api/receipts/flow：FlowActionRequest{ids, action, operator, reason}；action=SUBMIT/RETURN/WITHDRAW；FAIL 单条结果进 FlowActionResult{ok, message} | 接口 | 已上线 |
+| M03.F06.I02 | 报告批准-查看详情 | GET /api/receipts/{id}：返回 SampleReceipt（含 flow_history）走 approval 视角 | 接口 | 已上线 |
+| M03.F06.I03 | 报告批准-批准/退回 | POST /api/receipts/flow：approval 视角下 action=SUBMIT 推进到 issuance / RETURN 退回 review | 接口 | 已上线 |
+| M03.F07.I01 | 报告发放队列 | GET /api/receipts/flow/queue?stage=issuance：按 stage=issuance 过滤当前租户 receipt 列表 | 接口 | 已上线 |
+| M03.F07.I02 | 报告发放-查看详情 | GET /api/receipts/{id}：返回 SampleReceipt（含 flow_history + issued_at）走 issuance 视角 | 接口 | 已上线 |
+| M03.F07.I03 | 报告发放-发放/退回 | POST /api/receipts/flow：issuance 视角下 action=SUBMIT 推进到 archived / RETURN 退回 approval | 接口 | 已上线 |
+| M03.F08.I01 | 报告归档队列 | GET /api/receipts/flow/queue?stage=archived：按 stage=archived 过滤当前租户 receipt 列表 | 接口 | 已上线 |
+| M03.F08.I02 | 报告归档-查看详情 | GET /api/receipts/{id}：返回 SampleReceipt（含 flow_history）走 archived 视角 | 接口 | 已上线 |
+| M03.F08.I03 | 报告归档-归档/退回 | POST /api/receipts/flow：archived 视角下 action=SUBMIT 推进终态 / RETURN 退回 issuance | 接口 | 已上线 |
 
 > Batch B4（M05 报告汇总 + 仪表盘，M05.F01 + M05.F02 仪表盘新增 — 2 端点，对应 SummaryApi 全集）。
 > SummaryData 是「列定义 + 行数据」动态表（rows: List<Map<String,String>>），列固定 6 列（委托编号/报告类别/工程名称/流程状态/结论/报告编号），行按 commissionDate DESC。

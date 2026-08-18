@@ -1,164 +1,68 @@
 {
   "schema": 1,
   "approved": true,
-  "base_sha": "d1f54a7",
-  "summary": "B6 M06.F02 objects 4 端点 + 8 个 junction link/unlink（4 字典 + 3 报告名 + 1 参数界面）= 共 20 端点 / 20 I。FK 由 V008/V009/V010 + V011 真实约束。",
+  "base_sha": "fb71881",
+  "summary": "B10 M03.F05-F08 报告流程 4 阶段扩 I02-I03 共 8 个 I-级 + F-级状态从「规划」翻「已上线」：审核/批准/发放/归档 4 阶段共享 ReportFlowService.submitAction + SampleReceiptService.get 双端点，按 stage 参数路由视角；function-tree 148 功能条目（138 + 10 新），design-function-map +12 行映射。",
   "changes": [
     {
-      "id": "M06.F02.I01",
+      "id": "M03.F05.I02",
       "action": "新增",
-      "name": "项目列表",
-      "reason": "B6 推进：M06.F02 检测项目 CRUD"
+      "name": "报告审核-查看详情",
+      "reason": "B10 推进：M03.F05 报告审核视角下 GET 详情（复用 M03.F01.I02）"
     },
     {
-      "id": "M06.F02.I02",
+      "id": "M03.F05.I03",
       "action": "新增",
-      "name": "创建项目",
-      "reason": "B6 推进：M06.F02 检测项目 CRUD"
+      "name": "报告审核-通过/退回",
+      "reason": "B10 推进：M03.F05 报告审核视角下 stage action（复用 M03.F06.I01）"
     },
     {
-      "id": "M06.F02.I03",
+      "id": "M03.F06.I02",
       "action": "新增",
-      "name": "更新项目",
-      "reason": "B6 推进：M06.F02 检测项目 CRUD"
+      "name": "报告批准-查看详情",
+      "reason": "B10 推进：M03.F06 报告批准视角下 GET 详情（复用 M03.F01.I02）"
     },
     {
-      "id": "M06.F02.I04",
+      "id": "M03.F06.I03",
       "action": "新增",
-      "name": "删除项目",
-      "reason": "B6 推进：M06.F02 检测项目 CRUD"
+      "name": "报告批准-批准/退回",
+      "reason": "B10 推进：M03.F06 报告批准视角下 stage action（复用 M03.F06.I01）"
     },
     {
-      "id": "M06.F01.I05",
+      "id": "M03.F07.I01",
       "action": "新增",
-      "name": "项目↔标准 link",
-      "reason": "B6 推进：M06 dictionary junction（inspection_object_standards V008）"
+      "name": "报告发放队列",
+      "reason": "B10 推进：M03.F07 报告发放阶段 queue（复用 ReportFlowService）"
     },
     {
-      "id": "M06.F01.I06",
+      "id": "M03.F07.I02",
       "action": "新增",
-      "name": "项目↔标准 unlink",
-      "reason": "B6 推进：M06 dictionary junction（inspection_object_standards V008）"
+      "name": "报告发放-查看详情",
+      "reason": "B10 推进：M03.F07 报告发放视角下 GET 详情（复用 M03.F01.I02）"
     },
     {
-      "id": "M06.F02.I05",
+      "id": "M03.F07.I03",
       "action": "新增",
-      "name": "项目↔标准 link",
-      "reason": "B6 推进：M06 dictionary junction（inspection_object_standards V008）"
+      "name": "报告发放-发放/退回",
+      "reason": "B10 推进：M03.F07 报告发放视角下 stage action（复用 M03.F06.I01）"
     },
     {
-      "id": "M06.F02.I06",
+      "id": "M03.F08.I01",
       "action": "新增",
-      "name": "项目↔标准 unlink",
-      "reason": "B6 推进：M06 dictionary junction（inspection_object_standards V008）"
+      "name": "报告归档队列",
+      "reason": "B10 推进：M03.F08 报告归档阶段 queue（复用 ReportFlowService）"
     },
     {
-      "id": "M06.F02.I07",
+      "id": "M03.F08.I02",
       "action": "新增",
-      "name": "项目↔参数 link",
-      "reason": "B6 推进：M06 dictionary junction（inspection_object_parameters V008）"
+      "name": "报告归档-查看详情",
+      "reason": "B10 推进：M03.F08 报告归档视角下 GET 详情（复用 M03.F01.I02）"
     },
     {
-      "id": "M06.F02.I08",
+      "id": "M03.F08.I03",
       "action": "新增",
-      "name": "项目↔参数 unlink",
-      "reason": "B6 推进：M06 dictionary junction（inspection_object_parameters V008）"
-    },
-    {
-      "id": "M06.F03.I05",
-      "action": "新增",
-      "name": "标准↔参数 link",
-      "reason": "B6 推进：M06 dictionary junction（inspection_standard_parameters V008）"
-    },
-    {
-      "id": "M06.F03.I06",
-      "action": "新增",
-      "name": "标准↔参数 unlink",
-      "reason": "B6 推进：M06 dictionary junction（inspection_standard_parameters V008）"
-    },
-    {
-      "id": "M06.F03.I07",
-      "action": "新增",
-      "name": "参数↔界面 unlink",
-      "reason": "B6 推进：M06.F08 junction（param_interface_links V010）"
-    },
-    {
-      "id": "M06.F04.I05",
-      "action": "新增",
-      "name": "项目↔报告名称 unlink",
-      "reason": "B6 推进：M06.F07 junction（inspection_object_report_names V009）"
-    },
-    {
-      "id": "M06.F04.I06",
-      "action": "新增",
-      "name": "报告名称↔参数 unlink",
-      "reason": "B6 推进：M06.F07 junction（inspection_report_name_parameters V009）"
-    },
-    {
-      "id": "M06.F04.I07",
-      "action": "新增",
-      "name": "报告名称↔标准 unlink",
-      "reason": "B6 推进：M06.F07 junction（inspection_report_name_standards V009）"
-    },
-    {
-      "id": "M06.F07.I06",
-      "action": "新增",
-      "name": "项目↔报告名称 link",
-      "reason": "B6 推进：M06.F07 junction（inspection_object_report_names V009）"
-    },
-    {
-      "id": "M06.F07.I07",
-      "action": "新增",
-      "name": "报告名称↔标准 link",
-      "reason": "B6 推进：M06.F07 junction（inspection_report_name_standards V009）"
-    },
-    {
-      "id": "M06.F07.I08",
-      "action": "新增",
-      "name": "报告名称↔参数 link",
-      "reason": "B6 推进：M06.F07 junction（inspection_report_name_parameters V009）"
-    },
-    {
-      "id": "M06.F08.I06",
-      "action": "新增",
-      "name": "参数↔界面 link",
-      "reason": "B6 推进：M06.F08 junction（param_interface_links V010）"
-    },
-    {
-      "id": "M03.F03.I06",
-      "action": "新增",
-      "name": "检测记录列表",
-      "reason": "B9.3 推进：M03.F03 数据录入（test_records V003）"
-    },
-    {
-      "id": "M03.F03.I07",
-      "action": "新增",
-      "name": "检测记录详情",
-      "reason": "B9.3 推进：M03.F03 数据录入（test_records V003）"
-    },
-    {
-      "id": "M03.F03.I08",
-      "action": "新增",
-      "name": "创建检测记录",
-      "reason": "B9.3 推进：M03.F03 数据录入（test_records V003）"
-    },
-    {
-      "id": "M03.F03.I09",
-      "action": "新增",
-      "name": "更新检测记录",
-      "reason": "B9.3 推进：M03.F03 数据录入（test_records V003）"
-    },
-    {
-      "id": "M03.F03.I10",
-      "action": "新增",
-      "name": "删除检测记录",
-      "reason": "B9.3 推进：M03.F03 数据录入（test_records V003）"
-    },
-    {
-      "id": "M03.F03.I11",
-      "action": "新增",
-      "name": "检测记录改判",
-      "reason": "B9.3 推进：M03.F03 数据录入（test_records V003）"
+      "name": "报告归档-归档/退回",
+      "reason": "B10 推进：M03.F08 报告归档视角下 stage action（复用 M03.F06.I01）"
     }
   ],
   "sync_files": [
