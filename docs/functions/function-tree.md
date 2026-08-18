@@ -68,6 +68,7 @@
 | M04.F08 | 等级维护 | InspectionGrade 官方数据码表维护，列表按检测专项过滤 | 接口 | 规划 |
 | M04.F09 | 牌号维护 | InspectionBrand 官方数据码表维护，列表按检测专项过滤 | 接口 | 规划 |
 | M05.F01 | 报告汇总 | 按报告类别输出试验报告汇总表 | 查询 | 规划 |
+| M05.F02 | 仪表盘统计 | 工作台仪表盘：合同/接样/样品计数 + 按 3 桶聚合的报告状态 + 任务计数 | 查询 | 规划 |
 | M06.F01 | 检测专项 | InspectionSpecialty CRUD（检测能力字典根） | 接口 | 规划 |
 | M06.F02 | 检测项目 | InspectionObject CRUD + 专项/参数关联 | 接口 | 规划 |
 | M06.F03 | 检测参数 | InspectionParameter CRUD + 标准/参数关联 | 接口 | 规划 |
@@ -157,3 +158,45 @@
 | M03.F03.I05 | 删除样品 | DELETE /api/samples/{id}：204 | 接口 | 已上线 |
 | M03.F05.I01 | 审核队列 | GET /api/receipts/flow/queue?stage=：按 stage 过滤+按 tenant 收口，返回 ReceiptsListReceipts200Response（pageSize 默认 50，cap 200） | 接口 | 已上线 |
 | M03.F06.I01 | 报告阶段审批推进 | POST /api/receipts/flow：FlowActionRequest{ids, action, operator, reason}；action=SUBMIT/RETURN/WITHDRAW；FAIL 单条结果进 FlowActionResult{ok, message} | 接口 | 已上线 |
+
+> Batch B4（M05 报告汇总 + 仪表盘，M05.F01 + M05.F02 仪表盘新增 — 2 端点，对应 SummaryApi 全集）。
+> SummaryData 是「列定义 + 行数据」动态表（rows: List<Map<String,String>>），列固定 6 列（委托编号/报告类别/工程名称/流程状态/结论/报告编号），行按 commissionDate DESC。
+> 仪表盘统计：合同/接样/样品 3 总数 + 按 flowStatus 聚合的 draft/reviewing/issued 三桶 + 任务计数（task_assignment + data_entry + review）。
+
+| 子项 ID | 名称 | 闭环定义 | 类型 | 状态 |
+|---|---|---|---|---|
+| M05.F01.I01 | 报告汇总 | GET /api/summary?categoryCode=&dateFrom=&dateTo=：categoryCode=ALL 不过滤，否则按报告类别过滤当前租户接样单；输出 SummaryData{summaryName, columns(6), rows} | 查询 | 开发中 |
+| M05.F02.I01 | 仪表盘统计 | GET /api/summary/stats：合同/接样/样品 计数 + 3 桶报告状态（draft=receiving+task_assignment+data_entry；reviewing=review+approval；issued=issuance+archived）+ pendingTaskCount（task_assignment+data_entry+review） | 查询 | 开发中 |
+
+> Batch B5（M06 字典 5 实体 22 端点 — 标准/参数/专项/报告名称/参数界面，平台级共享字典 per V012 不加 tenant_id）。
+> 3 实体 specialty/parameter/standard 走 InspectionDictionaryApi（12 端点，list+create+update+delete 各 4）+ 新增 2 个 AttributeConverter 写 PG enum 小写值
+> （InspectionParameterSourceTypeConverter / InspectionStandardStatusConverter）。
+> parameter.aliases 走 jsonb（`List<String>`），report-name ext_fields 走 jsonb（`List<ExtFieldDef>`），param-interface config 走 jsonb（`Map<String,Object>`），
+> Entity 端 String 装 Jackson 序列化值，DTO 端 List/Map 直传。
+> M06.F02 objects + 4 junction link/unlink（specialty-object/object-parameter/object-standard/standard-parameter）+ report-name/param-interface 6 link/unlink
+> 端点暂 stub 抛 UnsupportedOperationException，function-tree 在 B5 期间保持「规划」状态，target 下一批（B6 with Object）。
+
+| 子项 ID | 名称 | 闭环定义 | 类型 | 状态 |
+|---|---|---|---|---|
+| M06.F01.I01 | 专项列表 | GET /api/inspection/specialties?keyword=：按 code/name 模糊匹配，平台级 | 接口 | 已上线 |
+| M06.F01.I02 | 创建专项 | POST /api/inspection/specialties：code/officialNo/name 必填；isOfficial/enabled 默认 true；sortOrder 默认 0 | 接口 | 已上线 |
+| M06.F01.I03 | 更新专项 | PUT /api/inspection/specialties/{code}：PATCH 语义，未传字段保留 | 接口 | 已上线 |
+| M06.F01.I04 | 删除专项 | DELETE /api/inspection/specialties/{code}：204 if exists，否则 404 | 接口 | 已上线 |
+| M06.F03.I01 | 参数列表 | GET /api/inspection/parameters?keyword=&sourceType=：按 code/name 模糊 + sourceType 过滤（official/custom） | 接口 | 已上线 |
+| M06.F03.I02 | 创建参数 | POST /api/inspection/parameters：code/name/rawName/canonicalName 必填；sourceType 默认 OFFICIAL；aliases 默认 [] | 接口 | 已上线 |
+| M06.F03.I03 | 更新参数 | PUT /api/inspection/parameters/{code}：PATCH 语义；aliases 传则整体替换 | 接口 | 已上线 |
+| M06.F03.I04 | 删除参数 | DELETE /api/inspection/parameters/{code}：204 if exists | 接口 | 已上线 |
+| M06.F04.I01 | 标准列表 | GET /api/inspection/standards?keyword=&status=：按 code/name 模糊 + status 过滤（active/superseded/draft） | 接口 | 已上线 |
+| M06.F04.I02 | 创建标准 | POST /api/inspection/standards：code/name 必填；status 默认 ACTIVE | 接口 | 已上线 |
+| M06.F04.I03 | 更新标准 | PUT /api/inspection/standards/{code}：PATCH 语义 | 接口 | 已上线 |
+| M06.F04.I04 | 删除标准 | DELETE /api/inspection/standards/{code}：204 if exists | 接口 | 已上线 |
+| M06.F07.I01 | 报告名称列表 | GET /api/report-names?keyword=：按 code/name 模糊 | 接口 | 已上线 |
+| M06.F07.I02 | 报告名称详情 | GET /api/report-names/{code}：返回 InspectionReportName（含 extFields 反序列化的 `List<ExtFieldDef>`） | 接口 | 已上线 |
+| M06.F07.I03 | 创建报告名称 | POST /api/report-names：code/name 必填；extFields 默认 [] | 接口 | 已上线 |
+| M06.F07.I04 | 更新报告名称 | PUT /api/report-names/{code}：PATCH 语义 | 接口 | 已上线 |
+| M06.F07.I05 | 删除报告名称 | DELETE /api/report-names/{code}：204 if exists | 接口 | 已上线 |
+| M06.F08.I01 | 参数界面列表 | GET /api/param-interfaces?keyword=：按 code/name 模糊 | 接口 | 已上线 |
+| M06.F08.I02 | 参数界面详情 | GET /api/param-interfaces/{code}：返回 ParamInterface（含 config 反序列化的 Map<String,Object>） | 接口 | 已上线 |
+| M06.F08.I03 | 创建参数界面 | POST /api/param-interfaces：code/componentPath 必填；config 默认 {} | 接口 | 已上线 |
+| M06.F08.I04 | 更新参数界面 | PUT /api/param-interfaces/{code}：PATCH 语义 | 接口 | 已上线 |
+| M06.F08.I05 | 删除参数界面 | DELETE /api/param-interfaces/{code}：204 if exists | 接口 | 已上线 |

@@ -1,122 +1,152 @@
 {
   "schema": 1,
   "approved": true,
-  "base_sha": "e57e3019155080c0",
-  "summary": "B3 推进：M02.F01 合同管理 5 端点 + M03.F01/F02/F03/F05/F06/F07/F08/F09 试验过程管理 14 端点 = 共 19 端点 / 19 I。合同是接样 FK 父表必须纳入。",
+  "base_sha": "b5a03cd46e27ae6b111ac8bbadab6186b193228c",
+  "summary": "B4 报告汇总（M05.F01 + M05.F02 仪表盘，2 端点）+ B5 M06 字典 5 实体 22 端点（specialty/parameter/standard 12 + report-name 5 + param-interface 5）= 共 24 端点 / 24 I。M05.F02 仪表盘是 M05 新增二级功能（数据统计范畴）",
   "changes": [
     {
-      "id": "M02.F01.I01",
+      "id": "M05.F01.I01",
       "action": "新增",
-      "name": "合同列表",
-      "reason": "B3 推进"
+      "name": "报告汇总",
+      "reason": "B4 推进：M05 报告汇总表，按 categoryCode + dateFrom/dateTo 过滤"
     },
     {
-      "id": "M02.F01.I02",
+      "id": "M05.F02.I01",
       "action": "新增",
-      "name": "合同详情",
-      "reason": "B3 推进"
+      "name": "仪表盘统计",
+      "reason": "B4 推进：M05 数据统计，3 桶报告状态 + 任务计数"
     },
     {
-      "id": "M02.F01.I03",
+      "id": "M06.F01.I01",
       "action": "新增",
-      "name": "创建合同",
-      "reason": "B3 推进"
+      "name": "专项列表",
+      "reason": "B5 推进：M06 检测专项字典"
     },
     {
-      "id": "M02.F01.I04",
+      "id": "M06.F01.I02",
       "action": "新增",
-      "name": "更新合同",
-      "reason": "B3 推进"
+      "name": "创建专项",
+      "reason": "B5 推进：M06 检测专项字典"
     },
     {
-      "id": "M02.F01.I05",
+      "id": "M06.F01.I03",
       "action": "新增",
-      "name": "删除合同",
-      "reason": "B3 推进"
+      "name": "更新专项",
+      "reason": "B5 推进：M06 检测专项字典"
     },
     {
-      "id": "M03.F01.I01",
+      "id": "M06.F01.I04",
       "action": "新增",
-      "name": "接样单列表",
-      "reason": "B3 推进"
+      "name": "删除专项",
+      "reason": "B5 推进：M06 检测专项字典"
     },
     {
-      "id": "M03.F01.I02",
+      "id": "M06.F03.I01",
       "action": "新增",
-      "name": "接样单详情",
-      "reason": "B3 推进"
+      "name": "参数列表",
+      "reason": "B5 推进：M06 检测参数字典"
     },
     {
-      "id": "M03.F01.I03",
+      "id": "M06.F03.I02",
       "action": "新增",
-      "name": "创建接样单",
-      "reason": "B3 推进"
+      "name": "创建参数",
+      "reason": "B5 推进：M06 检测参数字典"
     },
     {
-      "id": "M03.F01.I04",
+      "id": "M06.F03.I03",
       "action": "新增",
-      "name": "更新接样单",
-      "reason": "B3 推进"
+      "name": "更新参数",
+      "reason": "B5 推进：M06 检测参数字典"
     },
     {
-      "id": "M03.F01.I05",
+      "id": "M06.F03.I04",
       "action": "新增",
-      "name": "删除接样单",
-      "reason": "B3 推进"
+      "name": "删除参数",
+      "reason": "B5 推进：M06 检测参数字典"
     },
     {
-      "id": "M03.F01.I06",
+      "id": "M06.F04.I01",
       "action": "新增",
-      "name": "接样单流程历史",
-      "reason": "B3 推进"
+      "name": "标准列表",
+      "reason": "B5 推进：M06 检测标准字典"
     },
     {
-      "id": "M03.F02.I01",
+      "id": "M06.F04.I02",
       "action": "新增",
-      "name": "任务分配",
-      "reason": "B3 推进"
+      "name": "创建标准",
+      "reason": "B5 推进：M06 检测标准字典"
     },
     {
-      "id": "M03.F03.I01",
+      "id": "M06.F04.I03",
       "action": "新增",
-      "name": "样品列表",
-      "reason": "B3 推进"
+      "name": "更新标准",
+      "reason": "B5 推进：M06 检测标准字典"
     },
     {
-      "id": "M03.F03.I02",
+      "id": "M06.F04.I04",
       "action": "新增",
-      "name": "样品详情",
-      "reason": "B3 推进"
+      "name": "删除标准",
+      "reason": "B5 推进：M06 检测标准字典"
     },
     {
-      "id": "M03.F03.I03",
+      "id": "M06.F07.I01",
       "action": "新增",
-      "name": "创建样品",
-      "reason": "B3 推进"
+      "name": "报告名称列表",
+      "reason": "B5 推进：M06 报告名称字典"
     },
     {
-      "id": "M03.F03.I04",
+      "id": "M06.F07.I02",
       "action": "新增",
-      "name": "更新样品",
-      "reason": "B3 推进"
+      "name": "报告名称详情",
+      "reason": "B5 推进：M06 报告名称字典"
     },
     {
-      "id": "M03.F03.I05",
+      "id": "M06.F07.I03",
       "action": "新增",
-      "name": "删除样品",
-      "reason": "B3 推进"
+      "name": "创建报告名称",
+      "reason": "B5 推进：M06 报告名称字典"
     },
     {
-      "id": "M03.F05.I01",
+      "id": "M06.F07.I04",
       "action": "新增",
-      "name": "审核队列",
-      "reason": "B3 推进"
+      "name": "更新报告名称",
+      "reason": "B5 推进：M06 报告名称字典"
     },
     {
-      "id": "M03.F06.I01",
+      "id": "M06.F07.I05",
       "action": "新增",
-      "name": "报告阶段审批推进",
-      "reason": "B3 推进"
+      "name": "删除报告名称",
+      "reason": "B5 推进：M06 报告名称字典"
+    },
+    {
+      "id": "M06.F08.I01",
+      "action": "新增",
+      "name": "参数界面列表",
+      "reason": "B5 推进：M06 参数界面字典"
+    },
+    {
+      "id": "M06.F08.I02",
+      "action": "新增",
+      "name": "参数界面详情",
+      "reason": "B5 推进：M06 参数界面字典"
+    },
+    {
+      "id": "M06.F08.I03",
+      "action": "新增",
+      "name": "创建参数界面",
+      "reason": "B5 推进：M06 参数界面字典"
+    },
+    {
+      "id": "M06.F08.I04",
+      "action": "新增",
+      "name": "更新参数界面",
+      "reason": "B5 推进：M06 参数界面字典"
+    },
+    {
+      "id": "M06.F08.I05",
+      "action": "新增",
+      "name": "删除参数界面",
+      "reason": "B5 推进：M06 参数界面字典"
     }
   ],
   "sync_files": [

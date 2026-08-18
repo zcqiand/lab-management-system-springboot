@@ -32,5 +32,22 @@ public interface SampleReceiptRepository extends JpaRepository<SampleReceiptEnti
     return all.size() > limit ? all.subList(0, limit) : all;
   }
 
+  /**
+   * 报告汇总查询（B4 M05.F01）。tenant + 可选 categoryCode（ALL 字符串 = 不过滤） + 可选 commissionDate 前后缀（YYYY-MM-DD
+   * 字典序 = 日期序）。无界传空串。
+   */
+  @Query(
+      "SELECT r FROM SampleReceiptEntity r"
+          + " WHERE (:tenantId = '' OR r.tenantId = :tenantId)"
+          + " AND (:categoryCode = 'ALL' OR r.categoryCode = :categoryCode)"
+          + " AND (:dateFrom = '' OR r.commissionDate >= :dateFrom)"
+          + " AND (:dateTo = '' OR r.commissionDate <= :dateTo)"
+          + " ORDER BY r.commissionDate DESC, r.commissionCode")
+  List<SampleReceiptEntity> summary(
+      @Param("tenantId") String tenantId,
+      @Param("categoryCode") String categoryCode,
+      @Param("dateFrom") String dateFrom,
+      @Param("dateTo") String dateTo);
+
   Optional<SampleReceiptEntity> findByTenantIdAndId(String tenantId, String id);
 }

@@ -62,6 +62,44 @@
 | M03.F03.I05 | SampleController#samplesDeleteSample / SampleService#delete | DELETE /api/samples/{id} | samples | M03.F03.I05 | - | 已上线 |
 | M03.F05.I01 | ReportFlowController#reportFlowListFlowQueue / ReportFlowService#flowQueue | GET /api/receipts/flow/queue?stage= | sample_receipts（按 flow_status 过滤 + tenant 收口，cap 默认 50） | M03.F05.I01 | - | 已上线 |
 | M03.F06.I01 | ReportFlowController#reportFlowSubmitFlowAction / ReportFlowService#submitAction | POST /api/receipts/flow | sample_receipts.flow_status + flow_history | M03.F06.I01 | - | 已上线 |
+| M05.F01.I01 | SummaryController#summaryGetReportSummary / SummaryService#getReportSummary | GET /api/summary?categoryCode=&dateFrom=&dateTo= | sample_receipts（按 commissionDate DESC + categoryCode 过滤） | M05.F01.I01 | - | 已上线 |
+| M05.F02.I01 | SummaryController#summaryGetDashboardStats / SummaryService#getDashboardStats | GET /api/summary/stats | sample_receipts / contracts / samples 计数 | M05.F02.I01 | - | 已上线 |
+| M06.F01.I01 | InspectionDictionaryController#inspectionDictionaryListSpecialties / InspectionDictionaryService#listSpecialties | GET /api/inspection/specialties?keyword= | inspection_specialties（V008，平台级） | M06.F01.I01 | - | 已上线 |
+| M06.F01.I02 | InspectionDictionaryController#inspectionDictionaryCreateSpecialty / InspectionDictionaryService#createSpecialty | POST /api/inspection/specialties | inspection_specialties | M06.F01.I02 | - | 已上线 |
+| M06.F01.I03 | InspectionDictionaryController#inspectionDictionaryUpdateSpecialty / InspectionDictionaryService#updateSpecialty | PUT /api/inspection/specialties/{code} | inspection_specialties | M06.F01.I03 | - | 已上线 |
+| M06.F01.I04 | InspectionDictionaryController#inspectionDictionaryDeleteSpecialty / InspectionDictionaryService#deleteSpecialty | DELETE /api/inspection/specialties/{code} | inspection_specialties | M06.F01.I04 | - | 已上线 |
+| M06.F03.I01 | InspectionDictionaryController#inspectionDictionaryListParameters / InspectionDictionaryService#listParameters | GET /api/inspection/parameters?keyword=&sourceType= | inspection_parameters（V008，平台级） | M06.F03.I01 | - | 已上线 |
+| M06.F03.I02 | InspectionDictionaryController#inspectionDictionaryCreateParameter / InspectionDictionaryService#createParameter | POST /api/inspection/parameters | inspection_parameters（aliases 走 jsonb `List<String>`，InspectionParameterSourceTypeConverter 写 PG enum 小写值） | M06.F03.I02 | - | 已上线 |
+| M06.F03.I03 | InspectionDictionaryController#inspectionDictionaryUpdateParameter / InspectionDictionaryService#updateParameter | PUT /api/inspection/parameters/{code} | inspection_parameters | M06.F03.I03 | - | 已上线 |
+| M06.F03.I04 | InspectionDictionaryController#inspectionDictionaryDeleteParameter / InspectionDictionaryService#deleteParameter | DELETE /api/inspection/parameters/{code} | inspection_parameters | M06.F03.I04 | - | 已上线 |
+| M06.F04.I01 | InspectionDictionaryController#inspectionDictionaryListStandards / InspectionDictionaryService#listStandards | GET /api/inspection/standards?keyword=&status= | inspection_standards（V008，平台级） | M06.F04.I01 | - | 已上线 |
+| M06.F04.I02 | InspectionDictionaryController#inspectionDictionaryCreateStandard / InspectionDictionaryService#createStandard | POST /api/inspection/standards | inspection_standards（InspectionStandardStatusConverter 写 PG enum 小写值） | M06.F04.I02 | - | 已上线 |
+| M06.F04.I03 | InspectionDictionaryController#inspectionDictionaryUpdateStandard / InspectionDictionaryService#updateStandard | PUT /api/inspection/standards/{code} | inspection_standards | M06.F04.I03 | - | 已上线 |
+| M06.F04.I04 | InspectionDictionaryController#inspectionDictionaryDeleteStandard / InspectionDictionaryService#deleteStandard | DELETE /api/inspection/standards/{code} | inspection_standards | M06.F04.I04 | - | 已上线 |
+| M06.F07.I01 | InspectionReportNameController#reportNamesListReportNames / InspectionReportNameService#list | GET /api/report-names?keyword= | inspection_report_names（V009，平台级） | M06.F07.I01 | - | 已上线 |
+| M06.F07.I02 | InspectionReportNameController#reportNamesGetReportName / InspectionReportNameService#get | GET /api/report-names/{code} | inspection_report_names（ext_fields 走 jsonb `List<ExtFieldDef>`） | M06.F07.I02 | - | 已上线 |
+| M06.F07.I03 | InspectionReportNameController#reportNamesCreateReportName / InspectionReportNameService#create | POST /api/report-names | inspection_report_names | M06.F07.I03 | - | 已上线 |
+| M06.F07.I04 | InspectionReportNameController#reportNamesUpdateReportName / InspectionReportNameService#update | PUT /api/report-names/{code} | inspection_report_names | M06.F07.I04 | - | 已上线 |
+| M06.F07.I05 | InspectionReportNameController#reportNamesDeleteReportName / InspectionReportNameService#delete | DELETE /api/report-names/{code} | inspection_report_names | M06.F07.I05 | - | 已上线 |
+| M06.F08.I01 | ParamInterfaceController#paramInterfacesListParamInterfaces / ParamInterfaceService#list | GET /api/param-interfaces?keyword= | param_interfaces（V010，平台级） | M06.F08.I01 | - | 已上线 |
+| M06.F08.I02 | ParamInterfaceController#paramInterfacesGetParamInterface / ParamInterfaceService#get | GET /api/param-interfaces/{code} | param_interfaces（config 走 jsonb `Map<String,Object>`） | M06.F08.I02 | - | 已上线 |
+| M06.F08.I03 | ParamInterfaceController#paramInterfacesCreateParamInterface / ParamInterfaceService#create | POST /api/param-interfaces | param_interfaces | M06.F08.I03 | - | 已上线 |
+| M06.F08.I04 | ParamInterfaceController#paramInterfacesUpdateParamInterface / ParamInterfaceService#update | PUT /api/param-interfaces/{code} | param_interfaces | M06.F08.I04 | - | 已上线 |
+| M06.F08.I05 | ParamInterfaceController#paramInterfacesDeleteParamInterface / ParamInterfaceService#delete | DELETE /api/param-interfaces/{code} | param_interfaces | M06.F08.I05 | - | 已上线 |
+
+> B4 说明：SummaryApi 2 端点（GET /api/summary 报告汇总 + GET /api/summary/stats 仪表盘）。tenant 收口走
+> `ConfigUserDirectory` 默认租户 TENANT-001，dev fallback。报告汇总 column 6 列固定（委托编号/报告类别/工程名称/流程状态/结论/报告编号），
+> row 走 `Map<String,String>` 动态；categoryCode=ALL 不过滤。仪表盘 3 桶（draft=receiving+task_assignment+data_entry；
+> reviewing=review+approval；issued=issuance+archived）+ pendingTask（task_assignment+data_entry+review）。
+
+> B5 说明：InspectionDictionaryApi + ReportNamesApi + ParamInterfacesApi 共 22 端点上线（M06.F01/F03/F04/F07/F08 5 实体 CRUD）。
+> 3 张表 inspection_specialties/inspection_parameters/inspection_standards（V008）+ inspection_report_names（V009）+ param_interfaces（V010），
+> 全平台级共享字典（per V012 备注，不加 tenant_id）。
+> 新增 2 个 AttributeConverter（InspectionParameterSourceTypeConverter / InspectionStandardStatusConverter）写 PG enum 小写值，与 B2 端 CalculationAlgorithmTypeConverter
+> 模式一致。3 张 jsonb 列（parameter.aliases / report-name ext_fields / param-interface config）走 `@JdbcTypeCode(SqlTypes.JSON)`
+> 映射 String，DTO 端 List/Map 直传。
+> M06.F02 objects + 4 junction link/unlink + report-name/param-interface 6 link/unlink 端点 stub 抛 `UnsupportedOperationException`，
+> 留待 B6 with Object 一起收口。
 
 > B1 说明：lab_dev 无身份表（shared SQL SSOT 不含 users/tenants），认证域用户/租户走
 > `io.xr.lab.platform.directory.ConfigUserDirectory`（配置式，镜像 lab-msw seeds）。
