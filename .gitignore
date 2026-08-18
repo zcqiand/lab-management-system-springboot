@@ -1,0 +1,36 @@
+# Maven
+target/
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+replay_pid*
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.classpath
+.project
+.settings/
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# Suite 状态产物 —— 不入库。再生它们只需要 `python scripts/gate.py -p <project>`。
+.state/trace.json
+.state/gate.json
+.state/alignment.json
+.state/gate.partial.json
+
+# SpotBugs / Spotless 中间产物
+.spotbugs/
+spotless-format*

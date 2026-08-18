@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "suite_version": "0.5.0",
+  "project": "lab-management-system-springboot",
+  "stack": "java-spring",
+  "gates": {
+    "L1": {
+      "name": "格式",
+      "cmd": [
+        "mvn",
+        "-q",
+        "spotless:check"
+      ],
+      "fix": "运行 `mvn spotless:apply` 后重试。"
+    },
+    "L2": {
+      "name": "静态检查",
+      "cmd": [
+        "mvn",
+        "-q",
+        "spotbugs:check"
+      ],
+      "fix": "逐条修复 SpotBugs。"
+    },
+    "L3": {
+      "name": "编译",
+      "cmd": [
+        "mvn",
+        "-q",
+        "-DskipTests",
+        "compile"
+      ],
+      "fix": "先让它编译过。"
+    },
+    "L4": {
+      "name": "测试",
+      "cmd": [
+        "mvn",
+        "-q",
+        "test"
+      ],
+      "fix": "先让测试变绿。"
+    }
+  },
+  "trace_cmd": [
+    "mvn",
+    "-q",
+    "test",
+    "-Dharness.trace=true"
+  ],
+  "trace_env": {},
+  "source_dirs": [
+    "src/main/java"
+  ],
+  "test_dirs": [
+    "src/test/java"
+  ]
+}
