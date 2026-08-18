@@ -91,7 +91,7 @@ class InspectionJunctionServiceTest {
   // === M06 specialty ↔ object ===
 
   @Test
-  @Fn({"M06.F01.I05", "M06.F02.I05"})
+  @Fn({"M06.F02.I05"})
   void linkSpecialtyObject_savesWithTimestamp() {
     when(specialtyObjectRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
     service.linkSpecialtyObject(new SpecialtyObjectLink("S-1", "OBJ-1").remark("primary"));
@@ -99,7 +99,7 @@ class InspectionJunctionServiceTest {
   }
 
   @Test
-  @Fn({"M06.F01.I05", "M06.F02.I05"})
+  @Fn({"M06.F02.I06"})
   void unlinkSpecialtyObject_existing_deletes() {
     when(specialtyObjectRepo.existsById(new SpecialtyObjectKey("S-1", "OBJ-1"))).thenReturn(true);
     service.unlinkSpecialtyObject(new SpecialtyObjectLink("S-1", "OBJ-1"));
@@ -107,7 +107,7 @@ class InspectionJunctionServiceTest {
   }
 
   @Test
-  @Fn({"M06.F01.I05", "M06.F02.I05"})
+  @Fn({"M06.F02.I06"})
   void unlinkSpecialtyObject_missing_throws404() {
     when(specialtyObjectRepo.existsById(any())).thenReturn(false);
     assertThrows(
@@ -119,7 +119,7 @@ class InspectionJunctionServiceTest {
   // === M06 object ↔ parameter ===
 
   @Test
-  @Fn({"M06.F02.I06", "M06.F03.I05"})
+  @Fn({"M06.F02.I07"})
   void linkObjectParameter_savesWithDefaultQualification() {
     when(objectParameterRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
     service.linkObjectParameter(
@@ -128,7 +128,7 @@ class InspectionJunctionServiceTest {
   }
 
   @Test
-  @Fn({"M06.F02.I06", "M06.F03.I05"})
+  @Fn({"M06.F02.I08"})
   void unlinkObjectParameter_existing_deletes() {
     when(objectParameterRepo.existsById(new ObjectParameterKey("OBJ-1", "P-1"))).thenReturn(true);
     service.unlinkObjectParameter("OBJ-1", "P-1");
@@ -136,7 +136,7 @@ class InspectionJunctionServiceTest {
   }
 
   @Test
-  @Fn({"M06.F02.I06", "M06.F03.I05"})
+  @Fn({"M06.F02.I08"})
   void unlinkObjectParameter_missing_throws404() {
     when(objectParameterRepo.existsById(any())).thenReturn(false);
     assertThrows(NoSuchElementException.class, () -> service.unlinkObjectParameter("OBJ-1", "P-1"));
@@ -145,7 +145,7 @@ class InspectionJunctionServiceTest {
   // === M06 object ↔ standard (role) ===
 
   @Test
-  @Fn({"M06.F02.I07", "M06.F04.I05"})
+  @Fn({"M06.F01.I05"})
   void linkObjectStandard_savesWithRole() {
     when(objectStandardRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
     service.linkObjectStandard(
@@ -154,7 +154,7 @@ class InspectionJunctionServiceTest {
   }
 
   @Test
-  @Fn({"M06.F02.I07", "M06.F04.I05"})
+  @Fn({"M06.F01.I06"})
   void unlinkObjectStandard_existing_deletes() {
     when(objectStandardRepo.existsById(
             new ObjectStandardKey("OBJ-1", "GB/T-50082", InspectionStandardRole.TESTING)))
@@ -165,7 +165,7 @@ class InspectionJunctionServiceTest {
   }
 
   @Test
-  @Fn({"M06.F02.I07", "M06.F04.I05"})
+  @Fn({"M06.F01.I06"})
   void unlinkObjectStandard_missing_throws404() {
     when(objectStandardRepo.existsById(any())).thenReturn(false);
     assertThrows(
@@ -176,7 +176,7 @@ class InspectionJunctionServiceTest {
   // === M06 standard ↔ parameter ===
 
   @Test
-  @Fn({"M06.F03.I06", "M06.F04.I06"})
+  @Fn({"M06.F03.I05"})
   void linkStandardParameter_saves() {
     when(standardParameterRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
     service.linkStandardParameter(new StandardParameterLink("GB/T-50082", "P-1"));
@@ -184,7 +184,7 @@ class InspectionJunctionServiceTest {
   }
 
   @Test
-  @Fn({"M06.F03.I06", "M06.F04.I06"})
+  @Fn({"M06.F03.I06"})
   void unlinkStandardParameter_existing_deletes() {
     when(standardParameterRepo.existsById(new StandardParameterKey("GB/T-50082", "P-1")))
         .thenReturn(true);
@@ -194,7 +194,7 @@ class InspectionJunctionServiceTest {
   }
 
   @Test
-  @Fn({"M06.F03.I06", "M06.F04.I06"})
+  @Fn({"M06.F03.I06"})
   void unlinkStandardParameter_missing_throws404() {
     when(standardParameterRepo.existsById(any())).thenReturn(false);
     assertThrows(
@@ -205,7 +205,7 @@ class InspectionJunctionServiceTest {
   // === M06 object ↔ report-name ===
 
   @Test
-  @Fn({"M06.F02.I08", "M06.F07.I06"})
+  @Fn({"M06.F07.I06"})
   void linkObjectReportName_saves() {
     when(objectReportNameRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
     service.linkObjectReportName(new ObjectReportNameLink("OBJ-1", "RN-1"));
@@ -213,7 +213,7 @@ class InspectionJunctionServiceTest {
   }
 
   @Test
-  @Fn({"M06.F02.I08", "M06.F07.I06"})
+  @Fn({"M06.F04.I05"})
   void unlinkObjectReportName_existing_deletes() {
     when(objectReportNameRepo.existsById(new ObjectReportNameKey("OBJ-1", "RN-1")))
         .thenReturn(true);
@@ -255,7 +255,7 @@ class InspectionJunctionServiceTest {
   }
 
   @Test
-  @Fn({"M06.F07.I08", "M06.F03.I07"})
+  @Fn({"M06.F04.I06"})
   void unlinkReportNameParameter_existing_deletes() {
     when(reportNameParameterRepo.existsById(new ReportNameParameterKey("RN-1", "P-1")))
         .thenReturn(true);
