@@ -75,7 +75,58 @@ flowchart LR
 
 ---
 
-## FLOW-03 （异常流程名）
+## FLOW-03 试验流程（M03.B3 主流程，对应 ReceiptsApi + SamplesApi + ReportFlowApi）
+
+> 「接样 → 任务分配 → 数据录入（写样品） → 提交阶段推进 → 审核 → 批准 → 发放 → 归档」整链主流程。
+> 合同（M02.F01）作为接样 FK 父前置节点单列步骤 S00。
+
+```mermaid
+flowchart LR
+    S00[合同维护/选择] --> S01[新建接样单]
+    S01 --> S02[修改接样单]
+    S02 --> S03[列接样单查看详情/历史]
+    S03 --> S04[分配任务给检测员]
+    S04 --> S05[新增样品数据]
+    S05 --> S06[审核列队领任务]
+    S06 --> S07{阶段推进 SUBMIT/RETURN/WITHDRAW}
+    S07 --> S08[完结至 archived/completed]
+    S08 --> S09[删除测试数据]
+```
+
+| 步骤 | 名称 | 角色 | 输入 | 输出 | 状态流转 | 支撑功能子项 |
+|---|---|---|---|---|---|---|
+| S00 | 合同维护 | 配置员 | contractCode/unit/witness 等 | Contract 列表/详情 | — | M02.F01.I01, M02.F01.I02, M02.F01.I03, M02.F01.I04, M02.F01.I05 |
+| S01 | 新建接样单 | 检测员 | contractId + commissionCode + 等 | SampleReceipt (flow_status=receiving) | — | M03.F01.I03 |
+| S02 | 修改接样单 | 检测员 | 字段 PATCH | 更新后接样单 | — | M03.F01.I04 |
+| S03 | 列接样单查看详情/历史 | 检测员 | 过滤参数 | SampleReceipt[] / 详情 / flow_history | — | M03.F01.I01, M03.F01.I02, M03.F01.I06 |
+| S04 | 分配任务给检测员 | 检测主管 | AssignTaskRequest | 更新后接样单（assigneeId/Name/plannedTestDate） | receiving→task_assignment | M03.F02.I01 |
+| S05 | 新增样品数据 | 检测员 | receiptId + sampleCode + spec | Sample | — | M03.F03.I03 |
+| S06a | 列样品 | 检测员 | receiptId | Sample[] | — | M03.F03.I01 |
+| S06b | 改删样品 | 检测员 | sampleId PATCH | 更新后 Sample | — | M03.F03.I04, M03.F03.I05, M03.F03.I02 |
+| S07a | 审核列队 | 审核员 | stage | SampleReceipt[] | — | M03.F05.I01 |
+| S07b | 阶段推进 | 审核/批准/发放员 | FlowActionRequest (ids + action) | FlowActionResult[] | task_assignment→data_entry→review→approval→issuance→archived | M03.F06.I01 |
+| S08 | 完结归档 | 系统 | — | flow_status=archived/completed | archived (WITHDRAW 退回 receiving) | M03.F06.I01（再次提交） |
+| S09 | 删除测试数据 | 主管 | id | 204（CASCADE → samples） | — | M03.F01.I05 |
+
+### 评审时问这四个问题（FLOW-03）
+
+1. 有没有哪个步骤的「支撑功能子项」是空的？→ 都已登记。
+2. 有没有功能子项从头到尾没出现在任何流程里？→ B3 全部 19 个子项入表。
+3. 状态流转列里的状态名，和代码里的枚举一致吗？→ 一致（FlowStatus 8 阶段）。
+4. 退回路径都画了吗？→ RETURN 走 S07b 的 RETURN action（本期支持的 action 含 SUBMIT/RETURN/WITHDRAW）。
+
+### 孤儿功能（B3）
+
+| 功能 ID | 为什么合法 |
+|---|---|
+| M02.F01.I01-I05 | 合同管理独立子功能；上游合同登记是接样的 FK 父节点，已纳入 FLOW-03 S00 |
+| M03.F01.I05, M03.F03.I05 | 删测试数据已纳入 FLOW-03 S09 |
+
+> 步骤表里已登记 19 个 B3 I 级（5 合同 + 6 接样 + 5 样品 + 1 队列 + 1 推进 + 1 详情/历史）。
+
+---
+
+## FLOW-04 （异常流程名）
 
 > 异常流程单独成表，否则它承载的功能永远是孤儿。
 

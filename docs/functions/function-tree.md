@@ -129,3 +129,31 @@
 | M06.F06.I03 | 创建技术要求 | POST /api/technical-requirements：tenant 从 token claim 注入；默认值 numeric/≥/manual/draft | 接口 | 已上线 |
 | M06.F06.I04 | 更新技术要求 | PUT /api/technical-requirements/{...}：PATCH 语义 | 接口 | 已上线 |
 | M06.F06.I05 | 删除技术要求 | DELETE /api/technical-requirements/{...}：204 | 接口 | 已上线 |
+
+> Batch B3（合同 + 接样单 + 样品 + 报告流程，M02.F01 + M03.F01/F02/F03 + M03.F05/F06，对应 ContractsApi 5 + ReceiptsApi 7 + SamplesApi 5 + ReportFlowApi 2 共 19 端点）。
+> 合同是接样 FK 父表（sample_receipts.contract_id → contracts.id ON DELETE RESTRICT）。
+> 接样单自身是 7 阶段状态机（receiving / task_assignment / data_entry / review / approval / issuance / archived）。
+> 3 张 jsonb 列走 @JdbcTypeCode(SqlTypes.JSON)：judgment_basis/testing_basis/test_parameters（标准码数组）+ flow_history（FlowHistoryEntry[]）。
+> 计算规则/技术要求/合同/接样的 8 个 PG enum 全部在 B2+V014 / V015 改为 TEXT + AttributeConverter 写 DTO @JsonValue 同款字符串。
+
+| 子项 ID | 名称 | 闭环定义 | 类型 | 状态 |
+|---|---|---|---|---|
+| M02.F01.I01 | 合同列表 | GET /api/contracts?keyword=&status=：按 tenant 收口 + 2 过滤，返回 Contract[] | 接口 | 已上线 |
+| M02.F01.I02 | 合同详情 | GET /api/contracts/{id}：404 if 不存在 | 接口 | 已上线 |
+| M02.F01.I03 | 创建合同 | POST /api/contracts：code/clientUnit/projectName/constructionUnit/witnessUnit/witness 必填，status 默认 ACTIVE | 接口 | 已上线 |
+| M02.F01.I04 | 更新合同 | PUT /api/contracts/{id}：PATCH 语义 | 接口 | 已上线 |
+| M02.F01.I05 | 删除合同 | DELETE /api/contracts/{id}：204；如果有接样引用 FK RESTRICT 拒 | 接口 | 已上线 |
+| M03.F01.I01 | 接样单列表 | GET /api/receipts?contractId=&flowStatus=&keyword=：按 tenant 收口 + 3 过滤 | 接口 | 已上线 |
+| M03.F01.I02 | 接样单详情 | GET /api/receipts/{id}：返回 SampleReceipt（含 flow_history） | 接口 | 已上线 |
+| M03.F01.I03 | 创建接样单 | POST /api/receipts：contract_id FK 必存在；flow_status=receiving 起步；flow_history=[] | 接口 | 已上线 |
+| M03.F01.I04 | 更新接样单 | PUT /api/receipts/{id}：PATCH 语义 | 接口 | 已上线 |
+| M03.F01.I05 | 删除接样单 | DELETE /api/receipts/{id}：CASCADE 删除下属 samples | 接口 | 已上线 |
+| M03.F01.I06 | 接样单流程历史 | GET /api/receipts/{id}/history：返回 FlowHistoryEntry[]（jsonb 展开为 List） | 接口 | 已上线 |
+| M03.F02.I01 | 任务分配 | PUT /api/receipts/{id}/task：AssignTaskRequest 设 assigneeId/Name/plannedTestDate；非 receiving 阶段不自动 advance | 接口 | 已上线 |
+| M03.F03.I01 | 样品列表 | GET /api/samples?receiptId=&keyword=：tenant + 2 过滤 | 接口 | 已上线 |
+| M03.F03.I02 | 样品详情 | GET /api/samples/{id} | 接口 | 已上线 |
+| M03.F03.I03 | 创建样品 | POST /api/samples：receipt_id FK 必存在；ext 默认 {} | 接口 | 已上线 |
+| M03.F03.I04 | 更新样品 | PUT /api/samples/{id}：PATCH 语义 | 接口 | 已上线 |
+| M03.F03.I05 | 删除样品 | DELETE /api/samples/{id}：204 | 接口 | 已上线 |
+| M03.F05.I01 | 审核队列 | GET /api/receipts/flow/queue?stage=：按 stage 过滤+按 tenant 收口，返回 ReceiptsListReceipts200Response（pageSize 默认 50，cap 200） | 接口 | 已上线 |
+| M03.F06.I01 | 报告阶段审批推进 | POST /api/receipts/flow：FlowActionRequest{ids, action, operator, reason}；action=SUBMIT/RETURN/WITHDRAW；FAIL 单条结果进 FlowActionResult{ok, message} | 接口 | 已上线 |

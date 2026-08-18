@@ -43,12 +43,33 @@
 | M06.F06.I03 | TechnicalRequirementController#technicalRequirementsCreateTechnicalRequirement / TechnicalRequirementService#create | POST /api/technical-requirements | inspection_technical_requirements | M06.F06.I03 | - | 已上线 |
 | M06.F06.I04 | TechnicalRequirementController#technicalRequirementsUpdateTechnicalRequirement / TechnicalRequirementService#update | PUT /api/technical-requirements/{object}/{parameter}/{standard} | inspection_technical_requirements | M06.F06.I04 | - | 已上线 |
 | M06.F06.I05 | TechnicalRequirementController#technicalRequirementsDeleteTechnicalRequirement / TechnicalRequirementService#delete | DELETE /api/technical-requirements/{object}/{parameter}/{standard} | inspection_technical_requirements | M06.F06.I05 | - | 已上线 |
+| M02.F01.I01 | ContractController#contractsListContracts / ContractService#list | GET /api/contracts | contracts（V001 + V012 tenant_id） | M02.F01.I01 | - | 已上线 |
+| M02.F01.I02 | ContractController#contractsGetContract / ContractService#get | GET /api/contracts/{id} | contracts | M02.F01.I02 | - | 已上线 |
+| M02.F01.I03 | ContractController#contractsCreateContract / ContractService#create | POST /api/contracts | contracts | M02.F01.I03 | - | 已上线 |
+| M02.F01.I04 | ContractController#contractsUpdateContract / ContractService#update | PUT /api/contracts/{id} | contracts | M02.F01.I04 | - | 已上线 |
+| M02.F01.I05 | ContractController#contractsDeleteContract / ContractService#delete | DELETE /api/contracts/{id} | contracts | M02.F01.I05 | - | 已上线 |
+| M03.F01.I01 | SampleReceiptController#receiptsListReceipts / SampleReceiptService#list | GET /api/receipts | sample_receipts（V002 + V012 tenant_id） | M03.F01.I01 | - | 已上线 |
+| M03.F01.I02 | SampleReceiptController#receiptsGetReceipt / SampleReceiptService#get | GET /api/receipts/{id} | sample_receipts | M03.F01.I02 | - | 已上线 |
+| M03.F01.I03 | SampleReceiptController#receiptsCreateReceipt / SampleReceiptService#create | POST /api/receipts | sample_receipts（contract_id FK V002，flow_status=receiving 起步；flow_history 起步空数组） | M03.F01.I03 | - | 已上线 |
+| M03.F01.I04 | SampleReceiptController#receiptsUpdateReceipt / SampleReceiptService#update | PUT /api/receipts/{id} | sample_receipts | M03.F01.I04 | - | 已上线 |
+| M03.F01.I05 | SampleReceiptController#receiptsDeleteReceipt / SampleReceiptService#delete | DELETE /api/receipts/{id} | sample_receipts（CASCADE → samples） | M03.F01.I05 | - | 已上线 |
+| M03.F01.I06 | SampleReceiptController#receiptsGetReceiptHistory / SampleReceiptService#history | GET /api/receipts/{id}/history | sample_receipts.flow_history (jsonb) | M03.F01.I06 | - | 已上线 |
+| M03.F02.I01 | SampleReceiptController#receiptsAssignTask / SampleReceiptService#assignTask | PUT /api/receipts/{id}/task | sample_receipts（assignee_id/Name/plannedTestDate） | M03.F02.I01 | - | 已上线 |
+| M03.F03.I01 | SampleController#samplesListSamples / SampleService#list | GET /api/samples | samples（V002 receipt_id FK） | M03.F03.I01 | - | 已上线 |
+| M03.F03.I02 | SampleController#samplesGetSample / SampleService#get | GET /api/samples/{id} | samples | M03.F03.I02 | - | 已上线 |
+| M03.F03.I03 | SampleController#samplesCreateSample / SampleService#create | POST /api/samples | samples（receipt_id FK 必存在；ext 默认 {}） | M03.F03.I03 | - | 已上线 |
+| M03.F03.I04 | SampleController#samplesUpdateSample / SampleService#update | PUT /api/samples/{id} | samples | M03.F03.I04 | - | 已上线 |
+| M03.F03.I05 | SampleController#samplesDeleteSample / SampleService#delete | DELETE /api/samples/{id} | samples | M03.F03.I05 | - | 已上线 |
+| M03.F05.I01 | ReportFlowController#reportFlowListFlowQueue / ReportFlowService#flowQueue | GET /api/receipts/flow/queue?stage= | sample_receipts（按 flow_status 过滤 + tenant 收口，cap 默认 50） | M03.F05.I01 | - | 已上线 |
+| M03.F06.I01 | ReportFlowController#reportFlowSubmitFlowAction / ReportFlowService#submitAction | POST /api/receipts/flow | sample_receipts.flow_status + flow_history | M03.F06.I01 | - | 已上线 |
 
 > B1 说明：lab_dev 无身份表（shared SQL SSOT 不含 users/tenants），认证域用户/租户走
 > `io.xr.lab.platform.directory.ConfigUserDirectory`（配置式，镜像 lab-msw seeds）。
 > 「数据表」列的 `-（配置式目录）` 即指此处；V014 identity 表落地后回填。
 
 > B2 说明：码表 4 表 + 计算规则 + 技术要求共 6 表都已在 shared 仓 sql/migrations V004/V005/V009 + V012 落地，本仓直接读 Flyway baseline。PK 设计：码表 4 表 = (tenant_id, code) 复合主键（V012 约束对齐）；计算规则 = (object, parameter) 复合主键；技术要求 PK = 业务三键 (object, parameter, standard)，tenant_id 走 WHERE 过滤。
+
+> B3 说明：合同 V001（PK = id text）+ V012 加 tenant_id；接样单 V002 PK = id text、FK 到 contracts（RESTRICT）+ samples（CASCADE）+ 3 个 jsonb 列（judgment_basis/testing_basis/test_parameters/FlowHistoryEntry[]）走 @JdbcTypeCode(SqlTypes.JSON) 映射；8 个 PG enum（contract_status/flow_status/receipt_result/calculation_algorithm_type/4 requirement_*）经 V014+V015 改为 TEXT + AttributeConverter。
 
 ## 约定
 

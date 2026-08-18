@@ -176,4 +176,14 @@ public class InspectionCatalogController implements InspectionCatalogApi {
     }
     return Map.of();
   }
+
+  /** 静态访问 helper：其它 controller 复用，从 SecurityContext 读 tenant_id claim 缺省回退 directory 默认租户。 */
+  public static String currentTenantIdOrDefaultStatic(ConfigUserDirectory directory) {
+    Map<String, Object> claims = currentClaims();
+    Object t = claims.get("tenant_id");
+    if (t != null && !t.toString().isEmpty()) {
+      return t.toString();
+    }
+    return directory.defaultTenant().getTenantId();
+  }
 }

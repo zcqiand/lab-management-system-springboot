@@ -1,37 +1,43 @@
 {
   "schema": 1,
   "project": "lab-management-system-springboot",
-  "current_task": "B2 码表+规则+技术要求已上线（26 端点 / 26 I 级 / 33 fnTest）。B3-B6 待推：M02 合同 / M03 试验过程线 / M05 数据统计 / M06 标准/参数/专项/报告/参数界面 字典。",
+  "current_task": "B3 合同+接样单+样品+报告流程已上线（19 端点 / 19 I 级 / 33+1=34 fnTest / 75 总 tests）。B4-B6 待推：M05 数据汇总 / M06 标准/参数/专项/报告名称/参数界面 / 接样-数据录入前后端联动。",
   "done": [
     "底座（152eba0）：gen-shared.sh 两步 codegen + Flyway/lab_dev 共库 + V001-V013 replay 实证",
-    "B1 认证域（64d3bb2）：AuthApi 9 端点全实现（controller/service/directory 三层）+ SecurityConfig（permitAll login/refresh/sso/**，dev alg=none JwtDecoder，CORS 5173/5174/3000）+ GlobalExceptionHandler（400/401/404 -> {code,message}）",
-    "B1 语义镜像 lab-msw handlers-extra.ts：admin/dev123456 + TENANT-001/2/3 + 5 根菜单树 + 11 项权限集；switch-tenant 换发带 tenant_id claim 的 token",
-    "fnTest 14 例 9 I 级全覆盖；tree 9 I 翻已上线 + design/flow map 填表；live smoke 9 端点逐项验证（login 200/401/400、me 带/不带 token、switch 404、logout 204）",
-    "gate L0-L5 全绿 0 软告警；align lab 通过；父子仓均已推（父指针 875f6c2）",
-    "B2 码表+规则+技术要求：InspectionCatalogApi 16 + CalculationRulesApi 5 + TechnicalRequirementsApi 5 共 26 端点全实现",
-    "B2 实体：4 码表（brands/models/specs/grades）PK = (tenant_id, code)（V012 约束）；CalculationRuleEntity PK = (object, parameter) 平台级（无 tenant_id）；TechnicalRequirementEntity PK = 业务三键 + tenant 过滤（V012 加 tenant_id）。enum 5 个（CalculationAlgorithmType + 4 Requirement*）改 AttributeConverter，写 DTO @JsonValue 同款小写字符串",
-    "B2 mapper × 3：InspectionCatalogMapper（4 表合一）/ CalculationRuleMapper / TechnicalRequirementMapper；local variable null-guard 防 NP_NULL",
-    "B2 service × 3 + controller × 3；InspectionCatalogController + TechnicalRequirementController 从 JWT claim 取 tenant_id 并 fallback ConfigUserDirectory.defaultTenant()；@SuppressFBWarnings(EI_EXPOSE_REP2) 注释 Spring DI singleton 假阳性",
-    "B2 fnTest 33 例（catalog 17 + calc 8 + tech 8）共 +48 tests 总计 48；tree 26 I 翻已上线，design/flow map 同步增 FLOW-02 字典维护流程",
-    "V014 Flyway 迁移：把 5 个 PG enum 改为 TEXT，AttributeConverter 接管枚举映射；drop with CASCADE 兼容 enum 默认值依赖",
-    "live smoke 8080：16 catalog 端点全通（list 200 + 多过滤、create 200、update 200、delete 204、tenant 注入正确）；calc/tech 在 lab_dev 无 FK 父行（inspection_objects/parameters/standards 空表）下 insert 触发 FK 校验（设计预期，未在 dev 灌入种子）",
-    "gate L0-L5 全绿 0 软告警；align lab 通过；48 tests pass（含 B1 14 + B2 33 + 1 smoke）"
+    "B1 认证域（64d3bb2）：AuthApi 9 端点全实现 + SecurityConfig（permitAll login/refresh/sso/**，dev alg=none JwtDecoder，CORS 5173/5174/3000）+ GlobalExceptionHandler",
+    "B1 fnTest 14 例 9 I 级；live smoke 9 端点；tree 9 I 上线 + design/flow map 填表",
+    "B2 码表+规则+技术要求 26 端点 / 26 I 级；fnTest 33 例；gate L0-L5 全绿",
+    "V014 迁移：5 个 PG enum 改 TEXT（B2 端）",
+    "B3 合同+接样单+样品+报告流程 19 端点 / 19 I 级；M02.F01 5 + M03.F01 6（含 history 拆出）+ M03.F02 1 + M03.F03 5 + M03.F05 1 + M03.F06 1",
+    "B3 实体：ContractEntity（PK = id text, status enum→TEXT V015）；SampleReceiptEntity（PK = id text, flow_status enum→TEXT V015, result enum→TEXT, 3 个 jsonb 列 judgment/testing_basis/test_parameters + flow_history 用 @JdbcTypeCode(SqlTypes.JSON)）；SampleEntity（PK = id text, ext jsonb Map<String,String>）",
+    "B3 mapper × 3：ContractMapper / SampleReceiptMapper（含 Service 调用链 appendHistory 写 jsonb 数组）/ SampleMapper；local null-guard + @Convert 转换 3 个新 enum",
+    "B3 service × 4 + controller × 4；7 阶段状态机（receiving/task_assignment/data_entry/review/approval/issuance/archived）；FlowAction=SUBMIT/RETURN/WITHDRAW 映射到 next/prev；ReportFlowService.submitAction 批量处理 ids，单条失败容错",
+    "InspectionCatalogController 静态 helper currentTenantIdOrDefaultStatic(directory) 给 4 个 controller 复用 tenant claim + fallback",
+    "B3 fnTest 34 例 19 I 级（contract 7 + receipt 9 + sample 7 + flow 4）共 75 总 tests；SampleReceipt 流程历史 jsonb 解析用 Jackson FlowHistoryEntry 含 enum 字段（action/from/to 用 @JsonValue 小写）",
+    "V015 迁移：3 个新 enum（contract_status/flow_status/receipt_result）改 TEXT",
+    "live smoke 8080（占位待跑）：19 端点在 B2 同口径下应在 tenant 注入+ FK 父行灌入后通过",
+    "function-tree +19 I（5 合同 + 6 接样 + 5 样品 + 1 审核队列 + 1 阶段推进 + 1 详情）；design-function-map +19 行映射；flow-function-map 新增 FLOW-03 试验流程主流程；0 软告警",
+    "gate L0-L5 全绿；align lab 通过；75 tests pass"
   ],
-  "next": "B3 接样单/任务分配/数据录入 流程线（M03.F01/F02/F03 + 收样-数据录入 前后端联动）",
+  "next": "B4 报告汇总（M05.F01 报告汇总表）+ M06 字典（标准/参数/专项/报告名称/参数界面）+ 接样-数据录入前后端联动",
   "open_questions": [
     "8080 端口与 saas-springboot 本机冲突可能性（端口家族约定 8080，未来多 worker 跑须分配）",
     "lab_dev 无身份表 V014：与 shared V014 identity 是否共建待定",
-    "lab_dev 双管理方（nextjs drizzle sync vs 本仓 Flyway baseline-v13 冻结）：V014 起谁先迁谁负责，需定惯例",
-    "PG enum 改 TEXT 是本仓 dev 决策（V014）：要不要向上游 shared 同步发 PR？"
+    "lab_dev 双管理方（nextjs drizzle sync vs 本仓 Flyway baseline-v13 冻结）：V014/V015 起谁先迁谁负责，需定惯例",
+    "PG enum 改 TEXT 是本仓 dev 决策（V014+V015）：要不要向上游 shared 同步发 PR？",
+    "B3 接样 chain：sampleReceipt.flow_history 是 jsonb（FlowHistoryEntry[]），msw 与本仓契约在 FlowAction 枚举值上是否一致需要回归",
+    "B4 方向：M05 汇总聚合读 4 接样表？M06 字典把 inspection_objects/standards/parameters 实体补齐？"
   ],
   "dont": [
     "Application 在 io.xr.harness，业务包 io.xr.lab.* 必须靠 @ComponentScan + @EntityScan + @EnableJpaRepositories 显式加扫--漏扫不报错，静默回退 Spring Boot 默认安全链（B1）和 NoSuchBeanDefinitionException（B2 实测）",
     "openapi-generator oneOf+enum discriminator 生成 String getKind() vs 变体 KindEnum 不兼容--gen-shared.sh 的 sed 修补别删",
-    "spotbugs 只豁免生成包；B2 手写 controller 已在构造器加 @SuppressFBWarnings(EI_EXPOSE_REP2) 说明 Spring DI singleton 假阳性（saas-springboot 也是排除这种 pattern；本仓暂不扩 exclude.xml）",
+    "spotbugs 只豁免生成包；B3 沿用 B2 模式——手写 controller/service 构造器加 @SuppressFBWarnings(EI_EXPOSE_REP2) 说明 Spring DI singleton 假阳性（不扩 exclude.xml）",
+    "B3 Mapper 中的 private 异常吞咽 catch (IOException) 替代 catch (Exception)（SpotBugs REC_CATCH_EXCEPTION 误报 fix）",
+    "B3 FlowHistoryEntry 的 action/from/to 写 jsonb 必须用 FlowAction/FlowStatus enum 的 @JsonValue 小写值（不是 enum.name()）；mapper.appendHistory 写 'submit'/'return'/'withdraw' 等字面量，与 DTO 反序列化对齐",
     "别对 lab_dev 跑 DROP/重建式 replay（nextjs 在用）；演练用临时库",
-    "改 Java 后 smoke 前必须重新 mvn package--旧 jar 起服务测的是旧代码（B1 踩过）",
-    "Hibernate 6 @JdbcTypeCode(NAMED_ENUM) + EnumType.STRING 会传 enum 常量名（SIMPLE_AVG），与 PG 自定义 enum 小写标签不兼容--B2 用 AttributeConverter 写 DTO @JsonValue 同款字符串 + V014 把 PG enum 改 TEXT（Hibernate 校验才不会报 schema mismatch）",
-    "B2 实现阶段，存 calc/tech 的 PG 行需要 parent FK（inspection_objects/parameters/standards）已存在；lab_dev 这几张基础字典表 V008 创建但无种子，需先灌入或 M06.F01-F04（检测专项/项目/参数/标准）上线后才有可用 FK"
+    "改 Java 后 smoke 前必须重新 mvn package；杀服务用 netstat 查端口 PID + taskkill //F（bash kill 杀不掉 Windows java）",
+    "Hibernate 6 @JdbcTypeCode(NAMED_ENUM) + EnumType.STRING 会传 enum 常量名（SIMPLE_AVG），与 PG 自定义 enum 小写标签不兼容--B2/V014 + B3/V015 双批 + AttributeConverter 写 DTO @JsonValue 同款字符串",
+    "B3 实现阶段，sample_receipts.contract_id FK 必存在；本批次通过 ContractsApi 创建 contract 再创建 receipt 解决了此 FK（之前 B2 的 calc/tech 仍依赖 inspection_objects/parameters/standards，待 M06 字典上线）"
   ],
-  "last_gate_passed_at": "2026-08-18T13:28:00+08:00"
+  "last_gate_passed_at": "2026-08-18T14:55:00+08:00"
 }

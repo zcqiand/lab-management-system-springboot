@@ -1,164 +1,122 @@
 {
   "schema": 1,
   "approved": true,
-  "base_sha": "4c7b9f3272ef17ea",
-  "summary": "B2 推进：M04.F06/07/08/09 码表（型号/规格/等级/牌号，维护 4×4=16 端点 / 16 I）+ M06.F05 计算规则（5 端点 / 5 I）+ M06.F06 技术要求（5 端点 / 5 I），合计 26 端点 / 26 I 子项。OpenAPI 1:1 镜像。",
+  "base_sha": "e57e3019155080c0",
+  "summary": "B3 推进：M02.F01 合同管理 5 端点 + M03.F01/F02/F03/F05/F06/F07/F08/F09 试验过程管理 14 端点 = 共 19 端点 / 19 I。合同是接样 FK 父表必须纳入。",
   "changes": [
     {
-      "id": "M04.F06.I01",
+      "id": "M02.F01.I01",
       "action": "新增",
-      "name": "型号列表",
-      "reason": "B2 推进"
+      "name": "合同列表",
+      "reason": "B3 推进"
     },
     {
-      "id": "M04.F06.I02",
+      "id": "M02.F01.I02",
       "action": "新增",
-      "name": "创建型号",
-      "reason": "B2 推进"
+      "name": "合同详情",
+      "reason": "B3 推进"
     },
     {
-      "id": "M04.F06.I03",
+      "id": "M02.F01.I03",
       "action": "新增",
-      "name": "更新型号",
-      "reason": "B2 推进"
+      "name": "创建合同",
+      "reason": "B3 推进"
     },
     {
-      "id": "M04.F06.I04",
+      "id": "M02.F01.I04",
       "action": "新增",
-      "name": "删除型号",
-      "reason": "B2 推进"
+      "name": "更新合同",
+      "reason": "B3 推进"
     },
     {
-      "id": "M04.F07.I01",
+      "id": "M02.F01.I05",
       "action": "新增",
-      "name": "规格列表",
-      "reason": "B2 推进"
+      "name": "删除合同",
+      "reason": "B3 推进"
     },
     {
-      "id": "M04.F07.I02",
+      "id": "M03.F01.I01",
       "action": "新增",
-      "name": "创建规格",
-      "reason": "B2 推进"
+      "name": "接样单列表",
+      "reason": "B3 推进"
     },
     {
-      "id": "M04.F07.I03",
+      "id": "M03.F01.I02",
       "action": "新增",
-      "name": "更新规格",
-      "reason": "B2 推进"
+      "name": "接样单详情",
+      "reason": "B3 推进"
     },
     {
-      "id": "M04.F07.I04",
+      "id": "M03.F01.I03",
       "action": "新增",
-      "name": "删除规格",
-      "reason": "B2 推进"
+      "name": "创建接样单",
+      "reason": "B3 推进"
     },
     {
-      "id": "M04.F08.I01",
+      "id": "M03.F01.I04",
       "action": "新增",
-      "name": "等级列表",
-      "reason": "B2 推进"
+      "name": "更新接样单",
+      "reason": "B3 推进"
     },
     {
-      "id": "M04.F08.I02",
+      "id": "M03.F01.I05",
       "action": "新增",
-      "name": "创建等级",
-      "reason": "B2 推进"
+      "name": "删除接样单",
+      "reason": "B3 推进"
     },
     {
-      "id": "M04.F08.I03",
+      "id": "M03.F01.I06",
       "action": "新增",
-      "name": "更新等级",
-      "reason": "B2 推进"
+      "name": "接样单流程历史",
+      "reason": "B3 推进"
     },
     {
-      "id": "M04.F08.I04",
+      "id": "M03.F02.I01",
       "action": "新增",
-      "name": "删除等级",
-      "reason": "B2 推进"
+      "name": "任务分配",
+      "reason": "B3 推进"
     },
     {
-      "id": "M04.F09.I01",
+      "id": "M03.F03.I01",
       "action": "新增",
-      "name": "牌号列表",
-      "reason": "B2 推进"
+      "name": "样品列表",
+      "reason": "B3 推进"
     },
     {
-      "id": "M04.F09.I02",
+      "id": "M03.F03.I02",
       "action": "新增",
-      "name": "创建牌号",
-      "reason": "B2 推进"
+      "name": "样品详情",
+      "reason": "B3 推进"
     },
     {
-      "id": "M04.F09.I03",
+      "id": "M03.F03.I03",
       "action": "新增",
-      "name": "更新牌号",
-      "reason": "B2 推进"
+      "name": "创建样品",
+      "reason": "B3 推进"
     },
     {
-      "id": "M04.F09.I04",
+      "id": "M03.F03.I04",
       "action": "新增",
-      "name": "删除牌号",
-      "reason": "B2 推进"
+      "name": "更新样品",
+      "reason": "B3 推进"
     },
     {
-      "id": "M06.F05.I01",
+      "id": "M03.F03.I05",
       "action": "新增",
-      "name": "计算规则列表",
-      "reason": "B2 推进"
+      "name": "删除样品",
+      "reason": "B3 推进"
     },
     {
-      "id": "M06.F05.I02",
+      "id": "M03.F05.I01",
       "action": "新增",
-      "name": "计算规则详情",
-      "reason": "B2 推进"
+      "name": "审核队列",
+      "reason": "B3 推进"
     },
     {
-      "id": "M06.F05.I03",
+      "id": "M03.F06.I01",
       "action": "新增",
-      "name": "创建计算规则",
-      "reason": "B2 推进"
-    },
-    {
-      "id": "M06.F05.I04",
-      "action": "新增",
-      "name": "更新计算规则",
-      "reason": "B2 推进"
-    },
-    {
-      "id": "M06.F05.I05",
-      "action": "新增",
-      "name": "删除计算规则",
-      "reason": "B2 推进"
-    },
-    {
-      "id": "M06.F06.I01",
-      "action": "新增",
-      "name": "技术要求列表",
-      "reason": "B2 推进"
-    },
-    {
-      "id": "M06.F06.I02",
-      "action": "新增",
-      "name": "技术要求详情",
-      "reason": "B2 推进"
-    },
-    {
-      "id": "M06.F06.I03",
-      "action": "新增",
-      "name": "创建技术要求",
-      "reason": "B2 推进"
-    },
-    {
-      "id": "M06.F06.I04",
-      "action": "新增",
-      "name": "更新技术要求",
-      "reason": "B2 推进"
-    },
-    {
-      "id": "M06.F06.I05",
-      "action": "新增",
-      "name": "删除技术要求",
-      "reason": "B2 推进"
+      "name": "报告阶段审批推进",
+      "reason": "B3 推进"
     }
   ],
   "sync_files": [
