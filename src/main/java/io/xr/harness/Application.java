@@ -3,6 +3,7 @@ package io.xr.harness;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
@@ -20,6 +21,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @ComponentScan(basePackages = {"io.xr.harness", "io.xr.lab"})
 @EntityScan(basePackages = "io.xr.lab.platform.entity")
 @EnableJpaRepositories(basePackages = "io.xr.lab.platform.repository")
+@ConfigurationPropertiesScan(basePackages = "io.xr.lab.platform.config")
 public class Application {
   public static void main(String[] args) {
     SpringApplication.run(Application.class, args);

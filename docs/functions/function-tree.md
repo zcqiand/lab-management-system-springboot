@@ -93,9 +93,9 @@
 | M01.F04.I01 | 动态菜单 | GET /api/auth/menus：按角色下发导航树（5 根节点，镜像 lab-msw） | 接口 | 已上线 |
 | M01.F04.I02 | 权限集 | GET /api/auth/permissions：RBAC 权限串列表（admin 全量 11 项） | 接口 | 已上线 |
 | M01.F05.I01 | 密码登录 | POST /api/auth/login：用户名+密码校验，签发 access/refresh token + 租户列表 | 接口 | 已上线 |
-| M01.F05.I02 | SSO 跳转 | GET /api/auth/sso/authorize?redirect=：构造 saas 身份平台登录跳转 URL + state | 接口 | 已上线 |
-| M01.F05.I03 | SSO 回调 | POST /api/auth/sso/callback：dev 直发 demo 会话（真对接待 saas 端点可用） | 接口 | 已上线 |
-| M01.F05.I04 | 刷新 token | POST /api/auth/refresh：refresh token 换发新 access token | 接口 | 已上线 |
+| M01.F05.I02 | SSO 跳转 | GET /api/auth/sso/authorize：HS256 签 state 写 HttpOnly Secure Cookie lab_sso_state，再 forward saas POST /api/v1/oauth/authorize 拿 code；no-sso profile 走 NoopSaasAuthClient | 接口 | 已上线 |
+| M01.F05.I03 | SSO 回调 | POST /api/auth/sso/callback:校验 body.state==cookie nonce + cookie 签名,再 saas POST /api/v1/oauth/token 换 token,再 /me/whoami + /me/tenants 拿 user,membership 信 saas;首次 SSO 按 email upsert 到 lab directory | 接口 | 已上线 |
+| M01.F05.I04 | 刷新 token | POST /api/auth/refresh:lab refresh token 是 HS256 JWT(typ=refresh),内嵌 saas refresh token;调 saas POST /api/v1/oauth/token grantType=refresh_token 续,再签新 lab JWT | 接口 | 已上线 |
 | M01.F05.I05 | 登出 | POST /api/auth/logout：无状态 JWT 服务端无 session，前端清存储 | 接口 | 已上线 |
 
 > Batch B2（码表+规则+技术要求，M04.F06-09 + M06.F05-06，对应 InspectionCatalogApi 16 + CalculationRulesApi 5 + TechnicalRequirementsApi 5 共 26 端点）。

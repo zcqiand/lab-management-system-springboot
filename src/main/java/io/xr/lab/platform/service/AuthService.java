@@ -1,5 +1,11 @@
 package io.xr.lab.platform.service;
 
+import io.xr.lab.platform.auth.jwt.LabJwtSigner;
+import io.xr.lab.platform.auth.sso.SaasAuthClient;
+import io.xr.lab.platform.auth.sso.SaasAuthException;
+import io.xr.lab.platform.auth.sso.SaasMeClient;
+import io.xr.lab.platform.auth.state.StateCookieManager;
+import io.xr.lab.platform.config.LabConfig;
 import io.xr.lab.platform.directory.UserDirectory;
 import io.xr.lab.shared.dto.AuthLogoutRequest;
 import io.xr.lab.shared.dto.CurrentUser;
@@ -13,21 +19,23 @@ import io.xr.lab.shared.dto.RefreshTokenRequest;
 import io.xr.lab.shared.dto.SsoCallbackRequest;
 import io.xr.lab.shared.dto.SsoRedirect;
 import io.xr.lab.shared.dto.SwitchTenantRequest;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * M00.F01/F02 + M01.F04/F05 - 认证域（B1）。
+ * M00.F01/F02 + M01.F04/F05 - 认证域（B1，真后端）。
  *
- * <p>语义镜像 lab-msw handlers-extra.ts（DEMO_USER / 3 租户 / 固定菜单与权限集 / SSO 跳 saas 登录页）。真后端差异：token 是自签
- * JWT（dev alg=none，对齐 saas-springboot v0.4.0 惯例）， switch-tenant 换发携带 tenant_id claim 的 token，me 从
- * token claim 解 currentTenantId。
+ * <p>对齐 B1 真后端 OAuth 2.0 + JWT 方案（ADR-0008）：
+ *
+ * <ul>
+ *   <li>JWT：HMAC HS256，{@link LabJwtSigner} 出真签名
+ *   <li>SSO：{@link SaasAuthClient} 真调 saas /oauth/authorize + /oauth/token
+ *   <li>用户信息：{@link SaasMeClient} 拿 saas /me/whoami + /me/tenants
+ *   <li>CSRF：{@link StateCookieManager} HttpOnly Secure Cookie + HS256 签 state
+ *   <li>refresh：lab refresh token 内嵌 saas refresh token，调 saas grantType=refresh_token 续
+ * </ul>
  */
 @Service
 public class AuthService {
@@ -48,13 +56,25 @@ public class AuthService {
           "*");
 
   private final UserDirectory directory;
-  private final String saasBase;
+  private final LabJwtSigner jwt;
+  private final SaasAuthClient saasAuth;
+  private final SaasMeClient saasMe;
+  private final StateCookieManager stateMgr;
+  private final LabConfig labConfig;
 
   public AuthService(
       UserDirectory directory,
-      @Value("${lab.sso.saas-base:http://localhost:3000}") String saasBase) {
+      LabJwtSigner jwt,
+      SaasAuthClient saasAuth,
+      SaasMeClient saasMe,
+      StateCookieManager stateMgr,
+      LabConfig labConfig) {
     this.directory = directory;
-    this.saasBase = saasBase;
+    this.jwt = jwt;
+    this.saasAuth = saasAuth;
+    this.saasMe = saasMe;
+    this.stateMgr = stateMgr;
+    this.labConfig = labConfig;
   }
 
   // === M01.F05.I01 密码登录 ===
@@ -68,7 +88,8 @@ public class AuthService {
     if (!directory.checkPassword(username, password)) {
       throw new SecurityException("Invalid username or password");
     }
-    return session(directory.findByUsername(username).orElseThrow());
+    CurrentUser user = directory.findByUsername(username).orElseThrow(SecurityException::new);
+    return session(user, null, null);
   }
 
   // === M01.F05.I04 刷新 token ===
@@ -77,24 +98,35 @@ public class AuthService {
     if (body == null || body.getRefreshToken() == null) {
       throw new SecurityException("missing refresh_token");
     }
-    // refreshToken 形如 "refresh-<userId>-<epoch>"；userId 自身含 '-'，按前缀 + 末段剥离
-    // （saas AuthService.refresh 同款 split bug 的修法）。
-    String token = body.getRefreshToken();
-    String prefix = "refresh-";
-    if (!token.startsWith(prefix)) {
-      throw new SecurityException("invalid refresh_token");
+    Map<String, Object> claims;
+    try {
+      claims = jwt.verify(body.getRefreshToken());
+    } catch (IllegalArgumentException e) {
+      throw new SecurityException("invalid refresh_token: " + e.getMessage());
     }
-    String tokenBody = token.substring(prefix.length());
-    int lastDash = tokenBody.lastIndexOf('-');
-    if (lastDash <= 0) {
-      throw new SecurityException("invalid refresh_token");
+    if (!"refresh".equals(claims.get("typ"))) {
+      throw new SecurityException("invalid refresh_token: not a refresh token");
     }
-    String username = tokenBody.substring(0, lastDash);
-    CurrentUser user = directory.findByUsername(username).orElse(null);
-    if (user == null) {
-      throw new SecurityException("invalid refresh_token");
+    String tenantId = (String) claims.get("tenant_id");
+    String saasRefresh = (String) claims.get("saas_refresh_token");
+    if (saasRefresh == null || saasRefresh.isEmpty()) {
+      throw new SecurityException("invalid refresh_token: missing saas_refresh_token claim");
     }
-    return session(user);
+
+    // 走 saas /oauth/token grantType=refresh_token
+    SaasAuthClient.TokenResponse t;
+    try {
+      t = saasAuth.token("refresh_token", null, saasRefresh, null);
+    } catch (SaasAuthException e) {
+      throw new SecurityException("saas refresh failed: " + e.getMessage());
+    }
+    SaasMeClient.SaasCurrentUser user = saasMe.whoami(t.getAccessToken());
+    List<SaasMeClient.SaasTenantMembership> memberships = saasMe.listMyTenants(t.getAccessToken());
+    CurrentUser labUser =
+        directory
+            .findByEmail(user.getEmail())
+            .orElseThrow(() -> new SecurityException("unknown user"));
+    return session(labUser, tenantId, tenantsFrom(memberships), t.getRefreshToken());
   }
 
   // === M01.F05.I05 登出（无状态 JWT，服务端无 session store） ===
@@ -106,10 +138,7 @@ public class AuthService {
   // === M00.F01.I01 当前会话 ===
 
   public CurrentUserSession me(Map<String, Object> claims) {
-    CurrentUser user = directory.findByUsername((String) claims.get("sub")).orElse(null);
-    if (user == null) {
-      throw new SecurityException("unknown user");
-    }
+    CurrentUser user = resolveUser(claims);
     Object tenantClaim = claims.get("tenant_id");
     String currentTenantId =
         tenantClaim != null ? tenantClaim.toString() : directory.defaultTenant().getTenantId();
@@ -122,22 +151,34 @@ public class AuthService {
   // === M00.F02.I01 选租户换发 ===
 
   public LoginResponse switchTenant(Map<String, Object> claims, SwitchTenantRequest body) {
-    CurrentUser user = directory.findByUsername((String) claims.get("sub")).orElse(null);
-    if (user == null) {
-      throw new SecurityException("unknown user");
-    }
+    CurrentUser user = resolveUser(claims);
     String tenantId = body == null || body.getTenantId() == null ? "" : body.getTenantId();
     MyTenant target = directory.findByTenantId(tenantId).orElse(null);
     if (target == null) {
       throw new NoSuchElementException("Tenant not found");
     }
-    return session(user, target.getTenantId());
+    return session(user, target.getTenantId(), null);
+  }
+
+  /**
+   * 用 sub claim (user.id) 解析出 lab {@link CurrentUser}:sub 优先按 email 查(SSO 写入路径), 退化按 username
+   * 查(密码登录写入路径),再退到 id 直接匹配（防 saas 当前未实现 email 桥接） 。
+   */
+  private CurrentUser resolveUser(Map<String, Object> claims) {
+    String sub = (String) claims.get("sub");
+    if (sub == null || sub.isEmpty()) {
+      throw new SecurityException("missing sub claim");
+    }
+    return directory
+        .findById(sub)
+        .or(() -> directory.findByEmail(sub))
+        .or(() -> directory.findByUsername(sub))
+        .orElseThrow(() -> new SecurityException("unknown user: " + sub));
   }
 
   // === M01.F04.I01 动态菜单 / I02 权限集 ===
 
   public List<MenuNode> menus() {
-    // 镜像 lab-msw handlers-extra.ts:178-225（5 根节点）。
     return List.of(
         new MenuNode().id("menu-dashboard").label("工作台").path("/dashboard").icon("dashboard"),
         new MenuNode()
@@ -182,60 +223,116 @@ public class AuthService {
 
   // === M01.F05.I02 SSO 跳转 / I03 SSO 回调 ===
 
-  public SsoRedirect ssoAuthorize(String redirect) {
-    // v0.1.x 语义（msw 同款）：authorizeUrl 直接指 saas /login?redirect=...，
-    // 浏览器真能跳过去；state 用 dev 固定值（真对接待 saas 端点就绪后换随机 + 校验）。
-    String target = redirect == null || redirect.isEmpty() ? "/" : redirect;
-    return new SsoRedirect()
-        .authorizeUrl(saasBase + "/login?redirect=" + target + "&state=mock-state")
-        .state("mock-state");
+  /**
+   * 构造 saas /oauth/authorize 调用 + 返回（authorizeUrl, state）供前端跳转。state cookie 由 Controller 通过
+   * Set-Cookie 头另发。
+   *
+   * @param businessRedirect 前端要保留的 redirect 参数（lab 业务方跳转前后回来）
+   * @return SsoRedirect{authorizeUrl, state} + 由本方法返回的 cookieValue 由 Controller 拼 Set-Cookie
+   */
+  public SsoAuthResult ssoAuthorize(String businessRedirect) {
+    String target = businessRedirect == null || businessRedirect.isEmpty() ? "/" : businessRedirect;
+    StateCookieManager.SignedState ss = stateMgr.issue(target);
+    SaasAuthClient.AuthorizeCodeResponse resp =
+        saasAuth.authorize(
+            labConfig.sso().callbackRedirectBase(), "openid profile email", ss.nonce());
+    String authorizeUrl =
+        labConfig.sso().saasBase()
+            + "/login?code="
+            + resp.getCode()
+            + "&state="
+            + resp.getState()
+            + "&redirect_uri="
+            + labConfig.sso().callbackRedirectBase();
+    return new SsoAuthResult(
+        new SsoRedirect().authorizeUrl(authorizeUrl).state(ss.nonce()), ss.cookieValue());
   }
 
-  public LoginResponse ssoCallback(SsoCallbackRequest body) {
-    // dev 直发 demo 会话（msw 同款）；真 code/state 校验待 saas 端点可用。
-    return session(directory.findByUsername("admin").orElseThrow());
+  /**
+   * 处理 SSO 回调：校验 state cookie + body.state 一致，从 saas /oauth/token 换 token，再 /me/whoami 拿 user。
+   *
+   * @param body 业务请求体（grant_type=authorization_code, code, redirect_uri, state）
+   * @param cookieValue Set-Cookie 里的 lab_sso_state
+   */
+  public LoginResponse ssoCallback(SsoCallbackRequest body, String cookieValue) {
+    if (body == null) {
+      throw new IllegalArgumentException("missing body");
+    }
+    // verify validates cookie + state 配对;redirect 返回值只为校验 context,业务上 lab 不再跳回
+    stateMgr.verify(cookieValue, body.getState());
+    // 走 saas /oauth/token
+    SaasAuthClient.TokenResponse t =
+        saasAuth.token(
+            "authorization_code",
+            body.getCode(),
+            null,
+            body.getRedirectUri() == null
+                ? labConfig.sso().callbackRedirectBase()
+                : body.getRedirectUri());
+    SaasMeClient.SaasCurrentUser saasUser = saasMe.whoami(t.getAccessToken());
+    List<SaasMeClient.SaasTenantMembership> memberships = saasMe.listMyTenants(t.getAccessToken());
+    // username → email 桥接（ADR-0008）
+    CurrentUser labUser =
+        directory
+            .findByEmail(saasUser.getEmail())
+            .orElseGet(
+                () ->
+                    directory.upsert(
+                        saasUser.getId(),
+                        saasUser.getEmail(),
+                        saasUser.getDisplayName(),
+                        "viewer"));
+    return session(labUser, null, tenantsFrom(memberships), t.getRefreshToken());
   }
 
-  // === token 签发（dev alg=none，镜像 saas AuthService.issueAccessToken） ===
+  // === token 签发 ===
 
-  private LoginResponse session(CurrentUser user) {
-    return session(user, null);
+  private LoginResponse session(CurrentUser user, String tenantId, String saasRefreshToken) {
+    return session(user, tenantId, null, saasRefreshToken);
   }
 
-  private LoginResponse session(CurrentUser user, String tenantId) {
-    long now = Instant.now().getEpochSecond();
+  private LoginResponse session(
+      CurrentUser user, String tenantId, List<MyTenant> tenants, String saasRefreshToken) {
+    String accessToken = jwt.issue(user.getId(), tenantId);
+    String refreshToken =
+        saasRefreshToken == null
+            ? jwt.issueRefresh(user.getId(), "dev-placeholder")
+            : jwt.issueRefresh(user.getId(), saasRefreshToken);
+    List<MyTenant> useTenants = tenants == null ? directory.tenantsOf(user.getUsername()) : tenants;
     return new LoginResponse()
-        .token(issueAccessToken(user.getUsername(), tenantId, now))
-        .refreshToken("refresh-" + user.getUsername() + "-" + now)
+        .token(accessToken)
+        .refreshToken(refreshToken)
         .user(user)
-        .tenants(directory.tenantsOf(user.getUsername()));
+        .tenants(useTenants);
   }
 
-  /** dev alg=none JWT。sub 放 username（me/switchTenant 据此查目录）；tenant_id 仅在选过租户后携带。 */
-  private String issueAccessToken(String username, String tenantId, long now) {
-    String header = b64url("{\"alg\":\"none\",\"typ\":\"JWT\"}");
-    String tenantClaim = tenantId == null ? "" : ",\"tenant_id\":\"" + tenantId + "\"";
-    String payload =
-        b64url(
-            "{\"sub\":\""
-                + username
-                + "\""
-                + tenantClaim
-                + ",\"iat\":"
-                + now
-                + ",\"exp\":"
-                + (now + 3600)
-                + "}");
-    return header + "." + payload + ".dev-placeholder";
-  }
-
-  private String b64url(String s) {
-    return Base64.getUrlEncoder()
-        .withoutPadding()
-        .encodeToString(s.getBytes(StandardCharsets.UTF_8));
+  private List<MyTenant> tenantsFrom(List<SaasMeClient.SaasTenantMembership> memberships) {
+    if (memberships == null) {
+      return List.of();
+    }
+    return memberships.stream()
+        .map(
+            m ->
+                new MyTenant()
+                    .tenantId(m.getTenantId())
+                    .code(m.getTenantId())
+                    .name(m.getTenantId())
+                    .roleIds(m.getRoleIds() == null ? List.of() : m.getRoleIds()))
+        .toList();
   }
 
   private static MenuNode menu(String id, String label, String path) {
     return new MenuNode().id(id).label(label).path(path);
   }
+
+  /**
+   * Controller 接收的复合结果：SsoRedirect + 配套的 cookie value。
+   *
+   * <p>{@code @SuppressFBWarnings}:SsoRedirect 是 codegen 生成的 DTO(setter/getter,内部 HashMap
+   * 不可变),暴露引用对 lab 业务场景无副作用——Controller 只读不回写。SpotBugs 静态检查不再标记。
+   */
+  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+      value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"},
+      justification = "SsoRedirect is a DTO read-only in this scope")
+  public record SsoAuthResult(SsoRedirect redirect, String cookieValue) {}
 }

@@ -19,6 +19,7 @@ import io.xr.lab.shared.dto.ErrorResponse;
 import io.xr.lab.shared.dto.LoginRequest;
 import io.xr.lab.shared.dto.LoginResponse;
 import io.xr.lab.shared.dto.MenuNode;
+import io.xr.lab.shared.dto.OAuthResponseType;
 import io.xr.lab.shared.dto.PermissionSet;
 import io.xr.lab.shared.dto.RefreshTokenRequest;
 import io.xr.lab.shared.dto.SsoCallbackRequest;
@@ -34,7 +35,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-18T09:31:54.550738400+08:00[Asia/Shanghai]",
+    date = "2026-08-19T17:37:44.319774200+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 @Validated
 @Tag(name = "auth", description = "the auth API")
@@ -265,7 +266,10 @@ public interface AuthApi {
   /**
    * GET /api/auth/sso/authorize
    *
-   * @param redirect (required)
+   * @param responseType (required)
+   * @param clientId (required)
+   * @param redirectUri (required)
+   * @param state (required)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
    */
@@ -296,10 +300,33 @@ public interface AuthApi {
       produces = {"application/json"})
   ResponseEntity<SsoRedirect> authSsoAuthorize(
       @NotNull
-          @Parameter(name = "redirect", description = "", required = true, in = ParameterIn.QUERY)
+          @Parameter(
+              name = "response_type",
+              description = "",
+              required = true,
+              in = ParameterIn.QUERY)
           @Valid
-          @RequestParam(value = "redirect", required = true)
-          String redirect);
+          @RequestParam(value = "response_type", required = true)
+          OAuthResponseType responseType,
+      @NotNull
+          @Parameter(name = "client_id", description = "", required = true, in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "client_id", required = true)
+          String clientId,
+      @NotNull
+          @Parameter(
+              name = "redirect_uri",
+              description = "",
+              required = true,
+              in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "redirect_uri", required = true)
+          String redirectUri,
+      @NotNull
+          @Parameter(name = "state", description = "", required = true, in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "state", required = true)
+          String state);
 
   String PATH_AUTH_SSO_CALLBACK = "/api/auth/sso/callback";
 

@@ -6,34 +6,61 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.xr.harness.junit.Fn;
+import io.xr.lab.platform.auth.jwt.LabJwtSigner;
+import io.xr.lab.platform.auth.jwt.NimbusLabJwtDecoderFactory;
+import io.xr.lab.platform.auth.sso.SaasAuthClient;
+import io.xr.lab.platform.auth.sso.SaasMeClient;
+import io.xr.lab.platform.auth.state.StateCookieManager;
+import io.xr.lab.platform.config.LabConfig;
+import io.xr.lab.platform.config.SsoBeansConfig;
 import io.xr.lab.platform.directory.ConfigUserDirectory;
-import io.xr.lab.shared.dto.CurrentUserSession;
 import io.xr.lab.shared.dto.LoginRequest;
 import io.xr.lab.shared.dto.LoginResponse;
 import io.xr.lab.shared.dto.MenuNode;
-import io.xr.lab.shared.dto.SsoRedirect;
 import io.xr.lab.shared.dto.SwitchTenantRequest;
+import java.util.Base64;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 /**
- * AuthService 单测（B1 认证域 9 I 级）。目录用真实 {@link ConfigUserDirectory}（纯配置数据，无需 mock）。语义基准：lab-msw
- * handlers-extra.ts authExtraHandlers。
+ * AuthService 单测（B1 认证域 9 I 级，真后端）。
+ *
+ * <p>用 noop saas beans（{@link SsoBeansConfig.NoopSaasAuthClient} + NoopSaasMeClient），无需 saas 联通。JWT
+ * 走真 HMAC HS256 签发，SecretKey ≥32B 满足。
  */
 class AuthServiceTest {
 
-  private final AuthService service =
-      new AuthService(new ConfigUserDirectory("dev123456"), "http://localhost:3000");
+  private static final String SECRET =
+      "test-lab-jwt-secret-test-lab-jwt-secret-test-lab-jwt-secret"; // ≥32B
 
-  // === M01.F05.I01 密码登录 ===
+  private final LabConfig labConfig =
+      new LabConfig(
+          new LabConfig.Jwt("lab-test", 3600, 604800),
+          new LabConfig.Sso(
+              "http://localhost:3000",
+              "test-client-id",
+              "test-client-secret",
+              "00000000-0000-0000-0000-000000000001",
+              "http://localhost:8080/api/auth/sso/callback"));
+
+  private final LabJwtSigner jwt = new LabJwtSigner(SECRET, "lab-test", 3600, 604800);
+  private final SaasAuthClient saasAuth = new SsoBeansConfig.NoopSaasAuthClient();
+  private final SaasMeClient saasMe = new SsoBeansConfig.NoopSaasMeClient();
+  private final StateCookieManager stateMgr = new StateCookieManager(SECRET, true);
+
+  private final AuthService service =
+      new AuthService(
+          new ConfigUserDirectory("dev123456"), jwt, saasAuth, saasMe, stateMgr, labConfig);
 
   @Test
   @Fn({"M01.F05.I01"})
   void login_success_returnsSessionWithTenants() {
-    LoginResponse resp = service.login(new LoginRequest().username("admin").password("dev123456"));
+    LoginResponse resp =
+        service.login(new LoginRequest().username("admin@lab.local").password("dev123456"));
     assertNotNull(resp.getToken());
-    assertTrue(resp.getRefreshToken().startsWith("refresh-admin-"));
+    assertNotNull(resp.getRefreshToken());
     assertEquals("USER-A", resp.getUser().getId());
     assertEquals(3, resp.getTenants().size());
   }
@@ -51,37 +78,62 @@ class AuthServiceTest {
   void login_badPassword_throwsUnauthorized() {
     assertThrows(
         SecurityException.class,
-        () -> service.login(new LoginRequest().username("admin").password("wrong")));
+        () -> service.login(new LoginRequest().username("admin@lab.local").password("wrong")));
   }
-
-  // === M01.F05.I02 SSO 跳转 ===
 
   @Test
   @Fn({"M01.F05.I02"})
-  void ssoAuthorize_buildsSaasLoginUrl() {
-    SsoRedirect redirect = service.ssoAuthorize("/dashboard");
-    assertEquals(
-        "http://localhost:3000/login?redirect=/dashboard&state=mock-state",
-        redirect.getAuthorizeUrl());
-    assertEquals("mock-state", redirect.getState());
+  void ssoAuthorize_returnsAuthorizeUrlAndState() {
+    AuthService.SsoAuthResult result = service.ssoAuthorize("/dashboard");
+    assertNotNull(result.redirect().getAuthorizeUrl());
+    assertTrue(result.redirect().getAuthorizeUrl().contains("code=dev-code"));
+    assertNotNull(result.redirect().getState());
+    assertNotNull(result.cookieValue());
   }
-
-  // === M01.F05.I03 SSO 回调（dev 直发 demo 会话） ===
 
   @Test
   @Fn({"M01.F05.I03"})
   void ssoCallback_returnsDemoSession() {
-    LoginResponse resp = service.ssoCallback(null);
+    AuthService.SsoAuthResult auth = service.ssoAuthorize("/dashboard");
+    io.xr.lab.shared.dto.SsoCallbackRequest body =
+        new io.xr.lab.shared.dto.SsoCallbackRequest()
+            .grantType(io.xr.lab.shared.dto.OAuthGrantType.AUTHORIZATION_CODE)
+            .code("dev-code")
+            .redirectUri("http://localhost:8080/api/auth/sso/callback")
+            .state(auth.redirect().getState());
+
+    LoginResponse resp = service.ssoCallback(body, auth.cookieValue());
+
     assertEquals("USER-A", resp.getUser().getId());
     assertEquals(3, resp.getTenants().size());
+    assertNotNull(resp.getToken());
+    // refresh token 嵌 saas refresh token
+    String refreshPayload =
+        new String(
+            Base64.getUrlDecoder().decode(resp.getRefreshToken().split("\\.")[1]),
+            java.nio.charset.StandardCharsets.UTF_8);
+    assertTrue(refreshPayload.contains("\"saas_refresh_token\":\"dev-refresh-token\""));
   }
 
-  // === M01.F05.I04 刷新 token ===
+  @Test
+  @Fn({"M01.F05.I03"})
+  void ssoCallback_mismatchedState_throws() {
+    AuthService.SsoAuthResult auth = service.ssoAuthorize("/dashboard");
+    io.xr.lab.shared.dto.SsoCallbackRequest body =
+        new io.xr.lab.shared.dto.SsoCallbackRequest()
+            .grantType(io.xr.lab.shared.dto.OAuthGrantType.AUTHORIZATION_CODE)
+            .code("dev-code")
+            .redirectUri("http://localhost:8080/api/auth/sso/callback")
+            .state("forged-state-not-matching-cookie");
+
+    assertThrows(IllegalStateException.class, () -> service.ssoCallback(body, auth.cookieValue()));
+  }
 
   @Test
   @Fn({"M01.F05.I04"})
   void refresh_roundTripsNewToken() {
-    LoginResponse first = service.login(new LoginRequest().username("admin").password("dev123456"));
+    LoginResponse first =
+        service.login(new LoginRequest().username("admin@lab.local").password("dev123456"));
     LoginResponse second =
         service.refresh(
             new io.xr.lab.shared.dto.RefreshTokenRequest().refreshToken(first.getRefreshToken()));
@@ -97,48 +149,45 @@ class AuthServiceTest {
         () -> service.refresh(new io.xr.lab.shared.dto.RefreshTokenRequest().refreshToken("junk")));
   }
 
-  // === M01.F05.I05 登出（无状态，无服务端 session） ===
-
   @Test
   @Fn({"M01.F05.I05"})
   void logout_isNoOp() {
     service.logout(new io.xr.lab.shared.dto.AuthLogoutRequest().token("any"));
-    // 无异常即通过：无状态 JWT，服务端无 session store。
+    // 无异常即通过
   }
-
-  // === M00.F01.I01 当前会话 ===
 
   @Test
   @Fn({"M00.F01.I01"})
   void me_withTenantClaim_respectsClaim() {
-    CurrentUserSession session = service.me(Map.of("sub", "admin", "tenant_id", "TENANT-002"));
-    assertEquals("TENANT-002", session.getCurrentTenantId());
-    assertEquals("USER-A", session.getUser().getId());
-    assertEquals(3, session.getTenants().size());
+    CurrentUserSessionImpl(Map.of("sub", "USER-A", "tenant_id", "TENANT-002"));
   }
 
   @Test
   @Fn({"M00.F01.I01"})
   void me_withoutTenantClaim_defaultsToFirstTenant() {
-    CurrentUserSession session = service.me(Map.of("sub", "admin"));
-    assertEquals("TENANT-001", session.getCurrentTenantId());
+    CurrentUserSessionImpl(Map.of("sub", "USER-A"));
   }
 
-  // === M00.F02.I01 选租户换发 ===
+  private void CurrentUserSessionImpl(Map<String, Object> claims) {
+    io.xr.lab.shared.dto.CurrentUserSession session = service.me(claims);
+    assertEquals("USER-A", session.getUser().getId());
+    assertEquals(3, session.getTenants().size());
+    Object expectedTenant =
+        claims.containsKey("tenant_id") ? claims.get("tenant_id") : "TENANT-001";
+    assertEquals(expectedTenant, session.getCurrentTenantId());
+  }
 
   @Test
   @Fn({"M00.F02.I01"})
-  void switchTenant_issuesTokenWithTenantClaim() throws Exception {
+  void switchTenant_issuesTokenWithTenantClaim() {
     LoginResponse resp =
         service.switchTenant(
-            Map.of("sub", "admin"), new SwitchTenantRequest().tenantId("TENANT-003"));
+            Map.of("sub", "USER-A"), new SwitchTenantRequest().tenantId("TENANT-003"));
     assertNotNull(resp.getToken());
-    // token payload 是 base64url，解出来验 tenant_id claim
-    String payload =
-        new String(
-            java.util.Base64.getUrlDecoder().decode(resp.getToken().split("\\.")[1]),
-            java.nio.charset.StandardCharsets.UTF_8);
-    assertTrue(payload.contains("\"tenant_id\":\"TENANT-003\""));
+    // 真 HMAC 签发：验签 claim 里的 tenant_id
+    JwtDecoder decoder = NimbusLabJwtDecoderFactory.build(jwt);
+    String tenantClaim = decoder.decode(resp.getToken()).getClaim("tenant_id");
+    assertEquals("TENANT-003", tenantClaim);
   }
 
   @Test
@@ -148,10 +197,8 @@ class AuthServiceTest {
         NoSuchElementException.class,
         () ->
             service.switchTenant(
-                Map.of("sub", "admin"), new SwitchTenantRequest().tenantId("TENANT-999")));
+                Map.of("sub", "USER-A"), new SwitchTenantRequest().tenantId("TENANT-999")));
   }
-
-  // === M01.F04.I01 动态菜单 ===
 
   @Test
   @Fn({"M01.F04.I01"})
@@ -159,10 +206,8 @@ class AuthServiceTest {
     java.util.List<MenuNode> menus = service.menus();
     assertEquals(5, menus.size());
     assertEquals("menu-dashboard", menus.get(0).getId());
-    assertEquals(7, menus.get(2).getChildren().size()); // M03 试验过程 7 子项
+    assertEquals(7, menus.get(2).getChildren().size());
   }
-
-  // === M01.F04.I02 权限集 ===
 
   @Test
   @Fn({"M01.F04.I02"})

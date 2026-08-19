@@ -33,3 +33,29 @@ logging:
   level:
     root: INFO
     io.xr.lab: DEBUG
+
+# B1 真后端 OAuth 2.0 + JWT 签发配置（ADR-0008）。
+# - Jwt 密钥 ≥32B（HS256），dev 默认占位即可；prod 必走 env。
+# - Sso 4 字段 saas-base/client-id/client-secret/default-tenant-id 缺一不可。
+# - dev 默认 profile=no-sso（NoopSaasAuthClient），无需 saas 也跑通。
+# - prod/CI 切 default profile 走真 saas。
+lab:
+  jwt:
+    issuer: lab-management-system
+    ttl-seconds: 3600
+    refresh-ttl-seconds: 604800
+    secret: ${LAB_JWT_SECRET:dev-lab-jwt-secret-dev-lab-jwt-secret-dev-lab-jwt-secret}
+  sso:
+    saas-base: ${LAB_SAAS_BASE:http://localhost:3000}
+    client-id: ${LAB_SAAS_CLIENT_ID:}
+    client-secret: ${LAB_SAAS_CLIENT_SECRET:}
+    default-tenant-id: ${LAB_SAAS_DEFAULT_TENANT_ID:}
+    callback-redirect-base: ${LAB_SSO_CALLBACK_REDIRECT:http://localhost:8080/api/auth/sso/callback}
+  auth:
+    dev-password: ${LAB_AUTH_DEV_PASSWORD:dev123456}
+  cors:
+    allowed-origins: ${LAB_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174,http://localhost:3000}
+
+# dev profile：no-sso 模式（NoopSaasAuthClient，无需 saas 联通即可跑通）。
+# prod/CI：切 default profile 强制真 saas OAuth。
+spring.config.activate.on-profile: ${LAB_PROFILE:no-sso}

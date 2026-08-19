@@ -3,6 +3,7 @@ package io.xr.lab.shared.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Generated;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.util.*;
 import java.util.Objects;
@@ -11,11 +12,15 @@ import org.springframework.lang.Nullable;
 /** SsoCallbackRequest */
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-18T09:31:54.550738400+08:00[Asia/Shanghai]",
+    date = "2026-08-19T17:37:44.319774200+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public class SsoCallbackRequest {
 
+  private OAuthGrantType grantType;
+
   private String code;
+
+  private String redirectUri;
 
   private String state;
 
@@ -24,9 +29,35 @@ public class SsoCallbackRequest {
   }
 
   /** Constructor with only required parameters */
-  public SsoCallbackRequest(String code, String state) {
+  public SsoCallbackRequest(
+      OAuthGrantType grantType, String code, String redirectUri, String state) {
+    this.grantType = grantType;
     this.code = code;
+    this.redirectUri = redirectUri;
     this.state = state;
+  }
+
+  public SsoCallbackRequest grantType(OAuthGrantType grantType) {
+    this.grantType = grantType;
+    return this;
+  }
+
+  /**
+   * Get grantType
+   *
+   * @return grantType
+   */
+  @NotNull
+  @Valid
+  @Schema(name = "grant_type", requiredMode = Schema.RequiredMode.REQUIRED)
+  @JsonProperty("grant_type")
+  public OAuthGrantType getGrantType() {
+    return grantType;
+  }
+
+  @JsonProperty("grant_type")
+  public void setGrantType(OAuthGrantType grantType) {
+    this.grantType = grantType;
   }
 
   public SsoCallbackRequest code(String code) {
@@ -49,6 +80,28 @@ public class SsoCallbackRequest {
   @JsonProperty("code")
   public void setCode(String code) {
     this.code = code;
+  }
+
+  public SsoCallbackRequest redirectUri(String redirectUri) {
+    this.redirectUri = redirectUri;
+    return this;
+  }
+
+  /**
+   * Get redirectUri
+   *
+   * @return redirectUri
+   */
+  @NotNull
+  @Schema(name = "redirect_uri", requiredMode = Schema.RequiredMode.REQUIRED)
+  @JsonProperty("redirect_uri")
+  public String getRedirectUri() {
+    return redirectUri;
+  }
+
+  @JsonProperty("redirect_uri")
+  public void setRedirectUri(String redirectUri) {
+    this.redirectUri = redirectUri;
   }
 
   public SsoCallbackRequest state(String state) {
@@ -82,20 +135,24 @@ public class SsoCallbackRequest {
       return false;
     }
     SsoCallbackRequest ssoCallbackRequest = (SsoCallbackRequest) o;
-    return Objects.equals(this.code, ssoCallbackRequest.code)
+    return Objects.equals(this.grantType, ssoCallbackRequest.grantType)
+        && Objects.equals(this.code, ssoCallbackRequest.code)
+        && Objects.equals(this.redirectUri, ssoCallbackRequest.redirectUri)
         && Objects.equals(this.state, ssoCallbackRequest.state);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(code, state);
+    return Objects.hash(grantType, code, redirectUri, state);
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class SsoCallbackRequest {\n");
+    sb.append("    grantType: ").append(toIndentedString(grantType)).append("\n");
     sb.append("    code: ").append(toIndentedString(code)).append("\n");
+    sb.append("    redirectUri: ").append(toIndentedString(redirectUri)).append("\n");
     sb.append("    state: ").append(toIndentedString(state)).append("\n");
     sb.append("}");
     return sb.toString();

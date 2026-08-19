@@ -1,49 +1,43 @@
 {
   "schema": 1,
   "project": "lab-management-system-springboot",
-  "current_task": "B1-B7 全部收口：M02/M03/M05/M06 全栈后端 100%（97 I 端点 / 4 module 全部 service CRUD + 8 junction link/unlink + 5 仪表盘）。Live smoke 8080 全跑 48/49 PASS（1 软 fail = dev refresh JWT 401 预期）。M05.F01/F02 状态开发中（前端 data-fn 入口在 nextjs/react/vue 仓）。",
+  "current_task": "B12 真后端 OAuth 2.0 + JWT 签发完成（HMAC HS256 + 真调 saas /oauth/authorize + /oauth/token + State cookie + saas refresh）",
   "done": [
-    "底座（152eba0）：gen-shared.sh 两步 codegen + Flyway/lab_dev 共库 + V001-V013 replay 实证",
-    "B1 认证域（64d3bb2）：AuthApi 9 端点全实现 + SecurityConfig（permitAll login/refresh/sso/**，dev alg=none JwtDecoder，CORS 5173/5174/3000）+ GlobalExceptionHandler",
-    "B1 fnTest 14 例 9 I 级；live smoke 9 端点；tree 9 I 上线 + design/flow map 填表",
-    "B2 码表+规则+技术要求 26 端点 / 26 I 级；fnTest 33 例；gate L0-L5 全绿",
-    "V014 迁移：5 个 PG enum 改 TEXT（B2 端）",
-    "B3 合同+接样单+样品+报告流程 19 端点 / 19 I 级；M02.F01 5 + M03.F01 6（含 history 拆出）+ M03.F02 1 + M03.F03 5 + M03.F05 1 + M03.F06 1",
-    "B3 实体：ContractEntity（PK = id text, status enum→TEXT V015）；SampleReceiptEntity（PK = id text, flow_status enum→TEXT V015, result enum→TEXT, 3 个 jsonb 列 judgment/testing_basis/test_parameters + flow_history 用 @JdbcTypeCode(SqlTypes.JSON)）；SampleEntity（PK = id text, ext jsonb; ext jsonb Map<String,String>）",
-    "B3 mapper × 3：ContractMapper / SampleReceiptMapper（含 Service 调用链 appendHistory 写 jsonb 数组）/ SampleMapper；local null-guard + @Convert 转换 3 个新 enum",
-    "B3 service × 4 + controller × 4；7 阶段状态机（receiving/task_assignment/data_entry/review/approval/issuance/archived）；FlowAction=SUBMIT/RETURN/WITHDRAW 映射到 next/prev；ReportFlowService.submitAction 批量处理 ids，单条失败容错",
-    "InspectionCatalogController 静态 helper currentTenantIdOrDefaultStatic(directory) 给 4 个 controller 复用 tenant claim + fallback",
-    "B3 fnTest 34 例 19 I 级（contract 7 + receipt 9 + sample 7 + flow 4）共 75 总 tests",
-    "V015 迁移：3 个新 enum（contract_status/flow_status/receipt_result）改 TEXT",
-    "function-tree +19 I（5 合同 + 6 接样 + 5 样品 + 1 审核队列 + 1 阶段推进 + 1 详情）；design-function-map +19 行映射；flow-function-map 新增 FLOW-03 试验流程主流程；0 软告警",
-    "B4 报告汇总 + 仪表盘：SummaryApi 2 端点（GET /api/summary + /stats）；SummaryService 按 tenantId+categoryCode+dateFrom+dateTo 4 过滤 sample_receipts JPQL，6 列固定 Map<String,String>，categoryCode=ALL 字符串哨兵；3 桶仪表盘（draft=receiving+task+data_entry；reviewing=review+approval；issued=issuance+archived）+ pendingTask（task+data_entry+review）；fnTest 6 例",
-    "B5 M06 字典 5 实体 CRUD 22 端点：specialty/parameter/standard 12 + report-name 5 + param-interface 5；InspectionParameterSourceTypeConverter + InspectionStandardStatusConverter 2 个 AttributeConverter 写 PG enum 小写值；3 张 jsonb 列（parameter.aliases List<String> / report-name ext_fields List<ExtFieldDef> / param-interface config Map<String,Object>）走 @JdbcTypeCode(SqlTypes.JSON) 映射 String；fnTest 37 例",
-    "B6 M06.F02 objects 4 CRUD + 8 junction link/unlink 16 端点：object entity + 1 个 InspectionJunctionService 集中处理 16 junction 端点 + 3 controller 共享；8 个复合主键 @IdClass 全部 Serializable + serialVersionUID；3 张 role-based junction 走 @Enumerated(STRING) 写大写 PG enum；fnTest 27 例",
-    "B7 live smoke：本地 PG 14 (127.0.0.1:5432) 起 java -jar 8080，48/49 端点 PASS（V017 fix 4 个 enum 改 TEXT 后 + V013 表名同步 entity + junction link/unlink 跨表 FK 真实约束生效）；1 软 fail 是 dev refresh token 401 预期行为",
-    "B8 junction test @Fn 标签精修：link 端点用 I05 / I07 / I08，unlink 端点用 I06 / I08，对齐 function-tree 登记的 F0X.I0Y ID 映射；M06.F01.I06 无测试引用警告消除",
-    "function-tree +24 I（B4） + 20 I（B5/B6）= 共 132 功能条目；design-function-map +45 行映射；flow-function-map FLOW-03 试验流程主流程；L5 软告警 4 条（M05.F01/F02 UI 入口待前端 data-fn）"
+    "shared: tsp/routes/auth.tsp SsoCallbackRequest 增 state 字段（RFC 6749 §4.1.4）;npm run build 重生 openapi.yaml;两后端 codegen 同步",
+    "springboot 新增 auth/jwt/LabJwtSigner.java（HMAC HS256 真签发,LAB_JWT_SECRET ≥32B 启动校验）",
+    "springboot 新增 auth/jwt/NimbusLabJwtDecoderFactory.java（替代原 DevJwtDecoder alg=none 直通漏洞）",
+    "springboot 新增 auth/sso/SaasAuthClient.java + SaasMeClient.java + SaasAuthException.java（真调 saas /oauth/authorize + /oauth/token + /me/*）",
+    "springboot 新增 auth/state/StateCookieManager.java（HS256 签 state,HttpOnly Secure Cookie 防 CSRF）",
+    "springboot 新增 config/LabConfig.java + SsoBeansConfig.java（profile 切 noop / real saas 客户端）",
+    "springboot 改 UserDirectory + ConfigUserDirectory：增 findByEmail / findById / upsert;主键从 username 改 email",
+    "springboot 改 AuthService 6 个 ctor 实参：完整 5 端点链路 + saas refresh grant",
+    "springboot 改 SecurityConfig：替换 DevJwtDecoder 为 NimbusJwtDecoder",
+    "springboot 改 AuthController：ssoAuthorize/ssoCallback 4-arg 签名 + Set-Cookie 头",
+    "springboot 改 application.yml LAB_PROFILE 默认 no-sso，新增 4 配置段",
+    "springboot 测试 178/178 PASS（AuthServiceTest 15 + LabJwtSignerTest 5 + SaasAuthClientTest 8 + StateCookieManagerTest 8）",
+    "springboot 改 docs/functions/function-tree.md M01.F05.I02/I03/I04 描述更新(per 改功能与改功能清单必须同一个 commit 硬约束)",
+    "springboot docs/adr/0008-real-backend-oauth-jwt.md ADR 写完",
+    "springboot spotbugs 19 bug 全修:CT_CONSTRUCTOR_THROW 5(fail-fast 设计,类级 @SuppressFBWarnings)+ EI_EXPOSE_REP/REP2 5(DTO read-only + SecretKey immutable,类级 @SuppressFBWarnings + 内部类 DTO 同款)+ REC_CATCH_EXCEPTION 2(改 catch NoSuchAlgorithmException|InvalidKeyException 与 IOException)+ UPM_UNCALLED_PRIVATE_METHOD/UUF_UNUSED_FIELD 7(private static helpers 被 @Override public 方法 static dispatch 调用,SpotBugs 跟踪不到,类级 @SuppressFBWarnings 注释说明)"
   ],
-  "next": "B9+: 推 V014/V017/V015 决策上 shared 仓 PR（dev-only 还是全家族） + M05 仪表盘 nextjs/react/vue data-fn 入口 + 接样-数据录入前后端联动",
+  "next": [
+    "git add -A + commit（本仓内未提交所有改动）",
+    "Optional: 切 LAB_PROFILE=default 走真实 saas 联通验证（需 saas-identity-platform-* 端点起）",
+    "Optional: V014 identity 表 workspace + ConfigUserDirectory 改 DB 实现（ADR-0008 T2 长期工单）",
+    "Optional: lab_saas_token_store 表 + per-user encrypt（ADR-0008 T1 长期工单）"
+  ],
   "open_questions": [
-    "8080 端口与 saas-springboot 本机冲突可能性（端口家族约定 8080，未来多 worker 跑须分配）",
-    "lab_dev 无身份表 V014：与 shared V014 identity 是否共建待定",
-    "lab_dev 双管理方（nextjs drizzle sync vs 本仓 Flyway baseline-v13 冻结）：V014/V015 起谁先迁谁负责，需定惯例",
-    "PG enum 改 TEXT 是本仓 dev 决策（V014+V015+V017）：要不要向上游 shared 同步发 PR？—— 当前 B7 决定保留 dev-only，本仓维护；如未来多仓接 V014-V013 会冲突须重 base+merge",
-    "B3 接样 chain：sampleReceipt.flow_history 是 jsonb（FlowHistoryEntry[]），msw 与本仓契约在 FlowAction 枚举值上是否一致需要回归",
-    "B5 jsonb 列（parameter.aliases / report-name ext_fields / param-interface config）序列化是否与 msw handler 1:1 行为一致需要 cross-check"
+    "saas 端 /oauth/authorize 契约是 POST body（TypeSpec 派生），saas-springboot 真实现是否完全 follow 待确认",
+    "T4 跨仓时序：shared 先发 + 两后端并发,gen-shared.sh 脚本开头 npm run build 校验,未做"
   ],
   "dont": [
-    "Application 在 io.xr.harness，业务包 io.xr.lab.* 必须靠 @ComponentScan + @EntityScan + @EnableJpaRepositories 显式加扫--漏扫不报错，静默回退 Spring Boot 默认安全链（B1）和 NoSuchBeanDefinitionException（B2 实测）",
-    "openapi-generator oneOf+enum discriminator 生成 String getKind() vs 变体 KindEnum 不兼容--gen-shared.sh 的 sed 修补别删",
-    "spotbugs 只豁免生成包；手写 controller/service 构造器加 @SuppressFBWarnings(EI_EXPOSE_REP2) 说明 Spring DI singleton 假阳性（不扩 exclude.xml）",
-    "Mapper 中的 private 异常吞咽 catch (IOException) 替代 catch (Exception)（SpotBugs REC_CATCH_EXCEPTION 误报 fix）",
-    "FlowHistoryEntry 的 action/from/to 写 jsonb 必须用 FlowAction/FlowStatus enum 的 @JsonValue 小写值（不是 enum.name()）；mapper.appendHistory 写 'submit'/'return'/'withdraw' 等字面量，与 DTO 反序列化对齐",
-    "别对 lab_dev 跑 DROP/重建式 replay（nextjs 在用）；演练用临时库（V017 演练即用临时库 DROP+CREATE）",
-    "改 Java 后 smoke 前必须重新 mvn clean package（target/classes 缓存旧 @Table 名导致 spotbugs UUF 误报 37 个 B7 实测）；杀服务用 powershell Stop-Process -Name java -Force（bash kill 杀不掉 Windows java）",
-    "Hibernate 6 @JdbcTypeCode(NAMED_ENUM) + EnumType.STRING 会传 enum 常量名（SIMPLE_AVG），与 PG 自定义 enum 小写标签不兼容--V014（calculation_algorithm_type/requirement_*）+ V015（contract_status/flow_status/receipt_result）+ V017（inspection_parameter_source_type/inspection_standard_status/qualification_level/inspection_standard_role）三批 + AttributeConverter 写 DTO @JsonValue 同款字符串",
-    "@IdClass 复合主键类必须 implements Serializable + serialVersionUID = 1L（SpotBugs SE_NO_SERIALVERSIONID 拦）",
-    "@Enumerated(STRING) 仅适用 PG enum 大写标签（QUALIFIED/TESTING/JUDGMENT）；小写 enum 走 AttributeConverter 显式写 DTO @JsonValue（active/superseded/draft/official/custom）",
-    "junction link/unlink @Fn 测试必须分开标：link 用 I05/I07/I08，unlink 用 I06/I08（B8 精修），不要复用同 ID"
+    "不要走 lab-shared SQL 路径：B1 真后端 OAuth 独立于 DB schema（sql/migrations 不变）",
+    "不要换 RSA（ADR-0008 §1 选 HMAC，对称密钥）",
+    "不要给 msw / nextjs 仓做修改（本 PR scope 仅 springboot + aspnetcore）",
+    "不要删除 spotless 自动添加的 .openapi-tmp 目录",
+    "不要把 no-sso profile 改成 default profile 默认值（dev 不启 saas 体验断裂）",
+    "urlencoded body 调 saas /oauth/authorize — 现 body 是 JSON（saas Controller 收 JSON）",
+    "lab refresh token 走 HMAC 自签的不带 saas refresh token 的 `dev-placeholder` 路径应仅在 dev fallback,prod 拒绝"
   ],
-  "last_gate_passed_at": "2026-08-18T16:44:00+08:00"
+  "active_branch": "master",
+  "ahead_of_origin": "0"
 }
