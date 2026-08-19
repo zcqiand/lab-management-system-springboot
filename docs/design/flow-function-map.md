@@ -62,7 +62,7 @@ flowchart LR
 ### 孤儿功能（B2）
 
 | 功能 ID | 为什么合法 |
-|---|---|
+| --- | --- |
 | M04.F06.I01 | 列表是 FLOW-02 字典维护的 S01（实际已纳入 S01） |
 | M04.F07.I01 | 列表 S01 |
 | M04.F08.I01 | 列表 S01 |
@@ -118,7 +118,7 @@ flowchart LR
 ### 孤儿功能（B3）
 
 | 功能 ID | 为什么合法 |
-|---|---|
+| --- | --- |
 | M02.F01.I01-I05 | 合同管理独立子功能；上游合同登记是接样的 FK 父节点，已纳入 FLOW-03 S00 |
 | M03.F01.I05, M03.F03.I05 | 删测试数据已纳入 FLOW-03 S09 |
 
@@ -126,7 +126,36 @@ flowchart LR
 
 ---
 
-## FLOW-04 （异常流程名）
+## FLOW-04 统计分析（B4：M05 读视图聚合）
+
+> 「统计读视图」是 M05 子模块（M05.F01 报告汇总 + M05.F02 仪表盘）。
+> 是流程末端的只读聚合视图，不参与状态流转。
+> 与 aspnetcore 仓 [flow-function-map.md:47-59](../lab-management-system-aspnetcore/docs/design/flow-function-map.md#L47-L59) `FLOW-03 统计分析（B4）` 对称。
+
+```mermaid
+flowchart TD
+    S01[接样/合同/样品数据] --> S02[报告汇总查询]
+    S01 --> S03[仪表盘聚合]
+```
+
+| 步骤 | 名称 | 角色 | 输入 | 输出 | 状态流转 | 支撑功能子项 |
+|---|---|---|---|---|---|---|
+| S01 | 数据积累（B2/B3 上游） | 所有角色 | — | — | — | —（B2/FLOW-02 + B3/FLOW-03 上游） |
+| S02 | 报告汇总查询 | 管理层 | categoryCode/dateFrom/dateTo | SummaryData 6 列行集 | — | M05.F01.I01 |
+| S03 | 仪表盘聚合 | 所有用户 | — | 计数 + 3 桶（draft/reviewing/issued）+ pendingTask | — | M05.F02.I01 |
+
+> 实现锚点：[`SummaryApi.java:69`](../../src/main/java/io/xr/lab/platform/api/SummaryApi.java) → [`SummaryController.java:33,44`](../../src/main/java/io/xr/lab/platform/controller/SummaryController.java) → [`SummaryService.java:59,75`](../../src/main/java/io/xr/lab/platform/service/SummaryService.java)；测试覆盖：[`SummaryServiceTest.java:45,65,75,86,97,129`](../../src/test/java/io/xr/lab/platform/service/SummaryServiceTest.java)。
+
+### 评审时问这四个问题（FLOW-04）
+
+1. 有没有哪个步骤的「支撑功能子项」是空的？→ S01 是占位数据积累，本身不挂子项；S02/S03 各有 1 个 M05 I 级。
+2. 有没有功能子项从头到尾没出现在任何流程里？→ M05.F01.I01 + M05.F02.I01 已入表，无孤儿。
+3. 状态流转列里的状态名，和代码里的枚举一致吗？→ 本流程无状态机（只读），M05.F02 的 3 桶 enum 在 SummaryService 计算。
+4. 退回路径都画了吗？→ 本流程无退回（只读视图）。
+
+---
+
+## FLOW-05 （异常流程名）
 
 > 异常流程单独成表，否则它承载的功能永远是孤儿。
 
@@ -135,5 +164,5 @@ flowchart LR
 不在任何流程里但合法的功能。**没解释的孤儿 = 没人要的功能。**
 
 | 功能 ID | 为什么合法 |
-|---|---|
+| --- | --- |
 

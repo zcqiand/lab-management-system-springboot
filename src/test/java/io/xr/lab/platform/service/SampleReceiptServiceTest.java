@@ -50,9 +50,11 @@ class SampleReceiptServiceTest {
   }
 
   // M03.F01.I02 get
+  // 同一 service.get(...) 同时支撑 F01.I02 + F05.I02 + F06.I02 + F07.I02 + F08.I02 + F09.I01
+  // （M03 5 阶段详情视图共享一条 GET 端点 → 后端用 receiptService.get 返回 DTO）
 
   @Test
-  @Fn({"M03.F01.I02"})
+  @Fn({"M03.F01.I02", "M03.F05.I02", "M03.F06.I02", "M03.F07.I02", "M03.F08.I02", "M03.F09.I01"})
   void get_returnsDto() {
     when(repo.findByTenantIdAndId(TENANT, "R-001")).thenReturn(Optional.of(entity("R-001")));
     var out = service.get(TENANT, "R-001");

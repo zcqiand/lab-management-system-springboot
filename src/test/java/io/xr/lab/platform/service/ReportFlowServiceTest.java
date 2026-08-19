@@ -35,9 +35,10 @@ class ReportFlowServiceTest {
   }
 
   // M03.F05.I01 queue
+  // service.flowQueue(stage) 同一段同时支撑 F05/F07/F08 的 3 个阶段队列（共用 ReportFlowController#flowQueue）
 
   @Test
-  @Fn({"M03.F05.I01"})
+  @Fn({"M03.F05.I01", "M03.F07.I01", "M03.F08.I01"})
   void flowQueue_delegatesToReceiptService() {
     var stub =
         new io.xr.lab.shared.dto.SampleReceipt()
@@ -51,9 +52,12 @@ class ReportFlowServiceTest {
   }
 
   // M03.F06.I01 advance
+  // service.submitAction(stage, action) 同一段同时支撑 F05/F06/F07/F08 4 个阶段 I03 推进/退回
+  // 测试内部 transitionTo 的具体 stage-pair 是 REVIEW→APPROVAL（F05 推进），但底层 transitionTo 被 F05/F06/F07/F08
+  // 共同消费
 
   @Test
-  @Fn({"M03.F06.I01"})
+  @Fn({"M03.F05.I03", "M03.F06.I01", "M03.F06.I03", "M03.F07.I03", "M03.F08.I03"})
   void submitAction_advance_reviewToApproval_success() {
     SampleReceiptEntity existing = entity("R-001", FlowStatus.REVIEW);
     when(repo.findByTenantIdAndId(TENANT, "R-001")).thenReturn(Optional.of(existing));
@@ -85,7 +89,7 @@ class ReportFlowServiceTest {
   }
 
   @Test
-  @Fn({"M03.F06.I01"})
+  @Fn({"M03.F05.I03", "M03.F06.I01", "M03.F06.I03", "M03.F07.I03", "M03.F08.I03"})
   void submitAction_return_approvalToReview() {
     SampleReceiptEntity existing = entity("R-001", FlowStatus.APPROVAL);
     when(repo.findByTenantIdAndId(TENANT, "R-001")).thenReturn(Optional.of(existing));
@@ -108,7 +112,7 @@ class ReportFlowServiceTest {
   }
 
   @Test
-  @Fn({"M03.F06.I01"})
+  @Fn({"M03.F05.I03", "M03.F06.I01", "M03.F06.I03", "M03.F07.I03", "M03.F08.I03"})
   void submitAction_missing_reportsFailure() {
     when(repo.findByTenantIdAndId(TENANT, "MISSING")).thenReturn(Optional.empty());
     FlowActionRequest req =
