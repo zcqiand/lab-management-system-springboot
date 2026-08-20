@@ -8,7 +8,6 @@ package io.xr.lab.shared.api;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,12 +16,12 @@ import io.xr.lab.shared.dto.CreateParamInterfaceRequest;
 import io.xr.lab.shared.dto.ErrorResponse;
 import io.xr.lab.shared.dto.ParamInterface;
 import io.xr.lab.shared.dto.ParamInterfaceLink;
+import io.xr.lab.shared.dto.ParamInterfacesListParamInterfaces200Response;
 import io.xr.lab.shared.dto.ParamInterfacesUnlinkParamInterfaceRequest;
 import io.xr.lab.shared.dto.UpdateParamInterfaceRequest;
 import jakarta.annotation.Generated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
-import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
@@ -30,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-19T17:37:44.319774200+08:00[Asia/Shanghai]",
+    date = "2026-08-20T13:31:51.674991500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 @Validated
 @Tag(name = "param-interfaces", description = "the param-interfaces API")
@@ -191,6 +190,8 @@ public interface ParamInterfacesApi {
   /**
    * GET /api/param-interfaces
    *
+   * @param page (optional)
+   * @param pageSize (optional)
    * @param keyword (optional)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
@@ -205,7 +206,8 @@ public interface ParamInterfacesApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = ParamInterface.class)))
+                  schema =
+                      @Schema(implementation = ParamInterfacesListParamInterfaces200Response.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -220,7 +222,17 @@ public interface ParamInterfacesApi {
       method = RequestMethod.GET,
       value = ParamInterfacesApi.PATH_PARAM_INTERFACES_LIST_PARAM_INTERFACES,
       produces = {"application/json"})
-  ResponseEntity<List<ParamInterface>> paramInterfacesListParamInterfaces(
+  ResponseEntity<ParamInterfacesListParamInterfaces200Response> paramInterfacesListParamInterfaces(
+      @Parameter(name = "page", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "page", required = false)
+          @Nullable
+          Integer page,
+      @Parameter(name = "pageSize", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "pageSize", required = false)
+          @Nullable
+          Integer pageSize,
       @Parameter(name = "keyword", description = "", in = ParameterIn.QUERY)
           @Valid
           @RequestParam(value = "keyword", required = false)

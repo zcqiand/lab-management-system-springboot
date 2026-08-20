@@ -4,7 +4,6 @@ import io.xr.lab.platform.auth.jwt.LabJwtSigner;
 import io.xr.lab.platform.auth.sso.SaasAuthClient;
 import io.xr.lab.platform.auth.sso.SaasAuthException;
 import io.xr.lab.platform.auth.sso.SaasMeClient;
-import io.xr.lab.platform.auth.state.StateCookieManager;
 import io.xr.lab.platform.config.LabConfig;
 import io.xr.lab.platform.directory.UserDirectory;
 import io.xr.lab.shared.dto.AuthLogoutRequest;
@@ -33,7 +32,7 @@ import org.springframework.stereotype.Service;
  *   <li>JWT：HMAC HS256，{@link LabJwtSigner} 出真签名
  *   <li>SSO：{@link SaasAuthClient} 真调 saas /oauth/authorize + /oauth/token
  *   <li>用户信息：{@link SaasMeClient} 拿 saas /me/whoami + /me/tenants
- *   <li>CSRF：{@link StateCookieManager} HttpOnly Secure Cookie + HS256 签 state
+ *   <li>CSRF：RFC 6749 §10.12 标准 state —— 前端生成、后端原样透传给 saas、回跳由前端比对
  *   <li>refresh：lab refresh token 内嵌 saas refresh token，调 saas grantType=refresh_token 续
  * </ul>
  */
@@ -59,7 +58,6 @@ public class AuthService {
   private final LabJwtSigner jwt;
   private final SaasAuthClient saasAuth;
   private final SaasMeClient saasMe;
-  private final StateCookieManager stateMgr;
   private final LabConfig labConfig;
 
   public AuthService(
@@ -67,13 +65,11 @@ public class AuthService {
       LabJwtSigner jwt,
       SaasAuthClient saasAuth,
       SaasMeClient saasMe,
-      StateCookieManager stateMgr,
       LabConfig labConfig) {
     this.directory = directory;
     this.jwt = jwt;
     this.saasAuth = saasAuth;
     this.saasMe = saasMe;
-    this.stateMgr = stateMgr;
     this.labConfig = labConfig;
   }
 
@@ -224,18 +220,19 @@ public class AuthService {
   // === M01.F05.I02 SSO 跳转 / I03 SSO 回调 ===
 
   /**
-   * 构造 saas /oauth/authorize 调用 + 返回（authorizeUrl, state）供前端跳转。state cookie 由 Controller 通过
-   * Set-Cookie 头另发。
+   * 构造 saas /oauth/authorize 调用 + 返回 authorizeUrl 供前端跳转（RFC 6749 §4.1.1）。
+   *
+   * <p>state 按标准由前端生成、此处原样透传给 saas，回跳 {@code /login?state=...} 由前端比对（CSRF 防护在前端 sessionStorage，RFC
+   * 6749 §10.12）；后端不生成、不校验 state。
    *
    * @param businessRedirect 前端要保留的 redirect 参数（lab 业务方跳转前后回来）
-   * @return SsoRedirect{authorizeUrl, state} + 由本方法返回的 cookieValue 由 Controller 拼 Set-Cookie
+   * @param frontendState 前端生成的 csrfState，透传给 saas 回显
+   * @return SsoRedirect{authorizeUrl, state}
    */
-  public SsoAuthResult ssoAuthorize(String businessRedirect) {
-    String target = businessRedirect == null || businessRedirect.isEmpty() ? "/" : businessRedirect;
-    StateCookieManager.SignedState ss = stateMgr.issue(target);
+  public SsoAuthResult ssoAuthorize(String businessRedirect, String frontendState) {
+    String state = frontendState == null ? "" : frontendState;
     SaasAuthClient.AuthorizeCodeResponse resp =
-        saasAuth.authorize(
-            labConfig.sso().callbackRedirectBase(), "openid profile email", ss.nonce());
+        saasAuth.authorize(labConfig.sso().callbackRedirectBase(), "openid profile email", state);
     String authorizeUrl =
         labConfig.sso().saasBase()
             + "/login?code="
@@ -244,23 +241,19 @@ public class AuthService {
             + resp.getState()
             + "&redirect_uri="
             + labConfig.sso().callbackRedirectBase();
-    return new SsoAuthResult(
-        new SsoRedirect().authorizeUrl(authorizeUrl).state(ss.nonce()), ss.cookieValue());
+    return new SsoAuthResult(new SsoRedirect().authorizeUrl(authorizeUrl).state(resp.getState()));
   }
 
   /**
-   * 处理 SSO 回调：校验 state cookie + body.state 一致，从 saas /oauth/token 换 token，再 /me/whoami 拿 user。
+   * 处理 SSO 回调（RFC 6749 §4.1.3）：code 换 saas token，再 /me/whoami + /me/tenants 拿 user。 state
+   * 校验在前端已完成（回跳比对 csrfState），后端只消费一次性 code。
    *
    * @param body 业务请求体（grant_type=authorization_code, code, redirect_uri, state）
-   * @param cookieValue Set-Cookie 里的 lab_sso_state
    */
-  public LoginResponse ssoCallback(SsoCallbackRequest body, String cookieValue) {
+  public LoginResponse ssoCallback(SsoCallbackRequest body) {
     if (body == null) {
       throw new IllegalArgumentException("missing body");
     }
-    // verify validates cookie + state 配对;redirect 返回值只为校验 context,业务上 lab 不再跳回
-    stateMgr.verify(cookieValue, body.getState());
-    // 走 saas /oauth/token
     SaasAuthClient.TokenResponse t =
         saasAuth.token(
             "authorization_code",
@@ -326,7 +319,7 @@ public class AuthService {
   }
 
   /**
-   * Controller 接收的复合结果：SsoRedirect + 配套的 cookie value。
+   * Controller 接收的复合结果：SsoRedirect。
    *
    * <p>{@code @SuppressFBWarnings}:SsoRedirect 是 codegen 生成的 DTO(setter/getter,内部 HashMap
    * 不可变),暴露引用对 lab 业务场景无副作用——Controller 只读不回写。SpotBugs 静态检查不再标记。
@@ -334,5 +327,5 @@ public class AuthService {
   @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
       value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"},
       justification = "SsoRedirect is a DTO read-only in this scope")
-  public record SsoAuthResult(SsoRedirect redirect, String cookieValue) {}
+  public record SsoAuthResult(SsoRedirect redirect) {}
 }

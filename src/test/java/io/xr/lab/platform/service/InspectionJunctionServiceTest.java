@@ -1,5 +1,6 @@
 package io.xr.lab.platform.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -8,6 +9,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.xr.harness.junit.Fn;
+import io.xr.lab.platform.entity.InspectionObjectParameterEntity;
+import io.xr.lab.platform.entity.InspectionObjectStandardEntity;
+import io.xr.lab.platform.entity.InspectionSpecialtyObjectEntity;
+import io.xr.lab.platform.entity.InspectionStandardParameterEntity;
 import io.xr.lab.platform.entity.enums.ObjectParameterKey;
 import io.xr.lab.platform.entity.enums.ObjectReportNameKey;
 import io.xr.lab.platform.entity.enums.ObjectStandardKey;
@@ -116,6 +121,37 @@ class InspectionJunctionServiceTest {
     verify(specialtyObjectRepo, never()).deleteById(any());
   }
 
+  @Test
+  @Fn({"M06.F02.I09"})
+  void listSpecialtyObjectLinks_nullFilter_returnsAll() {
+    var e1 = new InspectionSpecialtyObjectEntity();
+    e1.setInspectionSpecialtyCode("S-1");
+    e1.setInspectionObjectCode("OBJ-1");
+    var e2 = new InspectionSpecialtyObjectEntity();
+    e2.setInspectionSpecialtyCode("S-2");
+    e2.setInspectionObjectCode("OBJ-2");
+    when(specialtyObjectRepo.findAll()).thenReturn(java.util.List.of(e1, e2));
+    var out = service.listSpecialtyObjectLinks(null);
+    assertEquals(2, out.size());
+    assertEquals("S-1", out.get(0).getInspectionSpecialtyCode());
+    assertEquals("OBJ-2", out.get(1).getInspectionObjectCode());
+  }
+
+  @Test
+  @Fn({"M06.F02.I09"})
+  void listSpecialtyObjectLinks_filterByCode_returnsOnlyMatches() {
+    var e1 = new InspectionSpecialtyObjectEntity();
+    e1.setInspectionSpecialtyCode("S-1");
+    e1.setInspectionObjectCode("OBJ-1");
+    var e2 = new InspectionSpecialtyObjectEntity();
+    e2.setInspectionSpecialtyCode("S-2");
+    e2.setInspectionObjectCode("OBJ-2");
+    when(specialtyObjectRepo.findAll()).thenReturn(java.util.List.of(e1, e2));
+    var out = service.listSpecialtyObjectLinks("S-1");
+    assertEquals(1, out.size());
+    assertEquals("OBJ-1", out.get(0).getInspectionObjectCode());
+  }
+
   // === M06 object ↔ parameter ===
 
   @Test
@@ -140,6 +176,32 @@ class InspectionJunctionServiceTest {
   void unlinkObjectParameter_missing_throws404() {
     when(objectParameterRepo.existsById(any())).thenReturn(false);
     assertThrows(NoSuchElementException.class, () -> service.unlinkObjectParameter("OBJ-1", "P-1"));
+  }
+
+  @Test
+  @Fn({"M06.F02.I10"})
+  void listObjectParameterLinks_nullFilters_returnsAll() {
+    var e1 = new InspectionObjectParameterEntity();
+    e1.setInspectionObjectCode("OBJ-1");
+    e1.setInspectionParameterCode("P-1");
+    when(objectParameterRepo.findAll()).thenReturn(java.util.List.of(e1));
+    var out = service.listObjectParameterLinks(null, null);
+    assertEquals(1, out.size());
+  }
+
+  @Test
+  @Fn({"M06.F02.I10"})
+  void listObjectParameterLinks_filterByObjectCode_dropsOthers() {
+    var e1 = new InspectionObjectParameterEntity();
+    e1.setInspectionObjectCode("OBJ-1");
+    e1.setInspectionParameterCode("P-1");
+    var e2 = new InspectionObjectParameterEntity();
+    e2.setInspectionObjectCode("OBJ-2");
+    e2.setInspectionParameterCode("P-2");
+    when(objectParameterRepo.findAll()).thenReturn(java.util.List.of(e1, e2));
+    var out = service.listObjectParameterLinks("OBJ-1", null);
+    assertEquals(1, out.size());
+    assertEquals("P-1", out.get(0).getInspectionParameterCode());
   }
 
   // === M06 object ↔ standard (role) ===
@@ -173,6 +235,23 @@ class InspectionJunctionServiceTest {
         () -> service.unlinkObjectStandard("OBJ-1", "GB/T", InspectionStandardRole.TESTING));
   }
 
+  @Test
+  @Fn({"M06.F01.I07"})
+  void listObjectStandardLinks_filterByObjectCode_returnsOnlyMatches() {
+    var e1 = new InspectionObjectStandardEntity();
+    e1.setInspectionObjectCode("OBJ-1");
+    e1.setInspectionStandardCode("GB/T-A");
+    e1.setRole(InspectionStandardRole.TESTING);
+    var e2 = new InspectionObjectStandardEntity();
+    e2.setInspectionObjectCode("OBJ-2");
+    e2.setInspectionStandardCode("GB/T-B");
+    e2.setRole(InspectionStandardRole.TESTING);
+    when(objectStandardRepo.findAll()).thenReturn(java.util.List.of(e1, e2));
+    var out = service.listObjectStandardLinks("OBJ-1", null);
+    assertEquals(1, out.size());
+    assertEquals(InspectionStandardRole.TESTING, out.get(0).getRole());
+  }
+
   // === M06 standard ↔ parameter ===
 
   @Test
@@ -200,6 +279,18 @@ class InspectionJunctionServiceTest {
     assertThrows(
         NoSuchElementException.class,
         () -> service.unlinkStandardParameter(new StandardParameterLink("X", "Y")));
+  }
+
+  @Test
+  @Fn({"M06.F03.I08"})
+  void listStandardParameterLinks_nullFilters_returnsAll() {
+    var e1 = new InspectionStandardParameterEntity();
+    e1.setInspectionStandardCode("GB/T-A");
+    e1.setInspectionParameterCode("P-1");
+    when(standardParameterRepo.findAll()).thenReturn(java.util.List.of(e1));
+    var out = service.listStandardParameterLinks(null, null);
+    assertEquals(1, out.size());
+    assertEquals("GB/T-A", out.get(0).getInspectionStandardCode());
   }
 
   // === M06 object ↔ report-name ===

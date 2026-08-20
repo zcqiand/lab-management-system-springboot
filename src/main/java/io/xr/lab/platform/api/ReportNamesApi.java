@@ -8,7 +8,6 @@ package io.xr.lab.shared.api;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -19,6 +18,7 @@ import io.xr.lab.shared.dto.InspectionReportName;
 import io.xr.lab.shared.dto.ObjectReportNameLink;
 import io.xr.lab.shared.dto.ReportNameParameterLink;
 import io.xr.lab.shared.dto.ReportNameStandardLink;
+import io.xr.lab.shared.dto.ReportNamesListReportNames200Response;
 import io.xr.lab.shared.dto.ReportNamesUnlinkObjectReportNameRequest;
 import io.xr.lab.shared.dto.ReportNamesUnlinkReportNameParameterRequest;
 import io.xr.lab.shared.dto.ReportNamesUnlinkReportNameStandardRequest;
@@ -26,7 +26,6 @@ import io.xr.lab.shared.dto.UpdateInspectionReportNameRequest;
 import jakarta.annotation.Generated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
-import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
@@ -34,7 +33,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-19T17:37:44.319774200+08:00[Asia/Shanghai]",
+    date = "2026-08-20T13:31:51.674991500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 @Validated
 @Tag(name = "report-names", description = "the report-names API")
@@ -271,6 +270,8 @@ public interface ReportNamesApi {
   /**
    * GET /api/report-names
    *
+   * @param page (optional)
+   * @param pageSize (optional)
    * @param keyword (optional)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
@@ -285,8 +286,7 @@ public interface ReportNamesApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  array =
-                      @ArraySchema(schema = @Schema(implementation = InspectionReportName.class)))
+                  schema = @Schema(implementation = ReportNamesListReportNames200Response.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -301,7 +301,17 @@ public interface ReportNamesApi {
       method = RequestMethod.GET,
       value = ReportNamesApi.PATH_REPORT_NAMES_LIST_REPORT_NAMES,
       produces = {"application/json"})
-  ResponseEntity<List<InspectionReportName>> reportNamesListReportNames(
+  ResponseEntity<ReportNamesListReportNames200Response> reportNamesListReportNames(
+      @Parameter(name = "page", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "page", required = false)
+          @Nullable
+          Integer page,
+      @Parameter(name = "pageSize", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "pageSize", required = false)
+          @Nullable
+          Integer pageSize,
       @Parameter(name = "keyword", description = "", in = ParameterIn.QUERY)
           @Valid
           @RequestParam(value = "keyword", required = false)

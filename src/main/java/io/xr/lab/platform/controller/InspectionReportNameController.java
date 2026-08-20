@@ -9,6 +9,7 @@ import io.xr.lab.shared.dto.InspectionReportName;
 import io.xr.lab.shared.dto.ObjectReportNameLink;
 import io.xr.lab.shared.dto.ReportNameParameterLink;
 import io.xr.lab.shared.dto.ReportNameStandardLink;
+import io.xr.lab.shared.dto.ReportNamesListReportNames200Response;
 import io.xr.lab.shared.dto.UpdateInspectionReportNameRequest;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -40,8 +41,17 @@ public class InspectionReportNameController implements ReportNamesApi {
   }
 
   @Override
-  public ResponseEntity<List<InspectionReportName>> reportNamesListReportNames(String keyword) {
-    return ResponseEntity.ok(service.list(keyword));
+  public ResponseEntity<ReportNamesListReportNames200Response> reportNamesListReportNames(
+      Integer page, Integer pageSize, String keyword) {
+    List<InspectionReportName> list = service.list(keyword);
+    int effectivePage = page == null ? 1 : page;
+    int effectivePageSize = pageSize == null ? list.size() : pageSize;
+    return ResponseEntity.ok(
+        new ReportNamesListReportNames200Response()
+            .items(list)
+            .page(effectivePage)
+            .pageSize(effectivePageSize)
+            .total((long) list.size()));
   }
 
   @Override

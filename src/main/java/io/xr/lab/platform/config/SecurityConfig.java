@@ -56,6 +56,10 @@ public class SecurityConfig {
     }
     config.addAllowedMethod("*");
     config.addAllowedHeader("*");
+    // 前端 axios 全局 withCredentials=true（http-client.ts），credentials mode=include 时
+    // 浏览器要求响应带 Access-Control-Allow-Credentials: true，否则拒收。origin 已是
+    // 显式白名单（非 *），与 credentials 组合合规。
+    config.setAllowCredentials(true);
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", config);
     return source;

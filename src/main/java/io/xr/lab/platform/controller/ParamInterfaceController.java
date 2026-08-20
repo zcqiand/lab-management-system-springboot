@@ -7,6 +7,7 @@ import io.xr.lab.shared.api.ParamInterfacesApi;
 import io.xr.lab.shared.dto.CreateParamInterfaceRequest;
 import io.xr.lab.shared.dto.ParamInterface;
 import io.xr.lab.shared.dto.ParamInterfaceLink;
+import io.xr.lab.shared.dto.ParamInterfacesListParamInterfaces200Response;
 import io.xr.lab.shared.dto.UpdateParamInterfaceRequest;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -33,8 +34,17 @@ public class ParamInterfaceController implements ParamInterfacesApi {
   }
 
   @Override
-  public ResponseEntity<List<ParamInterface>> paramInterfacesListParamInterfaces(String keyword) {
-    return ResponseEntity.ok(service.list(keyword));
+  public ResponseEntity<ParamInterfacesListParamInterfaces200Response>
+      paramInterfacesListParamInterfaces(Integer page, Integer pageSize, String keyword) {
+    List<ParamInterface> list = service.list(keyword);
+    int effectivePage = page == null ? 1 : page;
+    int effectivePageSize = pageSize == null ? list.size() : pageSize;
+    return ResponseEntity.ok(
+        new ParamInterfacesListParamInterfaces200Response()
+            .items(list)
+            .page(effectivePage)
+            .pageSize(effectivePageSize)
+            .total((long) list.size()));
   }
 
   @Override

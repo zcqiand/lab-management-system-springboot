@@ -10,7 +10,6 @@ import io.xr.lab.platform.auth.jwt.LabJwtSigner;
 import io.xr.lab.platform.auth.jwt.NimbusLabJwtDecoderFactory;
 import io.xr.lab.platform.auth.sso.SaasAuthClient;
 import io.xr.lab.platform.auth.sso.SaasMeClient;
-import io.xr.lab.platform.auth.state.StateCookieManager;
 import io.xr.lab.platform.config.LabConfig;
 import io.xr.lab.platform.config.SsoBeansConfig;
 import io.xr.lab.platform.directory.ConfigUserDirectory;
@@ -48,11 +47,9 @@ class AuthServiceTest {
   private final LabJwtSigner jwt = new LabJwtSigner(SECRET, "lab-test", 3600, 604800);
   private final SaasAuthClient saasAuth = new SsoBeansConfig.NoopSaasAuthClient();
   private final SaasMeClient saasMe = new SsoBeansConfig.NoopSaasMeClient();
-  private final StateCookieManager stateMgr = new StateCookieManager(SECRET, true);
 
   private final AuthService service =
-      new AuthService(
-          new ConfigUserDirectory("dev123456"), jwt, saasAuth, saasMe, stateMgr, labConfig);
+      new AuthService(new ConfigUserDirectory("dev123456"), jwt, saasAuth, saasMe, labConfig);
 
   @Test
   @Fn({"M01.F05.I01"})
@@ -83,26 +80,25 @@ class AuthServiceTest {
 
   @Test
   @Fn({"M01.F05.I02"})
-  void ssoAuthorize_returnsAuthorizeUrlAndState() {
-    AuthService.SsoAuthResult result = service.ssoAuthorize("/dashboard");
+  void ssoAuthorize_returnsAuthorizeUrlAndEchoesState() {
+    AuthService.SsoAuthResult result = service.ssoAuthorize("/dashboard", "frontend-csrf-state");
     assertNotNull(result.redirect().getAuthorizeUrl());
     assertTrue(result.redirect().getAuthorizeUrl().contains("code=dev-code"));
-    assertNotNull(result.redirect().getState());
-    assertNotNull(result.cookieValue());
+    // RFC 6749 §10.12：前端 state 原样透传 saas 回显，前端比对
+    assertEquals("frontend-csrf-state", result.redirect().getState());
   }
 
   @Test
   @Fn({"M01.F05.I03"})
   void ssoCallback_returnsDemoSession() {
-    AuthService.SsoAuthResult auth = service.ssoAuthorize("/dashboard");
     io.xr.lab.shared.dto.SsoCallbackRequest body =
         new io.xr.lab.shared.dto.SsoCallbackRequest()
             .grantType(io.xr.lab.shared.dto.OAuthGrantType.AUTHORIZATION_CODE)
             .code("dev-code")
             .redirectUri("http://localhost:8080/api/auth/sso/callback")
-            .state(auth.redirect().getState());
+            .state("frontend-csrf-state");
 
-    LoginResponse resp = service.ssoCallback(body, auth.cookieValue());
+    LoginResponse resp = service.ssoCallback(body);
 
     assertEquals("USER-A", resp.getUser().getId());
     assertEquals(3, resp.getTenants().size());
@@ -113,20 +109,6 @@ class AuthServiceTest {
             Base64.getUrlDecoder().decode(resp.getRefreshToken().split("\\.")[1]),
             java.nio.charset.StandardCharsets.UTF_8);
     assertTrue(refreshPayload.contains("\"saas_refresh_token\":\"dev-refresh-token\""));
-  }
-
-  @Test
-  @Fn({"M01.F05.I03"})
-  void ssoCallback_mismatchedState_throws() {
-    AuthService.SsoAuthResult auth = service.ssoAuthorize("/dashboard");
-    io.xr.lab.shared.dto.SsoCallbackRequest body =
-        new io.xr.lab.shared.dto.SsoCallbackRequest()
-            .grantType(io.xr.lab.shared.dto.OAuthGrantType.AUTHORIZATION_CODE)
-            .code("dev-code")
-            .redirectUri("http://localhost:8080/api/auth/sso/callback")
-            .state("forged-state-not-matching-cookie");
-
-    assertThrows(IllegalStateException.class, () -> service.ssoCallback(body, auth.cookieValue()));
   }
 
   @Test

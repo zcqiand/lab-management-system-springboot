@@ -4,6 +4,10 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.xr.lab.platform.directory.ConfigUserDirectory;
 import io.xr.lab.platform.service.CatalogService;
 import io.xr.lab.shared.api.InspectionCatalogApi;
+import io.xr.lab.shared.dto.CatalogListBrands200Response;
+import io.xr.lab.shared.dto.CatalogListGrades200Response;
+import io.xr.lab.shared.dto.CatalogListModels200Response;
+import io.xr.lab.shared.dto.CatalogListSpecs200Response;
 import io.xr.lab.shared.dto.CreateCatalogEntryRequest;
 import io.xr.lab.shared.dto.InspectionBrand;
 import io.xr.lab.shared.dto.InspectionGrade;
@@ -24,6 +28,9 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * <p>tenant_id 从 JWT claim 取（{@link #currentTenantIdOrDefault}），未带 token / 无 claim 时 dev fallback
  * TENANT-001。 业务 全部在 {@link CatalogService}。
+ *
+ * <p>4 个 list GET 端点返 OpenAPI `Page<T>` 包裹（items / page / pageSize / total）， 与 shared TypeSpec
+ * `Page<T>` 一致。
  */
 @RestController
 public class InspectionCatalogController implements InspectionCatalogApi {
@@ -44,10 +51,18 @@ public class InspectionCatalogController implements InspectionCatalogApi {
   // === Brand (M04.F09) ===
 
   @Override
-  public ResponseEntity<List<InspectionBrand>> catalogListBrands(
-      String inspectionObjectCode, String keyword) {
+  public ResponseEntity<CatalogListBrands200Response> catalogListBrands(
+      Integer page, Integer pageSize, String inspectionObjectCode, String keyword) {
+    List<InspectionBrand> list =
+        service.listBrands(currentTenantIdOrDefault(), inspectionObjectCode, keyword);
+    int effectivePage = page == null ? 1 : page;
+    int effectivePageSize = pageSize == null ? list.size() : pageSize;
     return ResponseEntity.ok(
-        service.listBrands(currentTenantIdOrDefault(), inspectionObjectCode, keyword));
+        new CatalogListBrands200Response()
+            .items(list)
+            .page(effectivePage)
+            .pageSize(effectivePageSize)
+            .total((long) list.size()));
   }
 
   @Override
@@ -73,10 +88,18 @@ public class InspectionCatalogController implements InspectionCatalogApi {
   // === Grade (M04.F08) ===
 
   @Override
-  public ResponseEntity<List<InspectionGrade>> catalogListGrades(
-      String inspectionObjectCode, String keyword) {
+  public ResponseEntity<CatalogListGrades200Response> catalogListGrades(
+      Integer page, Integer pageSize, String inspectionObjectCode, String keyword) {
+    List<InspectionGrade> list =
+        service.listGrades(currentTenantIdOrDefault(), inspectionObjectCode, keyword);
+    int effectivePage = page == null ? 1 : page;
+    int effectivePageSize = pageSize == null ? list.size() : pageSize;
     return ResponseEntity.ok(
-        service.listGrades(currentTenantIdOrDefault(), inspectionObjectCode, keyword));
+        new CatalogListGrades200Response()
+            .items(list)
+            .page(effectivePage)
+            .pageSize(effectivePageSize)
+            .total((long) list.size()));
   }
 
   @Override
@@ -102,10 +125,18 @@ public class InspectionCatalogController implements InspectionCatalogApi {
   // === Model (M04.F06) ===
 
   @Override
-  public ResponseEntity<List<InspectionModel>> catalogListModels(
-      String inspectionObjectCode, String keyword) {
+  public ResponseEntity<CatalogListModels200Response> catalogListModels(
+      Integer page, Integer pageSize, String inspectionObjectCode, String keyword) {
+    List<InspectionModel> list =
+        service.listModels(currentTenantIdOrDefault(), inspectionObjectCode, keyword);
+    int effectivePage = page == null ? 1 : page;
+    int effectivePageSize = pageSize == null ? list.size() : pageSize;
     return ResponseEntity.ok(
-        service.listModels(currentTenantIdOrDefault(), inspectionObjectCode, keyword));
+        new CatalogListModels200Response()
+            .items(list)
+            .page(effectivePage)
+            .pageSize(effectivePageSize)
+            .total((long) list.size()));
   }
 
   @Override
@@ -131,10 +162,18 @@ public class InspectionCatalogController implements InspectionCatalogApi {
   // === Spec (M04.F07) ===
 
   @Override
-  public ResponseEntity<List<InspectionSpec>> catalogListSpecs(
-      String inspectionObjectCode, String keyword) {
+  public ResponseEntity<CatalogListSpecs200Response> catalogListSpecs(
+      Integer page, Integer pageSize, String inspectionObjectCode, String keyword) {
+    List<InspectionSpec> list =
+        service.listSpecs(currentTenantIdOrDefault(), inspectionObjectCode, keyword);
+    int effectivePage = page == null ? 1 : page;
+    int effectivePageSize = pageSize == null ? list.size() : pageSize;
     return ResponseEntity.ok(
-        service.listSpecs(currentTenantIdOrDefault(), inspectionObjectCode, keyword));
+        new CatalogListSpecs200Response()
+            .items(list)
+            .page(effectivePage)
+            .pageSize(effectivePageSize)
+            .total((long) list.size()));
   }
 
   @Override

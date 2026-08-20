@@ -54,11 +54,7 @@ public class SaasAuthClient {
     if (defaultTenantId == null || defaultTenantId.isEmpty()) {
       throw new IllegalStateException("LAB_SAAS_DEFAULT_TENANT_ID required");
     }
-    this.http =
-        RestClient.builder()
-            .baseUrl(saasBase)
-            .defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)
-            .build();
+    this.http = SaasHttp.build(saasBase);
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.defaultTenantId = defaultTenantId;

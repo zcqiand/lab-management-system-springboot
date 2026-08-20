@@ -8,11 +8,20 @@ import io.xr.lab.shared.dto.CreateInspectionObjectRequest;
 import io.xr.lab.shared.dto.CreateInspectionParameterRequest;
 import io.xr.lab.shared.dto.CreateInspectionSpecialtyRequest;
 import io.xr.lab.shared.dto.CreateInspectionStandardRequest;
+import io.xr.lab.shared.dto.InspectionDictionaryListObjectParameterLinks200Response;
+import io.xr.lab.shared.dto.InspectionDictionaryListObjectStandardLinks200Response;
+import io.xr.lab.shared.dto.InspectionDictionaryListObjects200Response;
+import io.xr.lab.shared.dto.InspectionDictionaryListParameters200Response;
+import io.xr.lab.shared.dto.InspectionDictionaryListSpecialties200Response;
+import io.xr.lab.shared.dto.InspectionDictionaryListSpecialtyObjectLinks200Response;
+import io.xr.lab.shared.dto.InspectionDictionaryListStandardParameterLinks200Response;
+import io.xr.lab.shared.dto.InspectionDictionaryListStandards200Response;
 import io.xr.lab.shared.dto.InspectionObject;
 import io.xr.lab.shared.dto.InspectionParameter;
 import io.xr.lab.shared.dto.InspectionParameterSourceType;
 import io.xr.lab.shared.dto.InspectionSpecialty;
 import io.xr.lab.shared.dto.InspectionStandard;
+import io.xr.lab.shared.dto.InspectionStandardRole;
 import io.xr.lab.shared.dto.InspectionStandardStatus;
 import io.xr.lab.shared.dto.ObjectParameterLink;
 import io.xr.lab.shared.dto.ObjectStandardLink;
@@ -27,8 +36,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * M06 字典 controller（B5）。本批只实现 3 实体的 12 CRUD 端点：specialty/parameter/standard 各 4
- * 个（list/create/update/delete）。检测项目（M06.F02）+ 4 个 junction link/unlink 等下一批（需 Object 主表）。
+ * M06 字典 controller（B5/B6/B7）。本批实现 4 实体的 12 CRUD 端点 + 4 junction link/unlink + 4 junction list（B7 补
+ * GET 列表，与 React/Vue 镜像客户端对齐）。
+ *
+ * <p>所有 list GET 端点返 OpenAPI `Page<T>` 包裹（items / page / pageSize / total）。 page / pageSize 当前不被
+ * service 用于分页过滤（数据量小），但按 TypeSpec 真源 `Page<T>` 接受并回写，便于后续切真分页时只改 service 不改 controller。
  */
 @RestController
 public class InspectionDictionaryController implements InspectionDictionaryApi {
@@ -48,9 +60,17 @@ public class InspectionDictionaryController implements InspectionDictionaryApi {
   // === M06.F01 Specialty ===
 
   @Override
-  public ResponseEntity<List<InspectionSpecialty>> inspectionDictionaryListSpecialties(
-      String keyword) {
-    return ResponseEntity.ok(service.listSpecialties(keyword));
+  public ResponseEntity<InspectionDictionaryListSpecialties200Response>
+      inspectionDictionaryListSpecialties(Integer page, Integer pageSize, String keyword) {
+    List<InspectionSpecialty> list = service.listSpecialties(keyword);
+    int effectivePage = page == null ? 1 : page;
+    int effectivePageSize = pageSize == null ? list.size() : pageSize;
+    return ResponseEntity.ok(
+        new InspectionDictionaryListSpecialties200Response()
+            .items(list)
+            .page(effectivePage)
+            .pageSize(effectivePageSize)
+            .total((long) list.size()));
   }
 
   @Override
@@ -74,9 +94,21 @@ public class InspectionDictionaryController implements InspectionDictionaryApi {
   // === M06.F03 Parameter ===
 
   @Override
-  public ResponseEntity<List<InspectionParameter>> inspectionDictionaryListParameters(
-      String keyword, InspectionParameterSourceType sourceType) {
-    return ResponseEntity.ok(service.listParameters(keyword, sourceType));
+  public ResponseEntity<InspectionDictionaryListParameters200Response>
+      inspectionDictionaryListParameters(
+          Integer page,
+          Integer pageSize,
+          String keyword,
+          InspectionParameterSourceType sourceType) {
+    List<InspectionParameter> list = service.listParameters(keyword, sourceType);
+    int effectivePage = page == null ? 1 : page;
+    int effectivePageSize = pageSize == null ? list.size() : pageSize;
+    return ResponseEntity.ok(
+        new InspectionDictionaryListParameters200Response()
+            .items(list)
+            .page(effectivePage)
+            .pageSize(effectivePageSize)
+            .total((long) list.size()));
   }
 
   @Override
@@ -100,9 +132,18 @@ public class InspectionDictionaryController implements InspectionDictionaryApi {
   // === M06.F04 Standard ===
 
   @Override
-  public ResponseEntity<List<InspectionStandard>> inspectionDictionaryListStandards(
-      String keyword, InspectionStandardStatus status) {
-    return ResponseEntity.ok(service.listStandards(keyword, status));
+  public ResponseEntity<InspectionDictionaryListStandards200Response>
+      inspectionDictionaryListStandards(
+          Integer page, Integer pageSize, String keyword, InspectionStandardStatus status) {
+    List<InspectionStandard> list = service.listStandards(keyword, status);
+    int effectivePage = page == null ? 1 : page;
+    int effectivePageSize = pageSize == null ? list.size() : pageSize;
+    return ResponseEntity.ok(
+        new InspectionDictionaryListStandards200Response()
+            .items(list)
+            .page(effectivePage)
+            .pageSize(effectivePageSize)
+            .total((long) list.size()));
   }
 
   @Override
@@ -126,9 +167,17 @@ public class InspectionDictionaryController implements InspectionDictionaryApi {
   // === M06.F02 Object + 4 junction 端点（B6 落地）===
 
   @Override
-  public ResponseEntity<List<InspectionObject>> inspectionDictionaryListObjects(
-      String inspectionSpecialtyCode, String keyword) {
-    return ResponseEntity.ok(service.listObjects(inspectionSpecialtyCode, keyword));
+  public ResponseEntity<InspectionDictionaryListObjects200Response> inspectionDictionaryListObjects(
+      Integer page, Integer pageSize, String inspectionSpecialtyCode, String keyword) {
+    List<InspectionObject> list = service.listObjects(inspectionSpecialtyCode, keyword);
+    int effectivePage = page == null ? 1 : page;
+    int effectivePageSize = pageSize == null ? list.size() : pageSize;
+    return ResponseEntity.ok(
+        new InspectionDictionaryListObjects200Response()
+            .items(list)
+            .page(effectivePage)
+            .pageSize(effectivePageSize)
+            .total((long) list.size()));
   }
 
   @Override
@@ -161,6 +210,21 @@ public class InspectionDictionaryController implements InspectionDictionaryApi {
     return ResponseEntity.noContent().build();
   }
 
+  // === M06 junction list (B7 补 GET 列表，与 React/Vue 对齐) ===
+
+  @Override
+  public ResponseEntity<InspectionDictionaryListSpecialtyObjectLinks200Response>
+      inspectionDictionaryListSpecialtyObjectLinks(String inspectionSpecialtyCode) {
+    List<SpecialtyObjectLink> list =
+        junctionService.listSpecialtyObjectLinks(inspectionSpecialtyCode);
+    return ResponseEntity.ok(
+        new InspectionDictionaryListSpecialtyObjectLinks200Response()
+            .items(list)
+            .page(1)
+            .pageSize(list.size())
+            .total((long) list.size()));
+  }
+
   @Override
   public ResponseEntity<Void> inspectionDictionaryLinkObjectParameter(ObjectParameterLink body) {
     junctionService.linkObjectParameter(body);
@@ -173,6 +237,20 @@ public class InspectionDictionaryController implements InspectionDictionaryApi {
     junctionService.unlinkObjectParameter(
         body.getInspectionObjectCode(), body.getInspectionParameterCode());
     return ResponseEntity.noContent().build();
+  }
+
+  @Override
+  public ResponseEntity<InspectionDictionaryListObjectParameterLinks200Response>
+      inspectionDictionaryListObjectParameterLinks(
+          String inspectionObjectCode, String inspectionParameterCode) {
+    List<ObjectParameterLink> list =
+        junctionService.listObjectParameterLinks(inspectionObjectCode, inspectionParameterCode);
+    return ResponseEntity.ok(
+        new InspectionDictionaryListObjectParameterLinks200Response()
+            .items(list)
+            .page(1)
+            .pageSize(list.size())
+            .total((long) list.size()));
   }
 
   @Override
@@ -190,6 +268,20 @@ public class InspectionDictionaryController implements InspectionDictionaryApi {
   }
 
   @Override
+  public ResponseEntity<InspectionDictionaryListObjectStandardLinks200Response>
+      inspectionDictionaryListObjectStandardLinks(
+          String inspectionObjectCode, InspectionStandardRole role) {
+    List<ObjectStandardLink> list =
+        junctionService.listObjectStandardLinks(inspectionObjectCode, role);
+    return ResponseEntity.ok(
+        new InspectionDictionaryListObjectStandardLinks200Response()
+            .items(list)
+            .page(1)
+            .pageSize(list.size())
+            .total((long) list.size()));
+  }
+
+  @Override
   public ResponseEntity<Void> inspectionDictionaryLinkStandardParameter(
       StandardParameterLink body) {
     junctionService.linkStandardParameter(body);
@@ -201,5 +293,19 @@ public class InspectionDictionaryController implements InspectionDictionaryApi {
       StandardParameterLink body) {
     junctionService.unlinkStandardParameter(body);
     return ResponseEntity.noContent().build();
+  }
+
+  @Override
+  public ResponseEntity<InspectionDictionaryListStandardParameterLinks200Response>
+      inspectionDictionaryListStandardParameterLinks(
+          String inspectionStandardCode, String inspectionParameterCode) {
+    List<StandardParameterLink> list =
+        junctionService.listStandardParameterLinks(inspectionStandardCode, inspectionParameterCode);
+    return ResponseEntity.ok(
+        new InspectionDictionaryListStandardParameterLinks200Response()
+            .items(list)
+            .page(1)
+            .pageSize(list.size())
+            .total((long) list.size()));
   }
 }

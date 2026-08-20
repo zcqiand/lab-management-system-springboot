@@ -8,11 +8,14 @@ package io.xr.lab.shared.api;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.xr.lab.shared.dto.CatalogListBrands200Response;
+import io.xr.lab.shared.dto.CatalogListGrades200Response;
+import io.xr.lab.shared.dto.CatalogListModels200Response;
+import io.xr.lab.shared.dto.CatalogListSpecs200Response;
 import io.xr.lab.shared.dto.CreateCatalogEntryRequest;
 import io.xr.lab.shared.dto.ErrorResponse;
 import io.xr.lab.shared.dto.InspectionBrand;
@@ -23,7 +26,6 @@ import io.xr.lab.shared.dto.UpdateCatalogEntryRequest;
 import jakarta.annotation.Generated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
-import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
@@ -31,7 +33,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-19T17:37:44.319774200+08:00[Asia/Shanghai]",
+    date = "2026-08-20T13:31:51.674991500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 @Validated
 @Tag(name = "inspection-catalog", description = "the inspection-catalog API")
@@ -346,6 +348,8 @@ public interface InspectionCatalogApi {
   /**
    * GET /api/catalog/brands
    *
+   * @param page (optional)
+   * @param pageSize (optional)
    * @param inspectionObjectCode (optional)
    * @param keyword (optional)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
@@ -361,7 +365,7 @@ public interface InspectionCatalogApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = InspectionBrand.class)))
+                  schema = @Schema(implementation = CatalogListBrands200Response.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -376,7 +380,17 @@ public interface InspectionCatalogApi {
       method = RequestMethod.GET,
       value = InspectionCatalogApi.PATH_CATALOG_LIST_BRANDS,
       produces = {"application/json"})
-  ResponseEntity<List<InspectionBrand>> catalogListBrands(
+  ResponseEntity<CatalogListBrands200Response> catalogListBrands(
+      @Parameter(name = "page", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "page", required = false)
+          @Nullable
+          Integer page,
+      @Parameter(name = "pageSize", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "pageSize", required = false)
+          @Nullable
+          Integer pageSize,
       @Parameter(name = "inspectionObjectCode", description = "", in = ParameterIn.QUERY)
           @Valid
           @RequestParam(value = "inspectionObjectCode", required = false)
@@ -393,6 +407,8 @@ public interface InspectionCatalogApi {
   /**
    * GET /api/catalog/grades
    *
+   * @param page (optional)
+   * @param pageSize (optional)
    * @param inspectionObjectCode (optional)
    * @param keyword (optional)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
@@ -408,7 +424,7 @@ public interface InspectionCatalogApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = InspectionGrade.class)))
+                  schema = @Schema(implementation = CatalogListGrades200Response.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -423,7 +439,17 @@ public interface InspectionCatalogApi {
       method = RequestMethod.GET,
       value = InspectionCatalogApi.PATH_CATALOG_LIST_GRADES,
       produces = {"application/json"})
-  ResponseEntity<List<InspectionGrade>> catalogListGrades(
+  ResponseEntity<CatalogListGrades200Response> catalogListGrades(
+      @Parameter(name = "page", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "page", required = false)
+          @Nullable
+          Integer page,
+      @Parameter(name = "pageSize", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "pageSize", required = false)
+          @Nullable
+          Integer pageSize,
       @Parameter(name = "inspectionObjectCode", description = "", in = ParameterIn.QUERY)
           @Valid
           @RequestParam(value = "inspectionObjectCode", required = false)
@@ -440,6 +466,8 @@ public interface InspectionCatalogApi {
   /**
    * GET /api/catalog/models
    *
+   * @param page (optional)
+   * @param pageSize (optional)
    * @param inspectionObjectCode (optional)
    * @param keyword (optional)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
@@ -455,7 +483,7 @@ public interface InspectionCatalogApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = InspectionModel.class)))
+                  schema = @Schema(implementation = CatalogListModels200Response.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -470,7 +498,17 @@ public interface InspectionCatalogApi {
       method = RequestMethod.GET,
       value = InspectionCatalogApi.PATH_CATALOG_LIST_MODELS,
       produces = {"application/json"})
-  ResponseEntity<List<InspectionModel>> catalogListModels(
+  ResponseEntity<CatalogListModels200Response> catalogListModels(
+      @Parameter(name = "page", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "page", required = false)
+          @Nullable
+          Integer page,
+      @Parameter(name = "pageSize", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "pageSize", required = false)
+          @Nullable
+          Integer pageSize,
       @Parameter(name = "inspectionObjectCode", description = "", in = ParameterIn.QUERY)
           @Valid
           @RequestParam(value = "inspectionObjectCode", required = false)
@@ -487,6 +525,8 @@ public interface InspectionCatalogApi {
   /**
    * GET /api/catalog/specs
    *
+   * @param page (optional)
+   * @param pageSize (optional)
    * @param inspectionObjectCode (optional)
    * @param keyword (optional)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
@@ -502,7 +542,7 @@ public interface InspectionCatalogApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = InspectionSpec.class)))
+                  schema = @Schema(implementation = CatalogListSpecs200Response.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -517,7 +557,17 @@ public interface InspectionCatalogApi {
       method = RequestMethod.GET,
       value = InspectionCatalogApi.PATH_CATALOG_LIST_SPECS,
       produces = {"application/json"})
-  ResponseEntity<List<InspectionSpec>> catalogListSpecs(
+  ResponseEntity<CatalogListSpecs200Response> catalogListSpecs(
+      @Parameter(name = "page", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "page", required = false)
+          @Nullable
+          Integer page,
+      @Parameter(name = "pageSize", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "pageSize", required = false)
+          @Nullable
+          Integer pageSize,
       @Parameter(name = "inspectionObjectCode", description = "", in = ParameterIn.QUERY)
           @Valid
           @RequestParam(value = "inspectionObjectCode", required = false)

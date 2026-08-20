@@ -8,7 +8,6 @@ package io.xr.lab.shared.api;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -18,6 +17,14 @@ import io.xr.lab.shared.dto.CreateInspectionParameterRequest;
 import io.xr.lab.shared.dto.CreateInspectionSpecialtyRequest;
 import io.xr.lab.shared.dto.CreateInspectionStandardRequest;
 import io.xr.lab.shared.dto.ErrorResponse;
+import io.xr.lab.shared.dto.InspectionDictionaryListObjectParameterLinks200Response;
+import io.xr.lab.shared.dto.InspectionDictionaryListObjectStandardLinks200Response;
+import io.xr.lab.shared.dto.InspectionDictionaryListObjects200Response;
+import io.xr.lab.shared.dto.InspectionDictionaryListParameters200Response;
+import io.xr.lab.shared.dto.InspectionDictionaryListSpecialties200Response;
+import io.xr.lab.shared.dto.InspectionDictionaryListSpecialtyObjectLinks200Response;
+import io.xr.lab.shared.dto.InspectionDictionaryListStandardParameterLinks200Response;
+import io.xr.lab.shared.dto.InspectionDictionaryListStandards200Response;
 import io.xr.lab.shared.dto.InspectionDictionaryUnlinkObjectParameterRequest;
 import io.xr.lab.shared.dto.InspectionDictionaryUnlinkObjectStandardRequest;
 import io.xr.lab.shared.dto.InspectionObject;
@@ -25,6 +32,7 @@ import io.xr.lab.shared.dto.InspectionParameter;
 import io.xr.lab.shared.dto.InspectionParameterSourceType;
 import io.xr.lab.shared.dto.InspectionSpecialty;
 import io.xr.lab.shared.dto.InspectionStandard;
+import io.xr.lab.shared.dto.InspectionStandardRole;
 import io.xr.lab.shared.dto.InspectionStandardStatus;
 import io.xr.lab.shared.dto.ObjectParameterLink;
 import io.xr.lab.shared.dto.ObjectStandardLink;
@@ -37,7 +45,6 @@ import io.xr.lab.shared.dto.UpdateInspectionStandardRequest;
 import jakarta.annotation.Generated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
-import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
@@ -45,7 +52,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-19T17:37:44.319774200+08:00[Asia/Shanghai]",
+    date = "2026-08-20T13:31:51.674991500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 @Validated
 @Tag(name = "inspection-dictionary", description = "the inspection-dictionary API")
@@ -504,11 +511,117 @@ public interface InspectionDictionaryApi {
           @RequestBody
           StandardParameterLink standardParameterLink);
 
+  String PATH_INSPECTION_DICTIONARY_LIST_OBJECT_PARAMETER_LINKS =
+      "/api/inspection/links/object-parameter";
+
+  /**
+   * GET /api/inspection/links/object-parameter
+   *
+   * @param inspectionObjectCode (optional)
+   * @param inspectionParameterCode (optional)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "inspectionDictionaryListObjectParameterLinks",
+      tags = {"inspection-dictionary"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema =
+                      @Schema(
+                          implementation =
+                              InspectionDictionaryListObjectParameterLinks200Response.class))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.GET,
+      value = InspectionDictionaryApi.PATH_INSPECTION_DICTIONARY_LIST_OBJECT_PARAMETER_LINKS,
+      produces = {"application/json"})
+  ResponseEntity<InspectionDictionaryListObjectParameterLinks200Response>
+      inspectionDictionaryListObjectParameterLinks(
+          @Parameter(name = "inspectionObjectCode", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "inspectionObjectCode", required = false)
+              @Nullable
+              String inspectionObjectCode,
+          @Parameter(name = "inspectionParameterCode", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "inspectionParameterCode", required = false)
+              @Nullable
+              String inspectionParameterCode);
+
+  String PATH_INSPECTION_DICTIONARY_LIST_OBJECT_STANDARD_LINKS =
+      "/api/inspection/links/object-standard";
+
+  /**
+   * GET /api/inspection/links/object-standard
+   *
+   * @param inspectionObjectCode (optional)
+   * @param role (optional)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "inspectionDictionaryListObjectStandardLinks",
+      tags = {"inspection-dictionary"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema =
+                      @Schema(
+                          implementation =
+                              InspectionDictionaryListObjectStandardLinks200Response.class))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.GET,
+      value = InspectionDictionaryApi.PATH_INSPECTION_DICTIONARY_LIST_OBJECT_STANDARD_LINKS,
+      produces = {"application/json"})
+  ResponseEntity<InspectionDictionaryListObjectStandardLinks200Response>
+      inspectionDictionaryListObjectStandardLinks(
+          @Parameter(name = "inspectionObjectCode", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "inspectionObjectCode", required = false)
+              @Nullable
+              String inspectionObjectCode,
+          @Parameter(name = "role", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "role", required = false)
+              @Nullable
+              InspectionStandardRole role);
+
   String PATH_INSPECTION_DICTIONARY_LIST_OBJECTS = "/api/inspection/objects";
 
   /**
    * GET /api/inspection/objects
    *
+   * @param page (optional)
+   * @param pageSize (optional)
    * @param inspectionSpecialtyCode (optional)
    * @param keyword (optional)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
@@ -524,7 +637,8 @@ public interface InspectionDictionaryApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = InspectionObject.class)))
+                  schema =
+                      @Schema(implementation = InspectionDictionaryListObjects200Response.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -539,7 +653,17 @@ public interface InspectionDictionaryApi {
       method = RequestMethod.GET,
       value = InspectionDictionaryApi.PATH_INSPECTION_DICTIONARY_LIST_OBJECTS,
       produces = {"application/json"})
-  ResponseEntity<List<InspectionObject>> inspectionDictionaryListObjects(
+  ResponseEntity<InspectionDictionaryListObjects200Response> inspectionDictionaryListObjects(
+      @Parameter(name = "page", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "page", required = false)
+          @Nullable
+          Integer page,
+      @Parameter(name = "pageSize", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "pageSize", required = false)
+          @Nullable
+          Integer pageSize,
       @Parameter(name = "inspectionSpecialtyCode", description = "", in = ParameterIn.QUERY)
           @Valid
           @RequestParam(value = "inspectionSpecialtyCode", required = false)
@@ -556,6 +680,8 @@ public interface InspectionDictionaryApi {
   /**
    * GET /api/inspection/parameters
    *
+   * @param page (optional)
+   * @param pageSize (optional)
    * @param keyword (optional)
    * @param sourceType (optional)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
@@ -571,8 +697,8 @@ public interface InspectionDictionaryApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  array =
-                      @ArraySchema(schema = @Schema(implementation = InspectionParameter.class)))
+                  schema =
+                      @Schema(implementation = InspectionDictionaryListParameters200Response.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -587,7 +713,17 @@ public interface InspectionDictionaryApi {
       method = RequestMethod.GET,
       value = InspectionDictionaryApi.PATH_INSPECTION_DICTIONARY_LIST_PARAMETERS,
       produces = {"application/json"})
-  ResponseEntity<List<InspectionParameter>> inspectionDictionaryListParameters(
+  ResponseEntity<InspectionDictionaryListParameters200Response> inspectionDictionaryListParameters(
+      @Parameter(name = "page", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "page", required = false)
+          @Nullable
+          Integer page,
+      @Parameter(name = "pageSize", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "pageSize", required = false)
+          @Nullable
+          Integer pageSize,
       @Parameter(name = "keyword", description = "", in = ParameterIn.QUERY)
           @Valid
           @RequestParam(value = "keyword", required = false)
@@ -604,6 +740,8 @@ public interface InspectionDictionaryApi {
   /**
    * GET /api/inspection/specialties
    *
+   * @param page (optional)
+   * @param pageSize (optional)
    * @param keyword (optional)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
@@ -618,8 +756,9 @@ public interface InspectionDictionaryApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  array =
-                      @ArraySchema(schema = @Schema(implementation = InspectionSpecialty.class)))
+                  schema =
+                      @Schema(
+                          implementation = InspectionDictionaryListSpecialties200Response.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -634,18 +773,129 @@ public interface InspectionDictionaryApi {
       method = RequestMethod.GET,
       value = InspectionDictionaryApi.PATH_INSPECTION_DICTIONARY_LIST_SPECIALTIES,
       produces = {"application/json"})
-  ResponseEntity<List<InspectionSpecialty>> inspectionDictionaryListSpecialties(
-      @Parameter(name = "keyword", description = "", in = ParameterIn.QUERY)
-          @Valid
-          @RequestParam(value = "keyword", required = false)
-          @Nullable
-          String keyword);
+  ResponseEntity<InspectionDictionaryListSpecialties200Response>
+      inspectionDictionaryListSpecialties(
+          @Parameter(name = "page", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "page", required = false)
+              @Nullable
+              Integer page,
+          @Parameter(name = "pageSize", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "pageSize", required = false)
+              @Nullable
+              Integer pageSize,
+          @Parameter(name = "keyword", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "keyword", required = false)
+              @Nullable
+              String keyword);
+
+  String PATH_INSPECTION_DICTIONARY_LIST_SPECIALTY_OBJECT_LINKS =
+      "/api/inspection/links/specialty-object";
+
+  /**
+   * GET /api/inspection/links/specialty-object
+   *
+   * @param inspectionSpecialtyCode (optional)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "inspectionDictionaryListSpecialtyObjectLinks",
+      tags = {"inspection-dictionary"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema =
+                      @Schema(
+                          implementation =
+                              InspectionDictionaryListSpecialtyObjectLinks200Response.class))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.GET,
+      value = InspectionDictionaryApi.PATH_INSPECTION_DICTIONARY_LIST_SPECIALTY_OBJECT_LINKS,
+      produces = {"application/json"})
+  ResponseEntity<InspectionDictionaryListSpecialtyObjectLinks200Response>
+      inspectionDictionaryListSpecialtyObjectLinks(
+          @Parameter(name = "inspectionSpecialtyCode", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "inspectionSpecialtyCode", required = false)
+              @Nullable
+              String inspectionSpecialtyCode);
+
+  String PATH_INSPECTION_DICTIONARY_LIST_STANDARD_PARAMETER_LINKS =
+      "/api/inspection/links/standard-parameter";
+
+  /**
+   * GET /api/inspection/links/standard-parameter
+   *
+   * @param inspectionStandardCode (optional)
+   * @param inspectionParameterCode (optional)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "inspectionDictionaryListStandardParameterLinks",
+      tags = {"inspection-dictionary"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema =
+                      @Schema(
+                          implementation =
+                              InspectionDictionaryListStandardParameterLinks200Response.class))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.GET,
+      value = InspectionDictionaryApi.PATH_INSPECTION_DICTIONARY_LIST_STANDARD_PARAMETER_LINKS,
+      produces = {"application/json"})
+  ResponseEntity<InspectionDictionaryListStandardParameterLinks200Response>
+      inspectionDictionaryListStandardParameterLinks(
+          @Parameter(name = "inspectionStandardCode", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "inspectionStandardCode", required = false)
+              @Nullable
+              String inspectionStandardCode,
+          @Parameter(name = "inspectionParameterCode", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "inspectionParameterCode", required = false)
+              @Nullable
+              String inspectionParameterCode);
 
   String PATH_INSPECTION_DICTIONARY_LIST_STANDARDS = "/api/inspection/standards";
 
   /**
    * GET /api/inspection/standards
    *
+   * @param page (optional)
+   * @param pageSize (optional)
    * @param keyword (optional)
    * @param status (optional)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
@@ -661,7 +911,8 @@ public interface InspectionDictionaryApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = InspectionStandard.class)))
+                  schema =
+                      @Schema(implementation = InspectionDictionaryListStandards200Response.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -676,7 +927,17 @@ public interface InspectionDictionaryApi {
       method = RequestMethod.GET,
       value = InspectionDictionaryApi.PATH_INSPECTION_DICTIONARY_LIST_STANDARDS,
       produces = {"application/json"})
-  ResponseEntity<List<InspectionStandard>> inspectionDictionaryListStandards(
+  ResponseEntity<InspectionDictionaryListStandards200Response> inspectionDictionaryListStandards(
+      @Parameter(name = "page", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "page", required = false)
+          @Nullable
+          Integer page,
+      @Parameter(name = "pageSize", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "pageSize", required = false)
+          @Nullable
+          Integer pageSize,
       @Parameter(name = "keyword", description = "", in = ParameterIn.QUERY)
           @Valid
           @RequestParam(value = "keyword", required = false)

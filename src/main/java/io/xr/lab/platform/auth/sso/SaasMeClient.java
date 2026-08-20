@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
@@ -31,11 +30,7 @@ public class SaasMeClient {
     if (saasBase == null || saasBase.isEmpty()) {
       throw new IllegalStateException("lab.sso.saas-base required for SaasMeClient");
     }
-    this.http =
-        RestClient.builder()
-            .baseUrl(saasBase)
-            .defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)
-            .build();
+    this.http = SaasHttp.build(saasBase);
   }
 
   /** 无参构造器（用于 Noop 子类继承,跳过 env 校验）。 */

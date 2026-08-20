@@ -93,8 +93,8 @@
 | M01.F04.I01 | 动态菜单 | GET /api/auth/menus：按角色下发导航树（5 根节点，镜像 lab-msw） | 接口 | 已上线 |
 | M01.F04.I02 | 权限集 | GET /api/auth/permissions：RBAC 权限串列表（admin 全量 11 项） | 接口 | 已上线 |
 | M01.F05.I01 | 密码登录 | POST /api/auth/login：用户名+密码校验，签发 access/refresh token + 租户列表 | 接口 | 已上线 |
-| M01.F05.I02 | SSO 跳转 | GET /api/auth/sso/authorize：HS256 签 state 写 HttpOnly Secure Cookie lab_sso_state，再 forward saas POST /api/v1/oauth/authorize 拿 code；no-sso profile 走 NoopSaasAuthClient | 接口 | 已上线 |
-| M01.F05.I03 | SSO 回调 | POST /api/auth/sso/callback:校验 body.state==cookie nonce + cookie 签名,再 saas POST /api/v1/oauth/token 换 token,再 /me/whoami + /me/tenants 拿 user,membership 信 saas;首次 SSO 按 email upsert 到 lab directory | 接口 | 已上线 |
+| M01.F05.I02 | SSO 跳转 | GET /api/auth/sso/authorize：RFC 6749 §10.12 标准 state（前端生成、原样透传 saas 回显、前端比对），forward saas POST /api/v1/oauth/authorize 拿 code；no-sso profile 走 NoopSaasAuthClient | 接口 | 已上线 |
+| M01.F05.I03 | SSO 回调 | POST /api/auth/sso/callback:saas POST /api/v1/oauth/token 用一次性 code 换 token,再 /me/whoami + /me/tenants 拿 user,membership 信 saas;首次 SSO 按 email upsert 到 lab directory;state 校验在前端回跳比对 | 接口 | 已上线 |
 | M01.F05.I04 | 刷新 token | POST /api/auth/refresh:lab refresh token 是 HS256 JWT(typ=refresh),内嵌 saas refresh token;调 saas POST /api/v1/oauth/token grantType=refresh_token 续,再签新 lab JWT | 接口 | 已上线 |
 | M01.F05.I05 | 登出 | POST /api/auth/logout：无状态 JWT 服务端无 session，前端清存储 | 接口 | 已上线 |
 
@@ -104,19 +104,19 @@
 
 | 子项 ID | 名称 | 闭环定义 | 类型 | 状态 |
 |---|---|---|---|---|
-| M04.F06.I01 | 型号列表 | GET /api/catalog/models?inspectionObjectCode=&keyword=：按 tenant 收口 + 2 过滤，返回 InspectionModel[] | 接口 | 已上线 |
+| M04.F06.I01 | 型号列表 | GET /api/catalog/models?page=&pageSize=&inspectionObjectCode=&keyword=：`Page<InspectionModel>`，按 tenant 收口 + 2 过滤 | 接口 | 已上线 |
 | M04.F06.I02 | 创建型号 | POST /api/catalog/models：body CreateCatalogEntryRequest（code/name 必填 + 可选 inspectionObjectCode/remark/sortOrder），返回 InspectionModel | 接口 | 已上线 |
 | M04.F06.I03 | 更新型号 | PUT /api/catalog/models/{code}：body UpdateCatalogEntryRequest（PATCH 语义，未传字段保留），404 if 不存在 | 接口 | 已上线 |
 | M04.F06.I04 | 删除型号 | DELETE /api/catalog/models/{code}：204；FK 被 technical_requirements.model 引用时 DB SET NULL | 接口 | 已上线 |
-| M04.F07.I01 | 规格列表 | GET /api/catalog/specs?inspectionObjectCode=&keyword= | 接口 | 已上线 |
+| M04.F07.I01 | 规格列表 | GET /api/catalog/specs?page=&pageSize=&inspectionObjectCode=&keyword=：`Page<InspectionSpec>` | 接口 | 已上线 |
 | M04.F07.I02 | 创建规格 | POST /api/catalog/specs | 接口 | 已上线 |
 | M04.F07.I03 | 更新规格 | PUT /api/catalog/specs/{code} | 接口 | 已上线 |
 | M04.F07.I04 | 删除规格 | DELETE /api/catalog/specs/{code} | 接口 | 已上线 |
-| M04.F08.I01 | 等级列表 | GET /api/catalog/grades?inspectionObjectCode=&keyword= | 接口 | 已上线 |
+| M04.F08.I01 | 等级列表 | GET /api/catalog/grades?page=&pageSize=&inspectionObjectCode=&keyword=：`Page<InspectionGrade>` | 接口 | 已上线 |
 | M04.F08.I02 | 创建等级 | POST /api/catalog/grades | 接口 | 已上线 |
 | M04.F08.I03 | 更新等级 | PUT /api/catalog/grades/{code} | 接口 | 已上线 |
 | M04.F08.I04 | 删除等级 | DELETE /api/catalog/grades/{code} | 接口 | 已上线 |
-| M04.F09.I01 | 牌号列表 | GET /api/catalog/brands?inspectionObjectCode=&keyword= | 接口 | 已上线 |
+| M04.F09.I01 | 牌号列表 | GET /api/catalog/brands?page=&pageSize=&inspectionObjectCode=&keyword=：`Page<InspectionBrand>` | 接口 | 已上线 |
 | M04.F09.I02 | 创建牌号 | POST /api/catalog/brands | 接口 | 已上线 |
 | M04.F09.I03 | 更新牌号 | PUT /api/catalog/brands/{code} | 接口 | 已上线 |
 | M04.F09.I04 | 删除牌号 | DELETE /api/catalog/brands/{code} | 接口 | 已上线 |
@@ -195,24 +195,24 @@
 
 | 子项 ID | 名称 | 闭环定义 | 类型 | 状态 |
 |---|---|---|---|---|
-| M06.F01.I01 | 专项列表 | GET /api/inspection/specialties?keyword=：按 code/name 模糊匹配，平台级 | 接口 | 已上线 |
+| M06.F01.I01 | 专项列表 | GET /api/inspection/specialties?page=&pageSize=&keyword=：`Page<InspectionSpecialty>`，按 code/name 模糊匹配，平台级 | 接口 | 已上线 |
 | M06.F01.I02 | 创建专项 | POST /api/inspection/specialties：code/officialNo/name 必填；isOfficial/enabled 默认 true；sortOrder 默认 0 | 接口 | 已上线 |
 | M06.F01.I03 | 更新专项 | PUT /api/inspection/specialties/{code}：PATCH 语义，未传字段保留 | 接口 | 已上线 |
 | M06.F01.I04 | 删除专项 | DELETE /api/inspection/specialties/{code}：204 if exists，否则 404 | 接口 | 已上线 |
-| M06.F03.I01 | 参数列表 | GET /api/inspection/parameters?keyword=&sourceType=：按 code/name 模糊 + sourceType 过滤（official/custom） | 接口 | 已上线 |
+| M06.F03.I01 | 参数列表 | GET /api/inspection/parameters?page=&pageSize=&keyword=&sourceType=：`Page<InspectionParameter>`，按 code/name 模糊 + sourceType 过滤（official/custom） | 接口 | 已上线 |
 | M06.F03.I02 | 创建参数 | POST /api/inspection/parameters：code/name/rawName/canonicalName 必填；sourceType 默认 OFFICIAL；aliases 默认 [] | 接口 | 已上线 |
 | M06.F03.I03 | 更新参数 | PUT /api/inspection/parameters/{code}：PATCH 语义；aliases 传则整体替换 | 接口 | 已上线 |
 | M06.F03.I04 | 删除参数 | DELETE /api/inspection/parameters/{code}：204 if exists | 接口 | 已上线 |
-| M06.F04.I01 | 标准列表 | GET /api/inspection/standards?keyword=&status=：按 code/name 模糊 + status 过滤（active/superseded/draft） | 接口 | 已上线 |
+| M06.F04.I01 | 标准列表 | GET /api/inspection/standards?page=&pageSize=&keyword=&status=：`Page<InspectionStandard>`，按 code/name 模糊 + status 过滤（active/superseded/draft） | 接口 | 已上线 |
 | M06.F04.I02 | 创建标准 | POST /api/inspection/standards：code/name 必填；status 默认 ACTIVE | 接口 | 已上线 |
 | M06.F04.I03 | 更新标准 | PUT /api/inspection/standards/{code}：PATCH 语义 | 接口 | 已上线 |
 | M06.F04.I04 | 删除标准 | DELETE /api/inspection/standards/{code}：204 if exists | 接口 | 已上线 |
-| M06.F07.I01 | 报告名称列表 | GET /api/report-names?keyword=：按 code/name 模糊 | 接口 | 已上线 |
+| M06.F07.I01 | 报告名称列表 | GET /api/report-names?page=&pageSize=&keyword=：`Page<InspectionReportName>`，按 code/name 模糊 | 接口 | 已上线 |
 | M06.F07.I02 | 报告名称详情 | GET /api/report-names/{code}：返回 InspectionReportName（含 extFields 反序列化的 `List<ExtFieldDef>`） | 接口 | 已上线 |
 | M06.F07.I03 | 创建报告名称 | POST /api/report-names：code/name 必填；extFields 默认 [] | 接口 | 已上线 |
 | M06.F07.I04 | 更新报告名称 | PUT /api/report-names/{code}：PATCH 语义 | 接口 | 已上线 |
 | M06.F07.I05 | 删除报告名称 | DELETE /api/report-names/{code}：204 if exists | 接口 | 已上线 |
-| M06.F08.I01 | 参数界面列表 | GET /api/param-interfaces?keyword=：按 code/name 模糊 | 接口 | 已上线 |
+| M06.F08.I01 | 参数界面列表 | GET /api/param-interfaces?page=&pageSize=&keyword=：`Page<ParamInterface>`，按 code/name 模糊 | 接口 | 已上线 |
 | M06.F08.I02 | 参数界面详情 | GET /api/param-interfaces/{code}：返回 ParamInterface（含 config 反序列化的 Map<String,Object>） | 接口 | 已上线 |
 | M06.F08.I03 | 创建参数界面 | POST /api/param-interfaces：code/componentPath 必填；config 默认 {} | 接口 | 已上线 |
 | M06.F08.I04 | 更新参数界面 | PUT /api/param-interfaces/{code}：PATCH 语义 | 接口 | 已上线 |
@@ -232,18 +232,22 @@
 
 | 子项 ID | 名称 | 闭环定义 | 类型 | 状态 |
 |---|---|---|---|---|
-| M06.F02.I01 | 项目列表 | GET /api/inspection/objects?inspectionSpecialtyCode=&keyword=：按 code/name 模糊 + 专项过滤 | 接口 | 已上线 |
+| M06.F02.I01 | 项目列表 | GET /api/inspection/objects?page=&pageSize=&inspectionSpecialtyCode=&keyword=：`Page<InspectionObject>`，按 code/name 模糊 + 专项过滤 | 接口 | 已上线 |
 | M06.F02.I02 | 创建项目 | POST /api/inspection/objects：code/inspectionSpecialtyCode/sourceProjectNo/sourceProjectName/name 必填；isOptionalForQualification 默认 false；isOfficial/enabled 默认 true | 接口 | 已上线 |
 | M06.F02.I03 | 更新项目 | PUT /api/inspection/objects/{code}：PATCH 语义 | 接口 | 已上线 |
 | M06.F02.I04 | 删除项目 | DELETE /api/inspection/objects/{code}：204 if exists | 接口 | 已上线 |
 | M06.F02.I05 | 专项↔项目 link | POST /api/inspection/links/specialty-object：建立 specialty→object 关联，remark 可选 | 接口 | 已上线 |
 | M06.F02.I06 | 专项↔项目 unlink | DELETE /api/inspection/links/specialty-object：404 if 不存在 | 接口 | 已上线 |
+| M06.F02.I09 | 专项↔项目 列表 | GET /api/inspection/links/specialty-object?inspectionSpecialtyCode=：`Page<SpecialtyObjectLink>`，按专项 code 过滤 | 接口 | 已上线 |
 | M06.F02.I07 | 项目↔参数 link | POST /api/inspection/links/object-parameter：建立 object→parameter 关联，qualificationLevel 默认 QUALIFIED，sourcePage/remark 可选 | 接口 | 已上线 |
 | M06.F02.I08 | 项目↔参数 unlink | DELETE /api/inspection/links/object-parameter：404 if 不存在 | 接口 | 已上线 |
+| M06.F02.I10 | 项目↔参数 列表 | GET /api/inspection/links/object-parameter?inspectionObjectCode=&inspectionParameterCode=：`Page<ObjectParameterLink>`，按 objectCode/parameterCode 过滤 | 接口 | 已上线 |
 | M06.F01.I05 | 项目↔标准 link | POST /api/inspection/links/object-standard：建立 object→standard(role) 关联，role 必填（TESTING/JUDGMENT） | 接口 | 已上线 |
 | M06.F01.I06 | 项目↔标准 unlink | DELETE /api/inspection/links/object-standard：404 if 不存在 | 接口 | 已上线 |
+| M06.F01.I07 | 项目↔标准 列表 | GET /api/inspection/links/object-standard?inspectionObjectCode=&role=：`Page<ObjectStandardLink>`，按 objectCode/role 过滤 | 接口 | 已上线 |
 | M06.F03.I05 | 标准↔参数 link | POST /api/inspection/links/standard-parameter：建立 standard→parameter 关联 | 接口 | 已上线 |
 | M06.F03.I06 | 标准↔参数 unlink | DELETE /api/inspection/links/standard-parameter：404 if 不存在 | 接口 | 已上线 |
+| M06.F03.I08 | 标准↔参数 列表 | GET /api/inspection/links/standard-parameter?inspectionStandardCode=&inspectionParameterCode=：`Page<StandardParameterLink>`，按 standardCode/parameterCode 过滤 | 接口 | 已上线 |
 | M06.F07.I06 | 项目↔报告名称 link | POST /api/report-names/links/object：建立 object→report-name 关联，remark 可选 | 接口 | 已上线 |
 | M06.F07.I07 | 报告名称↔标准 link | POST /api/report-names/links/standard：建立 report-name→standard(role) 关联，role 必填 | 接口 | 已上线 |
 | M06.F07.I08 | 报告名称↔参数 link | POST /api/report-names/links/parameter：建立 report-name→parameter 关联 | 接口 | 已上线 |

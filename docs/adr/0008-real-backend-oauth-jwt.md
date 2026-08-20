@@ -37,6 +37,12 @@ lab-management-system 多仓家族长期在 B1 "鉴权占位" 状态:
 
 ### 3. State CSRF:HttpOnly Secure Cookie + HS256 签 state
 
+> **修订(2026-08-20)**:本节方案已废弃,改为 RFC 6749 §10.12 标准 state —— 前端生成 csrfState、
+> 后端 authorize 原样透传给 saas、回跳 `?state=` 由前端与 sessionStorage 比对;后端不生成、不
+> 校验 state,`StateCookieManager` 已删除。原因:① 自造 cookie+nonce 配对与前端 csrfState 校验
+> 语义冲突(后端偷换 state 导致前端比对必败);② cookie `SameSite=Lax` + 跨源前端(5173 → 8080)
+> 根本带不上,机制实际是坏的;③ 非标准做法,与 react/vue/msw 各仓实现不一致。原方案留档如下。
+
 - `authorize` 时生成随机 nonce + 业务载荷(`{redirect, ts}`) + HS256 签名 = cookie value `nonce.signature.payload`
 - 后端 set `lab_sso_state` cookie(HttpOnly; Secure dev=false; SameSite=Lax; Path=/api/auth/sso/callback; Max-Age=300)
 - saas `?state=` 写 nonce

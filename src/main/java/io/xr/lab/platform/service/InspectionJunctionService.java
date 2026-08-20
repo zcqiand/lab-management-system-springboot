@@ -36,8 +36,11 @@ import io.xr.lab.shared.dto.ReportNameParameterLink;
 import io.xr.lab.shared.dto.ReportNameStandardLink;
 import io.xr.lab.shared.dto.SpecialtyObjectLink;
 import io.xr.lab.shared.dto.StandardParameterLink;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 /**
@@ -109,6 +112,26 @@ public class InspectionJunctionService {
     specialtyObjectRepo.deleteById(key);
   }
 
+  /** B7 — 按专项 code 过滤专项↔项目 junction。null 返回全量。 */
+  public List<SpecialtyObjectLink> listSpecialtyObjectLinks(String inspectionSpecialtyCode) {
+    List<InspectionSpecialtyObjectEntity> all = new ArrayList<>(specialtyObjectRepo.findAll());
+    if (inspectionSpecialtyCode == null || inspectionSpecialtyCode.isBlank()) {
+      return all.stream().map(this::toSpecialtyObjectLink).collect(Collectors.toList());
+    }
+    return all.stream()
+        .filter(e -> inspectionSpecialtyCode.equals(e.getInspectionSpecialtyCode()))
+        .map(this::toSpecialtyObjectLink)
+        .collect(Collectors.toList());
+  }
+
+  private SpecialtyObjectLink toSpecialtyObjectLink(InspectionSpecialtyObjectEntity e) {
+    SpecialtyObjectLink dto = new SpecialtyObjectLink();
+    dto.setInspectionSpecialtyCode(e.getInspectionSpecialtyCode());
+    dto.setInspectionObjectCode(e.getInspectionObjectCode());
+    dto.setRemark(e.getRemark());
+    return dto;
+  }
+
   // === M06.F02/F03 object ↔ parameter ===
 
   public void linkObjectParameter(ObjectParameterLink body) {
@@ -136,6 +159,33 @@ public class InspectionJunctionService {
               + inspectionParameterCode);
     }
     objectParameterRepo.deleteById(key);
+  }
+
+  /** B7 — 项目↔参数 junction list（按 objectCode 与/或 parameterCode 过滤）。 */
+  public List<ObjectParameterLink> listObjectParameterLinks(
+      String inspectionObjectCode, String inspectionParameterCode) {
+    List<InspectionObjectParameterEntity> all = new ArrayList<>(objectParameterRepo.findAll());
+    return all.stream()
+        .filter(
+            e ->
+                (inspectionObjectCode == null
+                        || inspectionObjectCode.isBlank()
+                        || inspectionObjectCode.equals(e.getInspectionObjectCode()))
+                    && (inspectionParameterCode == null
+                        || inspectionParameterCode.isBlank()
+                        || inspectionParameterCode.equals(e.getInspectionParameterCode())))
+        .map(this::toObjectParameterLink)
+        .collect(Collectors.toList());
+  }
+
+  private ObjectParameterLink toObjectParameterLink(InspectionObjectParameterEntity e) {
+    ObjectParameterLink dto = new ObjectParameterLink();
+    dto.setInspectionObjectCode(e.getInspectionObjectCode());
+    dto.setInspectionParameterCode(e.getInspectionParameterCode());
+    dto.setQualificationLevel(e.getQualificationLevel());
+    dto.setSourcePage(e.getSourcePage());
+    dto.setRemark(e.getRemark());
+    return dto;
   }
 
   // === M06.F02/F04 object ↔ standard (role) ===
@@ -170,6 +220,30 @@ public class InspectionJunctionService {
     objectStandardRepo.deleteById(key);
   }
 
+  /** B7 — 项目↔标准 junction list（按 objectCode 与/或 role 过滤）。 */
+  public List<ObjectStandardLink> listObjectStandardLinks(
+      String inspectionObjectCode, InspectionStandardRole role) {
+    List<InspectionObjectStandardEntity> all = new ArrayList<>(objectStandardRepo.findAll());
+    return all.stream()
+        .filter(
+            e ->
+                (inspectionObjectCode == null
+                        || inspectionObjectCode.isBlank()
+                        || inspectionObjectCode.equals(e.getInspectionObjectCode()))
+                    && (role == null || role.equals(e.getRole())))
+        .map(this::toObjectStandardLink)
+        .collect(Collectors.toList());
+  }
+
+  private ObjectStandardLink toObjectStandardLink(InspectionObjectStandardEntity e) {
+    ObjectStandardLink dto = new ObjectStandardLink();
+    dto.setInspectionObjectCode(e.getInspectionObjectCode());
+    dto.setInspectionStandardCode(e.getInspectionStandardCode());
+    dto.setRole(e.getRole());
+    dto.setRemark(e.getRemark());
+    return dto;
+  }
+
   // === M06.F03/F04 standard ↔ parameter ===
 
   public void linkStandardParameter(StandardParameterLink body) {
@@ -195,6 +269,30 @@ public class InspectionJunctionService {
               + key.getInspectionParameterCode());
     }
     standardParameterRepo.deleteById(key);
+  }
+
+  /** B7 — 标准↔参数 junction list（按 standardCode 与/或 parameterCode 过滤）。 */
+  public List<StandardParameterLink> listStandardParameterLinks(
+      String inspectionStandardCode, String inspectionParameterCode) {
+    List<InspectionStandardParameterEntity> all = new ArrayList<>(standardParameterRepo.findAll());
+    return all.stream()
+        .filter(
+            e ->
+                (inspectionStandardCode == null
+                        || inspectionStandardCode.isBlank()
+                        || inspectionStandardCode.equals(e.getInspectionStandardCode()))
+                    && (inspectionParameterCode == null
+                        || inspectionParameterCode.isBlank()
+                        || inspectionParameterCode.equals(e.getInspectionParameterCode())))
+        .map(this::toStandardParameterLink)
+        .collect(Collectors.toList());
+  }
+
+  private StandardParameterLink toStandardParameterLink(InspectionStandardParameterEntity e) {
+    StandardParameterLink dto = new StandardParameterLink();
+    dto.setInspectionStandardCode(e.getInspectionStandardCode());
+    dto.setInspectionParameterCode(e.getInspectionParameterCode());
+    return dto;
   }
 
   // === M06.F02/F07 object ↔ report-name ===
