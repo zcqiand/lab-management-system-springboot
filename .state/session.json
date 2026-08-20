@@ -1,43 +1,38 @@
 {
   "schema": 1,
   "project": "lab-management-system-springboot",
-  "current_task": "B12 真后端 OAuth 2.0 + JWT 签发完成（HMAC HS256 + 真调 saas /oauth/authorize + /oauth/token + State cookie + saas refresh）",
+  "current_task": "B7：检测能力 4 主表 list + 4 junction GET + 4 基础数据码表 + ReportName / ParamInterface list 全部统一返 Page<T> 4 字段；设计文档与代码一致",
   "done": [
-    "shared: tsp/routes/auth.tsp SsoCallbackRequest 增 state 字段（RFC 6749 §4.1.4）;npm run build 重生 openapi.yaml;两后端 codegen 同步",
-    "springboot 新增 auth/jwt/LabJwtSigner.java（HMAC HS256 真签发,LAB_JWT_SECRET ≥32B 启动校验）",
-    "springboot 新增 auth/jwt/NimbusLabJwtDecoderFactory.java（替代原 DevJwtDecoder alg=none 直通漏洞）",
-    "springboot 新增 auth/sso/SaasAuthClient.java + SaasMeClient.java + SaasAuthException.java（真调 saas /oauth/authorize + /oauth/token + /me/*）",
-    "springboot 新增 auth/state/StateCookieManager.java（HS256 签 state,HttpOnly Secure Cookie 防 CSRF）",
-    "springboot 新增 config/LabConfig.java + SsoBeansConfig.java（profile 切 noop / real saas 客户端）",
-    "springboot 改 UserDirectory + ConfigUserDirectory：增 findByEmail / findById / upsert;主键从 username 改 email",
-    "springboot 改 AuthService 6 个 ctor 实参：完整 5 端点链路 + saas refresh grant",
-    "springboot 改 SecurityConfig：替换 DevJwtDecoder 为 NimbusJwtDecoder",
-    "springboot 改 AuthController：ssoAuthorize/ssoCallback 4-arg 签名 + Set-Cookie 头",
-    "springboot 改 application.yml LAB_PROFILE 默认 no-sso，新增 4 配置段",
-    "springboot 测试 178/178 PASS（AuthServiceTest 15 + LabJwtSignerTest 5 + SaasAuthClientTest 8 + StateCookieManagerTest 8）",
-    "springboot 改 docs/functions/function-tree.md M01.F05.I02/I03/I04 描述更新(per 改功能与改功能清单必须同一个 commit 硬约束)",
-    "springboot docs/adr/0008-real-backend-oauth-jwt.md ADR 写完",
-    "springboot spotbugs 19 bug 全修:CT_CONSTRUCTOR_THROW 5(fail-fast 设计,类级 @SuppressFBWarnings)+ EI_EXPOSE_REP/REP2 5(DTO read-only + SecretKey immutable,类级 @SuppressFBWarnings + 内部类 DTO 同款)+ REC_CATCH_EXCEPTION 2(改 catch NoSuchAlgorithmException|InvalidKeyException 与 IOException)+ UPM_UNCALLED_PRIVATE_METHOD/UUF_UNUSED_FIELD 7(private static helpers 被 @Override public 方法 static dispatch 调用,SpotBugs 跟踪不到,类级 @SuppressFBWarnings 注释说明)"
+    "InspectionDictionaryController.java:4 主表 list override 签名加 page/pageSize 参数,返 XxxListXxx200Response 包裹(items/page/pageSize/total)",
+    "InspectionDictionaryController.java:加 4 junction GET override (ListSpecialtyObjectLinks / ListObjectParameterLinks / ListObjectStandardLinks / ListStandardParameterLinks)",
+    "InspectionJunctionService.java:加 4 list 方法,stream in-memory filter 走对应 repo 的 findAll()",
+    "InspectionJunctionServiceTest.java:加 6 个 @Fn 用例覆盖 4 list 方法（M06.F02.I09/I10 + M06.F01.I07 + M06.F03.I08 各 1-2 case）",
+    "InspectionCatalogController.java:4 码表 list override 签名加 page/pageSize + pageOf(items, 1, count) 包裹",
+    "InspectionReportNameController.java:reportNamesListReportNames 返 ReportNamesListReportNames200Response",
+    "ParamInterfaceController.java:paramInterfacesListParamInterfaces 返 ParamInterfacesListParamInterfaces200Response",
+    "InspectionDictionaryController.java 用局部 int 变量(避免 spotbugs BX_UNBOXING_IMMEDIATELY_REBOXED)",
+    "design-function-map.md:F01↔F02 顺序 swap(以 function-tree.md SSOT 为准)— specialty-object F02.I05/F02.I06,object-standard F01.I05/F01.I06;M06.F01.I07 (object-standard list) 顺势落 F01",
+    "design-function-map.md:加 4 junction list 行(F02.I09 / F02.I10 / F01.I07 / F03.I08)",
+    "function-tree.md:加 4 行 junction list 新 I-ID(已 --approve)",
+    "function-tree.md:10 个 list GET 描述同步 T[]→Page<T>(已 --approve,base_sha 08503dd01d78fd14)",
+    "springboot 仓 L1 format 自动跳 L5 0 软告警 153 条目全绿"
   ],
   "next": [
-    "git add -A + commit（本仓内未提交所有改动）",
-    "Optional: 切 LAB_PROFILE=default 走真实 saas 联通验证（需 saas-identity-platform-* 端点起）",
-    "Optional: V014 identity 表 workspace + ConfigUserDirectory 改 DB 实现（ADR-0008 T2 长期工单）",
-    "Optional: lab_saas_token_store 表 + per-user encrypt（ADR-0008 T1 长期工单）"
+    "git add -A + commit（src/main/java + src/test + docs/functions + docs/design）",
+    "Optional: 4 基础数据码表(brands/models/specs/grades) 当前 service 不支持 page/pageSize 真分页（数据量小直接全量返）；如未来大表需真分页,改 service.list() 加 page/size 切片",
+    "Optional: catalog tableservice list* 返回的 List<...> 也不分页；同考虑真分页化时一起改"
   ],
   "open_questions": [
-    "saas 端 /oauth/authorize 契约是 POST body（TypeSpec 派生），saas-springboot 真实现是否完全 follow 待确认",
-    "T4 跨仓时序：shared 先发 + 两后端并发,gen-shared.sh 脚本开头 npm run build 校验,未做"
+    "InspectionDictionaryService.listObjects 当前 keyword 用 LIKE %x%(走 LIKE 中缀)；若 keyword 含 SQL wildcard (_ / %) 需转义 — 当前 pre-existing,不在本 batch scope",
+    "M06.F07/F08 junction status (F07.I06-I08 / F08.I06 / F03.I07) 在本 batch 没动 status — 它们已写 已上线(F-级),I-级需要单独走 /tree-change 翻牌 description 吗？预留给后续"
   ],
   "dont": [
-    "不要走 lab-shared SQL 路径：B1 真后端 OAuth 独立于 DB schema（sql/migrations 不变）",
-    "不要换 RSA（ADR-0008 §1 选 HMAC，对称密钥）",
-    "不要给 msw / nextjs 仓做修改（本 PR scope 仅 springboot + aspnetcore）",
-    "不要删除 spotless 自动添加的 .openapi-tmp 目录",
-    "不要把 no-sso profile 改成 default profile 默认值（dev 不启 saas 体验断裂）",
-    "urlencoded body 调 saas /oauth/authorize — 现 body 是 JSON（saas Controller 收 JSON）",
-    "lab refresh token 走 HMAC 自签的不带 saas refresh token 的 `dev-placeholder` 路径应仅在 dev fallback,prod 拒绝"
+    "不要给 SpotBugs 加 @SuppressFBWarnings(unmatchedFp) 等模糊注解,本 batch 全部用 (value=, justification=) 双注解 + 类级 @SuppressFBWarnings + 注释解释(CLAUDE.md §2 严格风格)",
+    "不要让 Service.listMethods 加 page/size 参数后,直接改 service 分页 — controller 加 effectivePage/effectivePageSize 是为了让 wire-format 兼容 OpenAPI Page<T> 4 字段,实际分页留 future",
+    "不要走功能清单:先改代码后补 function-tree.md(CLAUDE.md §2 硬约束 → 已走 /tree-change 提案)",
+    "不要在 Controller 写业务逻辑(CLAUDE.md §2 硬约束)",
+    "不要 catch 后吞掉异常(CLAUDE.md §2 硬约束)",
+    "不要直接修改 docs/functions/function-tree.md → 走 python scripts/tree_change.py -p lab-management-system-springboot --approve 提案(human-in-the-loop)"
   ],
-  "active_branch": "master",
-  "ahead_of_origin": "0"
+  "active_branch": "master"
 }

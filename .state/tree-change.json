@@ -1,72 +1,69 @@
 {
   "schema": 1,
   "approved": true,
-  "base_sha": "7b05cc4",
-  "summary": "B10 M03.F05-F08 报告流程 4 阶段扩 I02-I03 共 8 个 I-级 + F-级状态从「规划」翻「已上线」：审核/批准/发放/归档 4 阶段共享 ReportFlowService.submitAction + SampleReceiptService.get 双端点，按 stage 参数路由视角；function-tree 148 功能条目（138 + 10 新），design-function-map +12 行映射。",
+  "base_sha": "08503dd01d78fd14",
+  "summary": "10 个 list GET 描述同步：从 T[] / Xxx[] 改为 Page<T>（items/page/pageSize/total 4 字段）。B7+ 推进，TypeSpec 已升 Page<T>（contracts/samples/receipts/test-records/flow-queue 5 precedent + M06 4 主表），本批扩到 M04 4 码表 + M06.F07 报告名称 + M06.F08 参数界面。function-tree 描述与 TypeSpec 真源对齐；编号不变。",
   "changes": [
     {
-      "id": "M03.F05.I02",
-      "action": "新增",
-      "name": "报告审核-查看详情",
-      "reason": "B10 推进：M03.F05 报告审核视角下 GET 详情（复用 M03.F01.I02）"
+      "id": "M04.F06.I01",
+      "action": "变更",
+      "name": "型号列表",
+      "reason": "OpenAPI `Page<InspectionModel>`：GET /api/catalog/models?page=&pageSize=&inspectionObjectCode=&keyword=：按 tenant 收口 + 2 过滤"
     },
     {
-      "id": "M03.F05.I03",
-      "action": "新增",
-      "name": "报告审核-通过/退回",
-      "reason": "B10 推进：M03.F05 报告审核视角下 stage action（复用 M03.F06.I01）"
+      "id": "M04.F07.I01",
+      "action": "变更",
+      "name": "规格列表",
+      "reason": "OpenAPI `Page<InspectionSpec>`：GET /api/catalog/specs?page=&pageSize=&inspectionObjectCode=&keyword="
     },
     {
-      "id": "M03.F06.I02",
-      "action": "新增",
-      "name": "报告批准-查看详情",
-      "reason": "B10 推进：M03.F06 报告批准视角下 GET 详情（复用 M03.F01.I02）"
+      "id": "M04.F08.I01",
+      "action": "变更",
+      "name": "等级列表",
+      "reason": "OpenAPI `Page<InspectionGrade>`：GET /api/catalog/grades?page=&pageSize=&inspectionObjectCode=&keyword="
     },
     {
-      "id": "M03.F06.I03",
-      "action": "新增",
-      "name": "报告批准-批准/退回",
-      "reason": "B10 推进：M03.F06 报告批准视角下 stage action（复用 M03.F06.I01）"
+      "id": "M04.F09.I01",
+      "action": "变更",
+      "name": "牌号列表",
+      "reason": "OpenAPI `Page<InspectionBrand>`：GET /api/catalog/brands?page=&pageSize=&inspectionObjectCode=&keyword="
     },
     {
-      "id": "M03.F07.I01",
-      "action": "新增",
-      "name": "报告发放队列",
-      "reason": "B10 推进：M03.F07 报告发放阶段 queue（复用 ReportFlowService）"
+      "id": "M06.F01.I01",
+      "action": "变更",
+      "name": "专项列表",
+      "reason": "OpenAPI `Page<InspectionSpecialty>`：GET /api/inspection/specialties?page=&pageSize=&keyword=：按 code/name 模糊匹配，平台级"
     },
     {
-      "id": "M03.F07.I02",
-      "action": "新增",
-      "name": "报告发放-查看详情",
-      "reason": "B10 推进：M03.F07 报告发放视角下 GET 详情（复用 M03.F01.I02）"
+      "id": "M06.F02.I01",
+      "action": "变更",
+      "name": "项目列表",
+      "reason": "OpenAPI `Page<InspectionObject>`：GET /api/inspection/objects?page=&pageSize=&inspectionSpecialtyCode=&keyword=：按 code/name 模糊 + 专项过滤"
     },
     {
-      "id": "M03.F07.I03",
-      "action": "新增",
-      "name": "报告发放-发放/退回",
-      "reason": "B10 推进：M03.F07 报告发放视角下 stage action（复用 M03.F06.I01）"
+      "id": "M06.F03.I01",
+      "action": "变更",
+      "name": "参数列表",
+      "reason": "OpenAPI `Page<InspectionParameter>`：GET /api/inspection/parameters?page=&pageSize=&keyword=&sourceType=：按 code/name 模糊 + sourceType 过滤"
     },
     {
-      "id": "M03.F08.I01",
-      "action": "新增",
-      "name": "报告归档队列",
-      "reason": "B10 推进：M03.F08 报告归档阶段 queue（复用 ReportFlowService）"
+      "id": "M06.F04.I01",
+      "action": "变更",
+      "name": "标准列表",
+      "reason": "OpenAPI `Page<InspectionStandard>`：GET /api/inspection/standards?page=&pageSize=&keyword=&status=：按 code/name 模糊 + status 过滤"
     },
     {
-      "id": "M03.F08.I02",
-      "action": "新增",
-      "name": "报告归档-查看详情",
-      "reason": "B10 推进：M03.F08 报告归档视角下 GET 详情（复用 M03.F01.I02）"
+      "id": "M06.F07.I01",
+      "action": "变更",
+      "name": "报告名称列表",
+      "reason": "OpenAPI `Page<InspectionReportName>`：GET /api/report-names?page=&pageSize=&keyword=：按 code/name 模糊"
     },
     {
-      "id": "M03.F08.I03",
-      "action": "新增",
-      "name": "报告归档-归档/退回",
-      "reason": "B10 推进：M03.F08 报告归档视角下 stage action（复用 M03.F06.I01）"
+      "id": "M06.F08.I01",
+      "action": "变更",
+      "name": "参数界面列表",
+      "reason": "OpenAPI `Page<ParamInterface>`：GET /api/param-interfaces?page=&pageSize=&keyword=：按 code/name 模糊"
     }
   ],
-  "sync_files": [
-    "docs/design/design-function-map.md",
-    "docs/design/flow-function-map.md"
-  ]
+  "sync_files": []
 }
