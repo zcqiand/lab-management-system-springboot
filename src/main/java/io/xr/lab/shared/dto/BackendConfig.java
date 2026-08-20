@@ -16,7 +16,7 @@ import org.springframework.lang.Nullable;
     description = "4-backend 运行时切换配置。运行时由消费方仓各自实现(React Context / Vue pinia store)")
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-19T17:37:44.319774200+08:00[Asia/Shanghai]",
+    date = "2026-08-20T13:31:51.674991500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public class BackendConfig {
 
