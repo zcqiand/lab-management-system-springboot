@@ -34,3 +34,9 @@ nbdist/
 # SpotBugs / Spotless 中间产物
 .spotbugs/
 spotless-format*
+
+# Claude 临时文件
+.claude/
+.superpowers/
+CLAUDE.md
+.mcp.json
