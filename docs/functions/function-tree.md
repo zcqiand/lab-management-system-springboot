@@ -42,7 +42,7 @@
 | M03 | 试验过程管理 | 接样 → 任务分配 → 数据录入 → 报告审核 → 批准 → 发放 → 归档 | 规划 |
 | M04 | 基础数据 | 型号/规格/等级/牌号维护 | 规划 |
 | M05 | 数据统计 | 报告汇总表（按报告名称） | 规划 |
-| M06 | 检测能力 | 检测专项/项目/参数/标准/计算规则/技术要求/报告名称/参数界面 | 规划 |
+| M06 | 检测能力 | 检测专项/项目/参数/标准/计算方法/技术要求/报告名称/参数界面 | 规划 |
 
 ---
 
@@ -73,7 +73,7 @@
 | M06.F02 | 检测项目 | InspectionObject CRUD + 专项/参数关联 | 接口 | 已上线 |
 | M06.F03 | 检测参数 | InspectionParameter CRUD + 标准/参数关联 | 接口 | 已上线 |
 | M06.F04 | 检测标准 | InspectionStandard CRUD（含状态：active/superseded/draft） | 接口 | 已上线 |
-| M06.F05 | 计算规则 | CalculationRule 维护（复合主键，算法类型 + 公式） | 接口 | 已上线 |
+| M06.F05 | 计算方法 | CalculationMethod 维护（复合主键，算法类型 + 公式） | 接口 | 已上线 |
 | M06.F06 | 技术要求 | TechnicalRequirement 维护，按四维度匹配；brand/model/grade/spec 改为 FK 引用实体 | 接口 | 已上线 |
 | M06.F07 | 报告名称 | InspectionReportName CRUD + extFields 模板 + 关联标准/参数 | 接口 | 已上线 |
 | M06.F08 | 参数界面 | ParamInterface 维护 + 参数↔界面 link | 接口 | 已上线 |
@@ -98,9 +98,9 @@
 | M01.F05.I04 | 刷新 token | POST /api/auth/refresh:lab refresh token 是 HS256 JWT(typ=refresh),内嵌 saas refresh token;调 saas POST /api/v1/oauth/token grantType=refresh_token 续,再签新 lab JWT | 接口 | 已上线 |
 | M01.F05.I05 | 登出 | POST /api/auth/logout：无状态 JWT 服务端无 session，前端清存储 | 接口 | 已上线 |
 
-> Batch B2（码表+规则+技术要求，M04.F06-09 + M06.F05-06，对应 InspectionCatalogApi 16 + CalculationRulesApi 5 + TechnicalRequirementsApi 5 共 26 端点）。
+> Batch B2（码表+规则+技术要求，M04.F06-09 + M06.F05-06，对应 InspectionCatalogApi 16 + CalculationMethodsApi 5 + TechnicalRequirementsApi 5 共 26 端点）。
 > 4 码表结构一致（code+name+inspectionObjectCode+remark+sortOrder+tenantId）；4 表都已加 tenant_id 隔离（V012）；FK 引用关系见 technical_requirements 表 V005。
-> 计算规则平台级（per V012 不加 tenant_id）；技术要求 tenant-scoped。
+> 计算方法平台级（per V012 不加 tenant_id）；技术要求 tenant-scoped。
 
 | 子项 ID | 名称 | 闭环定义 | 类型 | 状态 |
 |---|---|---|---|---|
@@ -120,11 +120,11 @@
 | M04.F09.I02 | 创建牌号 | POST /api/catalog/brands | 接口 | 已上线 |
 | M04.F09.I03 | 更新牌号 | PUT /api/catalog/brands/{code} | 接口 | 已上线 |
 | M04.F09.I04 | 删除牌号 | DELETE /api/catalog/brands/{code} | 接口 | 已上线 |
-| M06.F05.I01 | 计算规则列表 | GET /api/calculation-rules?inspectionObjectCode=&inspectionParameterCode=：平台级（无 tenant 过滤） | 接口 | 已上线 |
-| M06.F05.I02 | 计算规则详情 | GET /api/calculation-rules/{inspectionObjectCode}/{inspectionParameterCode}：复合主键 | 接口 | 已上线 |
-| M06.F05.I03 | 创建计算规则 | POST /api/calculation-rules：body CreateCalculationRuleRequest，algorithmType 默认 MANUAL、specimenCount 默认 1 | 接口 | 已上线 |
-| M06.F05.I04 | 更新计算规则 | PUT /api/calculation-rules/{...}：PATCH 语义 | 接口 | 已上线 |
-| M06.F05.I05 | 删除计算规则 | DELETE /api/calculation-rules/{...}：204 | 接口 | 已上线 |
+| M06.F05.I01 | 计算方法列表 | GET /api/calculation-methods?inspectionObjectCode=&inspectionParameterCode=：平台级（无 tenant 过滤） | 接口 | 已上线 |
+| M06.F05.I02 | 计算方法详情 | GET /api/calculation-methods/{inspectionObjectCode}/{inspectionParameterCode}：复合主键 | 接口 | 已上线 |
+| M06.F05.I03 | 创建计算方法 | POST /api/calculation-methods：body CreateCalculationMethodRequest，algorithmType 默认 MANUAL、specimenCount 默认 1 | 接口 | 已上线 |
+| M06.F05.I04 | 更新计算方法 | PUT /api/calculation-methods/{...}：PATCH 语义 | 接口 | 已上线 |
+| M06.F05.I05 | 删除计算方法 | DELETE /api/calculation-methods/{...}：204 | 接口 | 已上线 |
 | M06.F06.I01 | 技术要求列表 | GET /api/technical-requirements?inspectionObjectCode=&inspectionParameterCode=&judgmentStandardCode=&verificationStatus=：tenant 收口 + 4 过滤 | 接口 | 已上线 |
 | M06.F06.I02 | 技术要求详情 | GET /api/technical-requirements/{object}/{param}/{standard}：复合三键 | 接口 | 已上线 |
 | M06.F06.I03 | 创建技术要求 | POST /api/technical-requirements：tenant 从 token claim 注入；默认值 numeric/≥/manual/draft | 接口 | 已上线 |
@@ -135,7 +135,7 @@
 > 合同是接样 FK 父表（sample_receipts.contract_id → contracts.id ON DELETE RESTRICT）。
 > 接样单自身是 7 阶段状态机（receiving / task_assignment / data_entry / review / approval / issuance / archived）。
 > 3 张 jsonb 列走 @JdbcTypeCode(SqlTypes.JSON)：judgment_basis/testing_basis/test_parameters（标准码数组）+ flow_history（FlowHistoryEntry[]）。
-> 计算规则/技术要求/合同/接样的 8 个 PG enum 全部在 B2+V014 / V015 改为 TEXT + AttributeConverter 写 DTO @JsonValue 同款字符串。
+> 计算方法/技术要求/合同/接样的 8 个 PG enum 全部在 B2+V014 / V015 改为 TEXT + AttributeConverter 写 DTO @JsonValue 同款字符串。
 
 | 子项 ID | 名称 | 闭环定义 | 类型 | 状态 |
 |---|---|---|---|---|

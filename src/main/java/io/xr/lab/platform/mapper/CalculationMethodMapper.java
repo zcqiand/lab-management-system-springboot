@@ -1,18 +1,19 @@
 package io.xr.lab.platform.mapper;
 
-import io.xr.lab.platform.entity.CalculationRuleEntity;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.xr.lab.platform.entity.CalculationMethodEntity;
 import io.xr.lab.shared.dto.CalculationAlgorithmType;
-import io.xr.lab.shared.dto.CalculationRule;
-import io.xr.lab.shared.dto.CreateCalculationRuleRequest;
-import io.xr.lab.shared.dto.UpdateCalculationRuleRequest;
+import io.xr.lab.shared.dto.CalculationMethod;
+import io.xr.lab.shared.dto.CreateCalculationMethodRequest;
+import io.xr.lab.shared.dto.UpdateCalculationMethodRequest;
 
-/** 计算规则（M06.F05）DTO ↔ Entity。 */
-public final class CalculationRuleMapper {
+/** 计算方法（M06.F05）DTO ↔ Entity。 */
+public final class CalculationMethodMapper {
 
-  private CalculationRuleMapper() {}
+  private CalculationMethodMapper() {}
 
-  public static CalculationRule toDto(CalculationRuleEntity e) {
-    return new CalculationRule()
+  public static CalculationMethod toDto(CalculationMethodEntity e) {
+    return new CalculationMethod()
         .inspectionObjectCode(e.getInspectionObjectCode())
         .inspectionParameterCode(e.getInspectionParameterCode())
         .testingStandardCode(e.getTestingStandardCode())
@@ -28,14 +29,19 @@ public final class CalculationRuleMapper {
         .updatedAt(e.getUpdatedAt());
   }
 
-  public static CalculationRuleEntity fromCreate(CreateCalculationRuleRequest req, String now) {
+  @SuppressFBWarnings(
+      value = "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE",
+      justification =
+          "CreateCalculationMethodRequest 的两个 getter 已被 @NonNull 标，"
+              + "SpotBugs 看不到 lombok 生成代码所以误报。nullcheck 是防御性编程。")
+  public static CalculationMethodEntity fromCreate(CreateCalculationMethodRequest req, String now) {
     String obj = req.getInspectionObjectCode();
     String param = req.getInspectionParameterCode();
     if (obj == null || param == null) {
       throw new IllegalArgumentException(
           "inspectionObjectCode and inspectionParameterCode are required");
     }
-    CalculationRuleEntity e = new CalculationRuleEntity();
+    CalculationMethodEntity e = new CalculationMethodEntity();
     e.setInspectionObjectCode(obj);
     e.setInspectionParameterCode(param);
     String standard = req.getTestingStandardCode();
@@ -58,7 +64,7 @@ public final class CalculationRuleMapper {
   }
 
   public static void applyUpdate(
-      CalculationRuleEntity e, UpdateCalculationRuleRequest req, String now) {
+      CalculationMethodEntity e, UpdateCalculationMethodRequest req, String now) {
     if (req.getTestingStandardCode() != null) {
       e.setTestingStandardCode(req.getTestingStandardCode());
     }

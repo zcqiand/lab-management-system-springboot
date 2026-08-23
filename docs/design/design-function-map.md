@@ -33,11 +33,11 @@
 | M04.F09.I02 | InspectionCatalogController#catalogCreateBrand / CatalogService#createBrand | POST /api/catalog/brands | inspection_brands | M04.F09.I02 | - | 已上线 |
 | M04.F09.I03 | InspectionCatalogController#catalogUpdateBrand / CatalogService#updateBrand | PUT /api/catalog/brands/{code} | inspection_brands | M04.F09.I03 | - | 已上线 |
 | M04.F09.I04 | InspectionCatalogController#catalogDeleteBrand / CatalogService#deleteBrand | DELETE /api/catalog/brands/{code} | inspection_brands | M04.F09.I04 | - | 已上线 |
-| M06.F05.I01 | CalculationRuleController#calculationRulesListCalculationRules / CalculationRuleService#list | GET /api/calculation-rules | inspection_calculation_rules（V009，平台级无 tenant_id） | M06.F05.I01 | - | 已上线 |
-| M06.F05.I02 | CalculationRuleController#calculationRulesGetCalculationRule / CalculationRuleService#get | GET /api/calculation-rules/{object}/{parameter} | inspection_calculation_rules | M06.F05.I02 | - | 已上线 |
-| M06.F05.I03 | CalculationRuleController#calculationRulesCreateCalculationRule / CalculationRuleService#create | POST /api/calculation-rules | inspection_calculation_rules | M06.F05.I03 | - | 已上线 |
-| M06.F05.I04 | CalculationRuleController#calculationRulesUpdateCalculationRule / CalculationRuleService#update | PUT /api/calculation-rules/{object}/{parameter} | inspection_calculation_rules | M06.F05.I04 | - | 已上线 |
-| M06.F05.I05 | CalculationRuleController#calculationRulesDeleteCalculationRule / CalculationRuleService#delete | DELETE /api/calculation-rules/{object}/{parameter} | inspection_calculation_rules | M06.F05.I05 | - | 已上线 |
+| M06.F05.I01 | CalculationMethodController#calculationMethodsListCalculationMethods / CalculationMethodService#list | GET /api/calculation-methods | inspection_calculation_methods（V009，平台级无 tenant_id） | M06.F05.I01 | - | 已上线 |
+| M06.F05.I02 | CalculationMethodController#calculationMethodsGetCalculationMethod / CalculationMethodService#get | GET /api/calculation-methods/{object}/{parameter} | inspection_calculation_methods | M06.F05.I02 | - | 已上线 |
+| M06.F05.I03 | CalculationMethodController#calculationMethodsCreateCalculationMethod / CalculationMethodService#create | POST /api/calculation-methods | inspection_calculation_methods | M06.F05.I03 | - | 已上线 |
+| M06.F05.I04 | CalculationMethodController#calculationMethodsUpdateCalculationMethod / CalculationMethodService#update | PUT /api/calculation-methods/{object}/{parameter} | inspection_calculation_methods | M06.F05.I04 | - | 已上线 |
+| M06.F05.I05 | CalculationMethodController#calculationMethodsDeleteCalculationMethod / CalculationMethodService#delete | DELETE /api/calculation-methods/{object}/{parameter} | inspection_calculation_methods | M06.F05.I05 | - | 已上线 |
 | M06.F06.I01 | TechnicalRequirementController#technicalRequirementsListTechnicalRequirements / TechnicalRequirementService#list | GET /api/technical-requirements | inspection_technical_requirements（V005，V012 加 tenant_id） | M06.F06.I01 | - | 已上线 |
 | M06.F06.I02 | TechnicalRequirementController#technicalRequirementsGetTechnicalRequirement / TechnicalRequirementService#get | GET /api/technical-requirements/{object}/{parameter}/{standard} | inspection_technical_requirements | M06.F06.I02 | - | 已上线 |
 | M06.F06.I03 | TechnicalRequirementController#technicalRequirementsCreateTechnicalRequirement / TechnicalRequirementService#create | POST /api/technical-requirements | inspection_technical_requirements | M06.F06.I03 | - | 已上线 |
@@ -185,7 +185,7 @@
 > `io.xr.lab.platform.directory.ConfigUserDirectory`（配置式，镜像 lab-msw seeds）。
 > 「数据表」列的 `-（配置式目录）` 即指此处；V014 identity 表落地后回填。
 
-> B2 说明：码表 4 表 + 计算规则 + 技术要求共 6 表都已在 shared 仓 sql/migrations V004/V005/V009 + V012 落地，本仓直接读 Flyway baseline。PK 设计：码表 4 表 = (tenant_id, code) 复合主键（V012 约束对齐）；计算规则 = (object, parameter) 复合主键；技术要求 PK = 业务三键 (object, parameter, standard)，tenant_id 走 WHERE 过滤。
+> B2 说明：码表 4 表 + 计算方法 + 技术要求共 6 表都已在 shared 仓 sql/migrations V004/V005/V009 + V012 落地，本仓直接读 Flyway baseline。PK 设计：码表 4 表 = (tenant_id, code) 复合主键（V012 约束对齐）；计算方法 = (object, parameter) 复合主键；技术要求 PK = 业务三键 (object, parameter, standard)，tenant_id 走 WHERE 过滤。
 
 > B3 说明：合同 V001（PK = id text）+ V012 加 tenant_id；接样单 V002 PK = id text、FK 到 contracts（RESTRICT）+ samples（CASCADE）+ 3 个 jsonb 列（judgment_basis/testing_basis/test_parameters/FlowHistoryEntry[]）走 @JdbcTypeCode(SqlTypes.JSON) 映射；8 个 PG enum（contract_status/flow_status/receipt_result/calculation_algorithm_type/4 requirement_*）经 V014+V015 改为 TEXT + AttributeConverter。
 

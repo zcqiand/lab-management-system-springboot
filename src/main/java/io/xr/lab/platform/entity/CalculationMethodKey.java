@@ -3,8 +3,8 @@ package io.xr.lab.platform.entity;
 import java.io.Serializable;
 import java.util.Objects;
 
-/** inspection_calculation_rules 复合主键：object + parameter（V009）。平台级（无 tenant_id）。 */
-public class CalculationRuleKey implements Serializable {
+/** inspection_calculation_methods 复合主键：object + parameter（V009）。平台级（无 tenant_id）。 */
+public class CalculationMethodKey implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
@@ -12,9 +12,9 @@ public class CalculationRuleKey implements Serializable {
 
   private String inspectionParameterCode;
 
-  public CalculationRuleKey() {}
+  public CalculationMethodKey() {}
 
-  public CalculationRuleKey(String inspectionObjectCode, String inspectionParameterCode) {
+  public CalculationMethodKey(String inspectionObjectCode, String inspectionParameterCode) {
     this.inspectionObjectCode = inspectionObjectCode;
     this.inspectionParameterCode = inspectionParameterCode;
   }
@@ -40,7 +40,7 @@ public class CalculationRuleKey implements Serializable {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof CalculationRuleKey that)) {
+    if (!(o instanceof CalculationMethodKey that)) {
       return false;
     }
     return Objects.equals(inspectionObjectCode, that.inspectionObjectCode)

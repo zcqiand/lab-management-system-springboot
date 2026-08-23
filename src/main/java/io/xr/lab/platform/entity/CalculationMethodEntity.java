@@ -10,13 +10,13 @@ import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 
 /**
- * V009__init_report_names.sql — 计算规则（M06.F05）。平台级字典（无 tenant_id）。PK = (inspection_object_code,
+ * V009__init_report_names.sql — 计算方法（M06.F05）。平台级字典（无 tenant_id）。PK = (inspection_object_code,
  * inspection_parameter_code)。
  */
 @Entity
-@Table(name = "inspection_calculation_rules")
-@IdClass(CalculationRuleKey.class)
-public class CalculationRuleEntity {
+@Table(name = "inspection_calculation_methods")
+@IdClass(CalculationMethodKey.class)
+public class CalculationMethodEntity {
 
   @Id
   @Column(name = "inspection_object_code", length = 64, nullable = false)

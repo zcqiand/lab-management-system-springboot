@@ -9,13 +9,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.xr.harness.junit.Fn;
-import io.xr.lab.platform.entity.CalculationRuleEntity;
-import io.xr.lab.platform.entity.CalculationRuleKey;
-import io.xr.lab.platform.repository.CalculationRuleRepository;
+import io.xr.lab.platform.entity.CalculationMethodEntity;
+import io.xr.lab.platform.entity.CalculationMethodKey;
+import io.xr.lab.platform.repository.CalculationMethodRepository;
 import io.xr.lab.shared.dto.CalculationAlgorithmType;
-import io.xr.lab.shared.dto.CalculationRule;
-import io.xr.lab.shared.dto.CreateCalculationRuleRequest;
-import io.xr.lab.shared.dto.UpdateCalculationRuleRequest;
+import io.xr.lab.shared.dto.CalculationMethod;
+import io.xr.lab.shared.dto.CreateCalculationMethodRequest;
+import io.xr.lab.shared.dto.UpdateCalculationMethodRequest;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -24,19 +24,19 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 /**
- * M06.F05 计算规则 5 子项。{@link CalculationRuleService} 平台级（无 tenant 注入）。
+ * M06.F05 计算方法 5 子项。{@link CalculationMethodService} 平台级（无 tenant 注入）。
  *
- * <p>镜像 lab-msw handlers-extra.ts calculationRules 处理器语义（list/get/create/update/delete 1:1）。
+ * <p>镜像 lab-msw handlers-extra.ts calculationMethods 处理器语义（list/get/create/update/delete 1:1）。
  */
-class CalculationRuleServiceTest {
+class CalculationMethodServiceTest {
 
-  private CalculationRuleRepository repo;
-  private CalculationRuleService service;
+  private CalculationMethodRepository repo;
+  private CalculationMethodService service;
 
   @BeforeEach
   void setUp() {
-    repo = org.mockito.Mockito.mock(CalculationRuleRepository.class);
-    service = new CalculationRuleService(repo);
+    repo = org.mockito.Mockito.mock(CalculationMethodRepository.class);
+    service = new CalculationMethodService(repo);
   }
 
   // M06.F05.I01 list
@@ -47,7 +47,7 @@ class CalculationRuleServiceTest {
     when(repo.filter(null, null))
         .thenReturn(
             List.of(entity("OBJ-1", "IP-1"), entity("OBJ-1", "IP-2"), entity("OBJ-2", "IP-3")));
-    List<CalculationRule> out = service.list(null, null);
+    List<CalculationMethod> out = service.list(null, null);
     assertEquals(3, out.size());
   }
 
@@ -63,9 +63,9 @@ class CalculationRuleServiceTest {
   @Test
   @Fn({"M06.F05.I02"})
   void get_returnsByCompositeKey() {
-    CalculationRuleEntity e = entity("OBJ-1", "IP-1");
-    when(repo.findById(new CalculationRuleKey("OBJ-1", "IP-1"))).thenReturn(Optional.of(e));
-    CalculationRule out = service.get("OBJ-1", "IP-1");
+    CalculationMethodEntity e = entity("OBJ-1", "IP-1");
+    when(repo.findById(new CalculationMethodKey("OBJ-1", "IP-1"))).thenReturn(Optional.of(e));
+    CalculationMethod out = service.get("OBJ-1", "IP-1");
     assertEquals("OBJ-1", out.getInspectionObjectCode());
     assertEquals("IP-1", out.getInspectionParameterCode());
   }
@@ -82,13 +82,13 @@ class CalculationRuleServiceTest {
   @Test
   @Fn({"M06.F05.I03"})
   void create_setsDefaultsAndStampsTimestamps() {
-    CreateCalculationRuleRequest req = new CreateCalculationRuleRequest("OBJ-1", "IP-1");
+    CreateCalculationMethodRequest req = new CreateCalculationMethodRequest("OBJ-1", "IP-1");
     when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
-    CalculationRule out = service.create(req);
-    ArgumentCaptor<CalculationRuleEntity> captor =
-        ArgumentCaptor.forClass(CalculationRuleEntity.class);
+    CalculationMethod out = service.create(req);
+    ArgumentCaptor<CalculationMethodEntity> captor =
+        ArgumentCaptor.forClass(CalculationMethodEntity.class);
     verify(repo).save(captor.capture());
-    CalculationRuleEntity saved = captor.getValue();
+    CalculationMethodEntity saved = captor.getValue();
     assertEquals(CalculationAlgorithmType.MANUAL, saved.getAlgorithmType());
     assertEquals(1, saved.getSpecimenCount());
     assertEquals(0, saved.getSortOrder());
@@ -101,14 +101,15 @@ class CalculationRuleServiceTest {
   @Test
   @Fn({"M06.F05.I04"})
   void update_appliesProvidedFieldsOnly() {
-    CalculationRuleEntity existing = entity("OBJ-1", "IP-1");
-    when(repo.findById(new CalculationRuleKey("OBJ-1", "IP-1"))).thenReturn(Optional.of(existing));
+    CalculationMethodEntity existing = entity("OBJ-1", "IP-1");
+    when(repo.findById(new CalculationMethodKey("OBJ-1", "IP-1")))
+        .thenReturn(Optional.of(existing));
     when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
-    CalculationRule out =
+    CalculationMethod out =
         service.update(
             "OBJ-1",
             "IP-1",
-            new UpdateCalculationRuleRequest()
+            new UpdateCalculationMethodRequest()
                 .algorithmType(CalculationAlgorithmType.SIMPLE_AVG)
                 .specimenCount(5));
     assertEquals(CalculationAlgorithmType.SIMPLE_AVG, out.getAlgorithmType());
@@ -122,9 +123,9 @@ class CalculationRuleServiceTest {
   @Test
   @Fn({"M06.F05.I05"})
   void delete_existing_succeeds() {
-    when(repo.existsById(new CalculationRuleKey("OBJ-1", "IP-1"))).thenReturn(true);
+    when(repo.existsById(new CalculationMethodKey("OBJ-1", "IP-1"))).thenReturn(true);
     service.delete("OBJ-1", "IP-1");
-    verify(repo, times(1)).deleteById(new CalculationRuleKey("OBJ-1", "IP-1"));
+    verify(repo, times(1)).deleteById(new CalculationMethodKey("OBJ-1", "IP-1"));
   }
 
   @Test
@@ -135,8 +136,8 @@ class CalculationRuleServiceTest {
     verify(repo, never()).deleteById(any());
   }
 
-  private static CalculationRuleEntity entity(String obj, String param) {
-    CalculationRuleEntity e = new CalculationRuleEntity();
+  private static CalculationMethodEntity entity(String obj, String param) {
+    CalculationMethodEntity e = new CalculationMethodEntity();
     e.setInspectionObjectCode(obj);
     e.setInspectionParameterCode(param);
     e.setAlgorithmType(CalculationAlgorithmType.SIMPLE_AVG);

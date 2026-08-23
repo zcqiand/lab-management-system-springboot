@@ -30,7 +30,7 @@ flowchart TD
 3. 状态流转列里的状态名，和代码里的枚举一致吗？→ 不一致就是两套真相
 4. 退回路径都画了吗？→ 只画正向流程，会漏掉一半功能
 
-## FLOW-02 字典维护（B2：M04 基础数据 + M06 计算规则/技术要求）
+## FLOW-02 字典维护（B2：M04 基础数据 + M06 计算方法/技术要求）
 
 > 「字典维护」是 M04/M06 子模块的批量录入/查询/编辑流程；
 > 真实业务系统的试验流程（M03 业务链路）尚未落地，本批次只登记数据维护闭环。
@@ -48,7 +48,7 @@ flowchart LR
 |---|---|---|---|---|---|---|
 | S01 | 列出码表 | 配置员 | 4 过滤（object / keyword） | Model/Spec/Grade/Brand[] | — | M04.F06.I01, M04.F07.I01, M04.F08.I01, M04.F09.I01 |
 | S02 | 创建条目 | 配置员 | 表单（code / name + 可选 object / remark / sortOrder） | 新增行 | — | M04.F06.I02, M04.F07.I02, M04.F08.I02, M04.F09.I02 |
-| S03 | 查询条目 | 配置员 | 4 过滤（object / parameter / standard / status） | CalculationRule[] / TechnicalRequirement[] | — | M06.F05.I01, M06.F06.I01 |
+| S03 | 查询条目 | 配置员 | 4 过滤（object / parameter / standard / status） | CalculationMethod[] / TechnicalRequirement[] | — | M06.F05.I01, M06.F06.I01 |
 | S04 | 编辑条目 | 配置员 | PATCH 表单 | 更新后行 | — | M04.F06.I03, M04.F07.I03, M04.F08.I03, M04.F09.I03, M06.F05.I04, M06.F06.I04 |
 | S05 | 删除条目 | 配置员 | code | 204 | — | M04.F06.I04, M04.F07.I04, M04.F08.I04, M04.F09.I04, M06.F05.I05, M06.F06.I05 |
 

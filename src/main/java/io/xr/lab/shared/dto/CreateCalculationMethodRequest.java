@@ -10,12 +10,16 @@ import java.util.*;
 import java.util.Objects;
 import org.springframework.lang.Nullable;
 
-/** UpdateCalculationRuleRequest */
+/** CreateCalculationMethodRequest */
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
     date = "2026-08-20T13:31:51.674991500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
-public class UpdateCalculationRuleRequest {
+public class CreateCalculationMethodRequest {
+
+  private String inspectionObjectCode;
+
+  private String inspectionParameterCode;
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private @Nullable String testingStandardCode;
@@ -44,7 +48,62 @@ public class UpdateCalculationRuleRequest {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private @Nullable Integer sortOrder;
 
-  public UpdateCalculationRuleRequest testingStandardCode(@Nullable String testingStandardCode) {
+  public CreateCalculationMethodRequest() {
+    super();
+  }
+
+  /** Constructor with only required parameters */
+  public CreateCalculationMethodRequest(
+      String inspectionObjectCode, String inspectionParameterCode) {
+    this.inspectionObjectCode = inspectionObjectCode;
+    this.inspectionParameterCode = inspectionParameterCode;
+  }
+
+  public CreateCalculationMethodRequest inspectionObjectCode(String inspectionObjectCode) {
+    this.inspectionObjectCode = inspectionObjectCode;
+    return this;
+  }
+
+  /**
+   * Get inspectionObjectCode
+   *
+   * @return inspectionObjectCode
+   */
+  @NotNull
+  @Schema(name = "inspectionObjectCode", requiredMode = Schema.RequiredMode.REQUIRED)
+  @JsonProperty("inspectionObjectCode")
+  public String getInspectionObjectCode() {
+    return inspectionObjectCode;
+  }
+
+  @JsonProperty("inspectionObjectCode")
+  public void setInspectionObjectCode(String inspectionObjectCode) {
+    this.inspectionObjectCode = inspectionObjectCode;
+  }
+
+  public CreateCalculationMethodRequest inspectionParameterCode(String inspectionParameterCode) {
+    this.inspectionParameterCode = inspectionParameterCode;
+    return this;
+  }
+
+  /**
+   * Get inspectionParameterCode
+   *
+   * @return inspectionParameterCode
+   */
+  @NotNull
+  @Schema(name = "inspectionParameterCode", requiredMode = Schema.RequiredMode.REQUIRED)
+  @JsonProperty("inspectionParameterCode")
+  public String getInspectionParameterCode() {
+    return inspectionParameterCode;
+  }
+
+  @JsonProperty("inspectionParameterCode")
+  public void setInspectionParameterCode(String inspectionParameterCode) {
+    this.inspectionParameterCode = inspectionParameterCode;
+  }
+
+  public CreateCalculationMethodRequest testingStandardCode(@Nullable String testingStandardCode) {
     this.testingStandardCode = testingStandardCode;
     return this;
   }
@@ -65,7 +124,7 @@ public class UpdateCalculationRuleRequest {
     this.testingStandardCode = testingStandardCode;
   }
 
-  public UpdateCalculationRuleRequest reportNameCode(@Nullable String reportNameCode) {
+  public CreateCalculationMethodRequest reportNameCode(@Nullable String reportNameCode) {
     this.reportNameCode = reportNameCode;
     return this;
   }
@@ -86,7 +145,7 @@ public class UpdateCalculationRuleRequest {
     this.reportNameCode = reportNameCode;
   }
 
-  public UpdateCalculationRuleRequest algorithmType(
+  public CreateCalculationMethodRequest algorithmType(
       @Nullable CalculationAlgorithmType algorithmType) {
     this.algorithmType = algorithmType;
     return this;
@@ -109,7 +168,7 @@ public class UpdateCalculationRuleRequest {
     this.algorithmType = algorithmType;
   }
 
-  public UpdateCalculationRuleRequest specimenCount(@Nullable Integer specimenCount) {
+  public CreateCalculationMethodRequest specimenCount(@Nullable Integer specimenCount) {
     this.specimenCount = specimenCount;
     return this;
   }
@@ -130,7 +189,7 @@ public class UpdateCalculationRuleRequest {
     this.specimenCount = specimenCount;
   }
 
-  public UpdateCalculationRuleRequest formula(@Nullable String formula) {
+  public CreateCalculationMethodRequest formula(@Nullable String formula) {
     this.formula = formula;
     return this;
   }
@@ -151,7 +210,7 @@ public class UpdateCalculationRuleRequest {
     this.formula = formula;
   }
 
-  public UpdateCalculationRuleRequest conditions(@Nullable String conditions) {
+  public CreateCalculationMethodRequest conditions(@Nullable String conditions) {
     this.conditions = conditions;
     return this;
   }
@@ -172,7 +231,7 @@ public class UpdateCalculationRuleRequest {
     this.conditions = conditions;
   }
 
-  public UpdateCalculationRuleRequest roundingRule(@Nullable String roundingRule) {
+  public CreateCalculationMethodRequest roundingRule(@Nullable String roundingRule) {
     this.roundingRule = roundingRule;
     return this;
   }
@@ -193,7 +252,7 @@ public class UpdateCalculationRuleRequest {
     this.roundingRule = roundingRule;
   }
 
-  public UpdateCalculationRuleRequest remark(@Nullable String remark) {
+  public CreateCalculationMethodRequest remark(@Nullable String remark) {
     this.remark = remark;
     return this;
   }
@@ -214,7 +273,7 @@ public class UpdateCalculationRuleRequest {
     this.remark = remark;
   }
 
-  public UpdateCalculationRuleRequest sortOrder(@Nullable Integer sortOrder) {
+  public CreateCalculationMethodRequest sortOrder(@Nullable Integer sortOrder) {
     this.sortOrder = sortOrder;
     return this;
   }
@@ -243,22 +302,29 @@ public class UpdateCalculationRuleRequest {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    UpdateCalculationRuleRequest updateCalculationRuleRequest = (UpdateCalculationRuleRequest) o;
+    CreateCalculationMethodRequest createCalculationMethodRequest =
+        (CreateCalculationMethodRequest) o;
     return Objects.equals(
-            this.testingStandardCode, updateCalculationRuleRequest.testingStandardCode)
-        && Objects.equals(this.reportNameCode, updateCalculationRuleRequest.reportNameCode)
-        && Objects.equals(this.algorithmType, updateCalculationRuleRequest.algorithmType)
-        && Objects.equals(this.specimenCount, updateCalculationRuleRequest.specimenCount)
-        && Objects.equals(this.formula, updateCalculationRuleRequest.formula)
-        && Objects.equals(this.conditions, updateCalculationRuleRequest.conditions)
-        && Objects.equals(this.roundingRule, updateCalculationRuleRequest.roundingRule)
-        && Objects.equals(this.remark, updateCalculationRuleRequest.remark)
-        && Objects.equals(this.sortOrder, updateCalculationRuleRequest.sortOrder);
+            this.inspectionObjectCode, createCalculationMethodRequest.inspectionObjectCode)
+        && Objects.equals(
+            this.inspectionParameterCode, createCalculationMethodRequest.inspectionParameterCode)
+        && Objects.equals(
+            this.testingStandardCode, createCalculationMethodRequest.testingStandardCode)
+        && Objects.equals(this.reportNameCode, createCalculationMethodRequest.reportNameCode)
+        && Objects.equals(this.algorithmType, createCalculationMethodRequest.algorithmType)
+        && Objects.equals(this.specimenCount, createCalculationMethodRequest.specimenCount)
+        && Objects.equals(this.formula, createCalculationMethodRequest.formula)
+        && Objects.equals(this.conditions, createCalculationMethodRequest.conditions)
+        && Objects.equals(this.roundingRule, createCalculationMethodRequest.roundingRule)
+        && Objects.equals(this.remark, createCalculationMethodRequest.remark)
+        && Objects.equals(this.sortOrder, createCalculationMethodRequest.sortOrder);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(
+        inspectionObjectCode,
+        inspectionParameterCode,
         testingStandardCode,
         reportNameCode,
         algorithmType,
@@ -273,7 +339,13 @@ public class UpdateCalculationRuleRequest {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("class UpdateCalculationRuleRequest {\n");
+    sb.append("class CreateCalculationMethodRequest {\n");
+    sb.append("    inspectionObjectCode: ")
+        .append(toIndentedString(inspectionObjectCode))
+        .append("\n");
+    sb.append("    inspectionParameterCode: ")
+        .append(toIndentedString(inspectionParameterCode))
+        .append("\n");
     sb.append("    testingStandardCode: ")
         .append(toIndentedString(testingStandardCode))
         .append("\n");

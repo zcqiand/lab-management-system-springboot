@@ -13,10 +13,10 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.xr.lab.shared.dto.CalculationRule;
-import io.xr.lab.shared.dto.CreateCalculationRuleRequest;
+import io.xr.lab.shared.dto.CalculationMethod;
+import io.xr.lab.shared.dto.CreateCalculationMethodRequest;
 import io.xr.lab.shared.dto.ErrorResponse;
-import io.xr.lab.shared.dto.UpdateCalculationRuleRequest;
+import io.xr.lab.shared.dto.UpdateCalculationMethodRequest;
 import jakarta.annotation.Generated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -31,21 +31,21 @@ import org.springframework.web.bind.annotation.*;
     date = "2026-08-20T13:31:51.674991500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 @Validated
-@Tag(name = "calculation-rules", description = "the calculation-rules API")
-public interface CalculationRulesApi {
+@Tag(name = "calculation-methods", description = "the calculation-methods API")
+public interface CalculationMethodsApi {
 
-  String PATH_CALCULATION_RULES_CREATE_CALCULATION_RULE = "/api/calculation-rules";
+  String PATH_CALCULATION_RULES_CREATE_CALCULATION_RULE = "/api/calculation-methods";
 
   /**
-   * POST /api/calculation-rules
+   * POST /api/calculation-methods
    *
-   * @param createCalculationRuleRequest (required)
+   * @param createCalculationMethodRequest (required)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
    */
   @Operation(
-      operationId = "calculationRulesCreateCalculationRule",
-      tags = {"calculation-rules"},
+      operationId = "calculationMethodsCreateCalculationMethod",
+      tags = {"calculation-methods"},
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -53,7 +53,7 @@ public interface CalculationRulesApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = CalculationRule.class))
+                  schema = @Schema(implementation = CalculationMethod.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -66,20 +66,20 @@ public interface CalculationRulesApi {
       })
   @RequestMapping(
       method = RequestMethod.POST,
-      value = CalculationRulesApi.PATH_CALCULATION_RULES_CREATE_CALCULATION_RULE,
+      value = CalculationMethodsApi.PATH_CALCULATION_RULES_CREATE_CALCULATION_RULE,
       produces = {"application/json"},
       consumes = {"application/json"})
-  ResponseEntity<CalculationRule> calculationRulesCreateCalculationRule(
-      @Parameter(name = "CreateCalculationRuleRequest", description = "", required = true)
+  ResponseEntity<CalculationMethod> calculationMethodsCreateCalculationMethod(
+      @Parameter(name = "CreateCalculationMethodRequest", description = "", required = true)
           @Valid
           @RequestBody
-          CreateCalculationRuleRequest createCalculationRuleRequest);
+          CreateCalculationMethodRequest createCalculationMethodRequest);
 
   String PATH_CALCULATION_RULES_DELETE_CALCULATION_RULE =
-      "/api/calculation-rules/{inspectionObjectCode}/{inspectionParameterCode}";
+      "/api/calculation-methods/{inspectionObjectCode}/{inspectionParameterCode}";
 
   /**
-   * DELETE /api/calculation-rules/{inspectionObjectCode}/{inspectionParameterCode}
+   * DELETE /api/calculation-methods/{inspectionObjectCode}/{inspectionParameterCode}
    *
    * @param inspectionObjectCode (required)
    * @param inspectionParameterCode (required)
@@ -87,8 +87,8 @@ public interface CalculationRulesApi {
    *     code 204) or An unexpected error response. (status code 200)
    */
   @Operation(
-      operationId = "calculationRulesDeleteCalculationRule",
-      tags = {"calculation-rules"},
+      operationId = "calculationMethodsDeleteCalculationMethod",
+      tags = {"calculation-methods"},
       responses = {
         @ApiResponse(
             responseCode = "204",
@@ -105,9 +105,9 @@ public interface CalculationRulesApi {
       })
   @RequestMapping(
       method = RequestMethod.DELETE,
-      value = CalculationRulesApi.PATH_CALCULATION_RULES_DELETE_CALCULATION_RULE,
+      value = CalculationMethodsApi.PATH_CALCULATION_RULES_DELETE_CALCULATION_RULE,
       produces = {"application/json"})
-  ResponseEntity<Void> calculationRulesDeleteCalculationRule(
+  ResponseEntity<Void> calculationMethodsDeleteCalculationMethod(
       @Parameter(
               name = "inspectionObjectCode",
               description = "",
@@ -124,10 +124,10 @@ public interface CalculationRulesApi {
           String inspectionParameterCode);
 
   String PATH_CALCULATION_RULES_GET_CALCULATION_RULE =
-      "/api/calculation-rules/{inspectionObjectCode}/{inspectionParameterCode}";
+      "/api/calculation-methods/{inspectionObjectCode}/{inspectionParameterCode}";
 
   /**
-   * GET /api/calculation-rules/{inspectionObjectCode}/{inspectionParameterCode}
+   * GET /api/calculation-methods/{inspectionObjectCode}/{inspectionParameterCode}
    *
    * @param inspectionObjectCode (required)
    * @param inspectionParameterCode (required)
@@ -135,8 +135,8 @@ public interface CalculationRulesApi {
    *     code 200)
    */
   @Operation(
-      operationId = "calculationRulesGetCalculationRule",
-      tags = {"calculation-rules"},
+      operationId = "calculationMethodsGetCalculationMethod",
+      tags = {"calculation-methods"},
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -144,7 +144,7 @@ public interface CalculationRulesApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = CalculationRule.class))
+                  schema = @Schema(implementation = CalculationMethod.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -157,9 +157,9 @@ public interface CalculationRulesApi {
       })
   @RequestMapping(
       method = RequestMethod.GET,
-      value = CalculationRulesApi.PATH_CALCULATION_RULES_GET_CALCULATION_RULE,
+      value = CalculationMethodsApi.PATH_CALCULATION_RULES_GET_CALCULATION_RULE,
       produces = {"application/json"})
-  ResponseEntity<CalculationRule> calculationRulesGetCalculationRule(
+  ResponseEntity<CalculationMethod> calculationMethodsGetCalculationMethod(
       @Parameter(
               name = "inspectionObjectCode",
               description = "",
@@ -175,10 +175,10 @@ public interface CalculationRulesApi {
           @PathVariable("inspectionParameterCode")
           String inspectionParameterCode);
 
-  String PATH_CALCULATION_RULES_LIST_CALCULATION_RULES = "/api/calculation-rules";
+  String PATH_CALCULATION_RULES_LIST_CALCULATION_RULES = "/api/calculation-methods";
 
   /**
-   * GET /api/calculation-rules
+   * GET /api/calculation-methods
    *
    * @param inspectionObjectCode (optional)
    * @param inspectionParameterCode (optional)
@@ -186,8 +186,8 @@ public interface CalculationRulesApi {
    *     code 200)
    */
   @Operation(
-      operationId = "calculationRulesListCalculationRules",
-      tags = {"calculation-rules"},
+      operationId = "calculationMethodsListCalculationMethods",
+      tags = {"calculation-methods"},
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -195,7 +195,7 @@ public interface CalculationRulesApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = CalculationRule.class)))
+                  array = @ArraySchema(schema = @Schema(implementation = CalculationMethod.class)))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -208,9 +208,9 @@ public interface CalculationRulesApi {
       })
   @RequestMapping(
       method = RequestMethod.GET,
-      value = CalculationRulesApi.PATH_CALCULATION_RULES_LIST_CALCULATION_RULES,
+      value = CalculationMethodsApi.PATH_CALCULATION_RULES_LIST_CALCULATION_RULES,
       produces = {"application/json"})
-  ResponseEntity<List<CalculationRule>> calculationRulesListCalculationRules(
+  ResponseEntity<List<CalculationMethod>> calculationMethodsListCalculationMethods(
       @Parameter(name = "inspectionObjectCode", description = "", in = ParameterIn.QUERY)
           @Valid
           @RequestParam(value = "inspectionObjectCode", required = false)
@@ -223,20 +223,20 @@ public interface CalculationRulesApi {
           String inspectionParameterCode);
 
   String PATH_CALCULATION_RULES_UPDATE_CALCULATION_RULE =
-      "/api/calculation-rules/{inspectionObjectCode}/{inspectionParameterCode}";
+      "/api/calculation-methods/{inspectionObjectCode}/{inspectionParameterCode}";
 
   /**
-   * PUT /api/calculation-rules/{inspectionObjectCode}/{inspectionParameterCode}
+   * PUT /api/calculation-methods/{inspectionObjectCode}/{inspectionParameterCode}
    *
    * @param inspectionObjectCode (required)
    * @param inspectionParameterCode (required)
-   * @param updateCalculationRuleRequest (required)
+   * @param updateCalculationMethodRequest (required)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
    */
   @Operation(
-      operationId = "calculationRulesUpdateCalculationRule",
-      tags = {"calculation-rules"},
+      operationId = "calculationMethodsUpdateCalculationMethod",
+      tags = {"calculation-methods"},
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -244,7 +244,7 @@ public interface CalculationRulesApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = CalculationRule.class))
+                  schema = @Schema(implementation = CalculationMethod.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -257,10 +257,10 @@ public interface CalculationRulesApi {
       })
   @RequestMapping(
       method = RequestMethod.PUT,
-      value = CalculationRulesApi.PATH_CALCULATION_RULES_UPDATE_CALCULATION_RULE,
+      value = CalculationMethodsApi.PATH_CALCULATION_RULES_UPDATE_CALCULATION_RULE,
       produces = {"application/json"},
       consumes = {"application/json"})
-  ResponseEntity<CalculationRule> calculationRulesUpdateCalculationRule(
+  ResponseEntity<CalculationMethod> calculationMethodsUpdateCalculationMethod(
       @Parameter(
               name = "inspectionObjectCode",
               description = "",
@@ -275,8 +275,8 @@ public interface CalculationRulesApi {
               in = ParameterIn.PATH)
           @PathVariable("inspectionParameterCode")
           String inspectionParameterCode,
-      @Parameter(name = "UpdateCalculationRuleRequest", description = "", required = true)
+      @Parameter(name = "UpdateCalculationMethodRequest", description = "", required = true)
           @Valid
           @RequestBody
-          UpdateCalculationRuleRequest updateCalculationRuleRequest);
+          UpdateCalculationMethodRequest updateCalculationMethodRequest);
 }

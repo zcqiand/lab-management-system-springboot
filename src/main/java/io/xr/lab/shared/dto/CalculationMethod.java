@@ -10,12 +10,12 @@ import java.util.*;
 import java.util.Objects;
 import org.springframework.lang.Nullable;
 
-/** CreateCalculationRuleRequest */
+/** CalculationMethod */
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
     date = "2026-08-20T13:31:51.674991500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
-public class CreateCalculationRuleRequest {
+public class CalculationMethod {
 
   private String inspectionObjectCode;
 
@@ -27,11 +27,9 @@ public class CreateCalculationRuleRequest {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private @Nullable String reportNameCode;
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
-  private @Nullable CalculationAlgorithmType algorithmType;
+  private CalculationAlgorithmType algorithmType;
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
-  private @Nullable Integer specimenCount;
+  private Integer specimenCount;
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private @Nullable String formula;
@@ -45,20 +43,35 @@ public class CreateCalculationRuleRequest {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private @Nullable String remark;
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
-  private @Nullable Integer sortOrder;
+  private Integer sortOrder;
 
-  public CreateCalculationRuleRequest() {
+  private String createdAt;
+
+  private String updatedAt;
+
+  public CalculationMethod() {
     super();
   }
 
   /** Constructor with only required parameters */
-  public CreateCalculationRuleRequest(String inspectionObjectCode, String inspectionParameterCode) {
+  public CalculationMethod(
+      String inspectionObjectCode,
+      String inspectionParameterCode,
+      CalculationAlgorithmType algorithmType,
+      Integer specimenCount,
+      Integer sortOrder,
+      String createdAt,
+      String updatedAt) {
     this.inspectionObjectCode = inspectionObjectCode;
     this.inspectionParameterCode = inspectionParameterCode;
+    this.algorithmType = algorithmType;
+    this.specimenCount = specimenCount;
+    this.sortOrder = sortOrder;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
   }
 
-  public CreateCalculationRuleRequest inspectionObjectCode(String inspectionObjectCode) {
+  public CalculationMethod inspectionObjectCode(String inspectionObjectCode) {
     this.inspectionObjectCode = inspectionObjectCode;
     return this;
   }
@@ -80,7 +93,7 @@ public class CreateCalculationRuleRequest {
     this.inspectionObjectCode = inspectionObjectCode;
   }
 
-  public CreateCalculationRuleRequest inspectionParameterCode(String inspectionParameterCode) {
+  public CalculationMethod inspectionParameterCode(String inspectionParameterCode) {
     this.inspectionParameterCode = inspectionParameterCode;
     return this;
   }
@@ -102,7 +115,7 @@ public class CreateCalculationRuleRequest {
     this.inspectionParameterCode = inspectionParameterCode;
   }
 
-  public CreateCalculationRuleRequest testingStandardCode(@Nullable String testingStandardCode) {
+  public CalculationMethod testingStandardCode(@Nullable String testingStandardCode) {
     this.testingStandardCode = testingStandardCode;
     return this;
   }
@@ -123,7 +136,7 @@ public class CreateCalculationRuleRequest {
     this.testingStandardCode = testingStandardCode;
   }
 
-  public CreateCalculationRuleRequest reportNameCode(@Nullable String reportNameCode) {
+  public CalculationMethod reportNameCode(@Nullable String reportNameCode) {
     this.reportNameCode = reportNameCode;
     return this;
   }
@@ -144,8 +157,7 @@ public class CreateCalculationRuleRequest {
     this.reportNameCode = reportNameCode;
   }
 
-  public CreateCalculationRuleRequest algorithmType(
-      @Nullable CalculationAlgorithmType algorithmType) {
+  public CalculationMethod algorithmType(CalculationAlgorithmType algorithmType) {
     this.algorithmType = algorithmType;
     return this;
   }
@@ -155,19 +167,20 @@ public class CreateCalculationRuleRequest {
    *
    * @return algorithmType
    */
+  @NotNull
   @Valid
-  @Schema(name = "algorithmType", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  @Schema(name = "algorithmType", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("algorithmType")
-  public @Nullable CalculationAlgorithmType getAlgorithmType() {
+  public CalculationAlgorithmType getAlgorithmType() {
     return algorithmType;
   }
 
   @JsonProperty("algorithmType")
-  public void setAlgorithmType(@Nullable CalculationAlgorithmType algorithmType) {
+  public void setAlgorithmType(CalculationAlgorithmType algorithmType) {
     this.algorithmType = algorithmType;
   }
 
-  public CreateCalculationRuleRequest specimenCount(@Nullable Integer specimenCount) {
+  public CalculationMethod specimenCount(Integer specimenCount) {
     this.specimenCount = specimenCount;
     return this;
   }
@@ -177,18 +190,19 @@ public class CreateCalculationRuleRequest {
    *
    * @return specimenCount
    */
-  @Schema(name = "specimenCount", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  @NotNull
+  @Schema(name = "specimenCount", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("specimenCount")
-  public @Nullable Integer getSpecimenCount() {
+  public Integer getSpecimenCount() {
     return specimenCount;
   }
 
   @JsonProperty("specimenCount")
-  public void setSpecimenCount(@Nullable Integer specimenCount) {
+  public void setSpecimenCount(Integer specimenCount) {
     this.specimenCount = specimenCount;
   }
 
-  public CreateCalculationRuleRequest formula(@Nullable String formula) {
+  public CalculationMethod formula(@Nullable String formula) {
     this.formula = formula;
     return this;
   }
@@ -209,7 +223,7 @@ public class CreateCalculationRuleRequest {
     this.formula = formula;
   }
 
-  public CreateCalculationRuleRequest conditions(@Nullable String conditions) {
+  public CalculationMethod conditions(@Nullable String conditions) {
     this.conditions = conditions;
     return this;
   }
@@ -230,7 +244,7 @@ public class CreateCalculationRuleRequest {
     this.conditions = conditions;
   }
 
-  public CreateCalculationRuleRequest roundingRule(@Nullable String roundingRule) {
+  public CalculationMethod roundingRule(@Nullable String roundingRule) {
     this.roundingRule = roundingRule;
     return this;
   }
@@ -251,7 +265,7 @@ public class CreateCalculationRuleRequest {
     this.roundingRule = roundingRule;
   }
 
-  public CreateCalculationRuleRequest remark(@Nullable String remark) {
+  public CalculationMethod remark(@Nullable String remark) {
     this.remark = remark;
     return this;
   }
@@ -272,7 +286,7 @@ public class CreateCalculationRuleRequest {
     this.remark = remark;
   }
 
-  public CreateCalculationRuleRequest sortOrder(@Nullable Integer sortOrder) {
+  public CalculationMethod sortOrder(Integer sortOrder) {
     this.sortOrder = sortOrder;
     return this;
   }
@@ -282,15 +296,60 @@ public class CreateCalculationRuleRequest {
    *
    * @return sortOrder
    */
-  @Schema(name = "sortOrder", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  @NotNull
+  @Schema(name = "sortOrder", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("sortOrder")
-  public @Nullable Integer getSortOrder() {
+  public Integer getSortOrder() {
     return sortOrder;
   }
 
   @JsonProperty("sortOrder")
-  public void setSortOrder(@Nullable Integer sortOrder) {
+  public void setSortOrder(Integer sortOrder) {
     this.sortOrder = sortOrder;
+  }
+
+  public CalculationMethod createdAt(String createdAt) {
+    this.createdAt = createdAt;
+    return this;
+  }
+
+  /**
+   * Get createdAt
+   *
+   * @return createdAt
+   */
+  @NotNull
+  @Schema(name = "createdAt", requiredMode = Schema.RequiredMode.REQUIRED)
+  @JsonProperty("createdAt")
+  public String getCreatedAt() {
+    return createdAt;
+  }
+
+  @JsonProperty("createdAt")
+  public void setCreatedAt(String createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public CalculationMethod updatedAt(String updatedAt) {
+    this.updatedAt = updatedAt;
+    return this;
+  }
+
+  /**
+   * Get updatedAt
+   *
+   * @return updatedAt
+   */
+  @NotNull
+  @Schema(name = "updatedAt", requiredMode = Schema.RequiredMode.REQUIRED)
+  @JsonProperty("updatedAt")
+  public String getUpdatedAt() {
+    return updatedAt;
+  }
+
+  @JsonProperty("updatedAt")
+  public void setUpdatedAt(String updatedAt) {
+    this.updatedAt = updatedAt;
   }
 
   @Override
@@ -301,21 +360,20 @@ public class CreateCalculationRuleRequest {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    CreateCalculationRuleRequest createCalculationRuleRequest = (CreateCalculationRuleRequest) o;
-    return Objects.equals(
-            this.inspectionObjectCode, createCalculationRuleRequest.inspectionObjectCode)
-        && Objects.equals(
-            this.inspectionParameterCode, createCalculationRuleRequest.inspectionParameterCode)
-        && Objects.equals(
-            this.testingStandardCode, createCalculationRuleRequest.testingStandardCode)
-        && Objects.equals(this.reportNameCode, createCalculationRuleRequest.reportNameCode)
-        && Objects.equals(this.algorithmType, createCalculationRuleRequest.algorithmType)
-        && Objects.equals(this.specimenCount, createCalculationRuleRequest.specimenCount)
-        && Objects.equals(this.formula, createCalculationRuleRequest.formula)
-        && Objects.equals(this.conditions, createCalculationRuleRequest.conditions)
-        && Objects.equals(this.roundingRule, createCalculationRuleRequest.roundingRule)
-        && Objects.equals(this.remark, createCalculationRuleRequest.remark)
-        && Objects.equals(this.sortOrder, createCalculationRuleRequest.sortOrder);
+    CalculationMethod calculationMethod = (CalculationMethod) o;
+    return Objects.equals(this.inspectionObjectCode, calculationMethod.inspectionObjectCode)
+        && Objects.equals(this.inspectionParameterCode, calculationMethod.inspectionParameterCode)
+        && Objects.equals(this.testingStandardCode, calculationMethod.testingStandardCode)
+        && Objects.equals(this.reportNameCode, calculationMethod.reportNameCode)
+        && Objects.equals(this.algorithmType, calculationMethod.algorithmType)
+        && Objects.equals(this.specimenCount, calculationMethod.specimenCount)
+        && Objects.equals(this.formula, calculationMethod.formula)
+        && Objects.equals(this.conditions, calculationMethod.conditions)
+        && Objects.equals(this.roundingRule, calculationMethod.roundingRule)
+        && Objects.equals(this.remark, calculationMethod.remark)
+        && Objects.equals(this.sortOrder, calculationMethod.sortOrder)
+        && Objects.equals(this.createdAt, calculationMethod.createdAt)
+        && Objects.equals(this.updatedAt, calculationMethod.updatedAt);
   }
 
   @Override
@@ -331,13 +389,15 @@ public class CreateCalculationRuleRequest {
         conditions,
         roundingRule,
         remark,
-        sortOrder);
+        sortOrder,
+        createdAt,
+        updatedAt);
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("class CreateCalculationRuleRequest {\n");
+    sb.append("class CalculationMethod {\n");
     sb.append("    inspectionObjectCode: ")
         .append(toIndentedString(inspectionObjectCode))
         .append("\n");
@@ -355,6 +415,8 @@ public class CreateCalculationRuleRequest {
     sb.append("    roundingRule: ").append(toIndentedString(roundingRule)).append("\n");
     sb.append("    remark: ").append(toIndentedString(remark)).append("\n");
     sb.append("    sortOrder: ").append(toIndentedString(sortOrder)).append("\n");
+    sb.append("    createdAt: ").append(toIndentedString(createdAt)).append("\n");
+    sb.append("    updatedAt: ").append(toIndentedString(updatedAt)).append("\n");
     sb.append("}");
     return sb.toString();
   }
