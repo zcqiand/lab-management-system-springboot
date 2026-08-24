@@ -39,6 +39,11 @@ public class SecurityConfig {
                 authz
                     .requestMatchers("/api/auth/login", "/api/auth/refresh", "/api/auth/sso/**")
                     .permitAll()
+                    // /actuator/health 是 Docker HEALTHCHECK + deploy 脚本探针，必须匿名。
+                    // 教训（saas-springboot v0.1.7）：漏了这行探针 401，deploy 120 次
+                    // wget 全失败，看起来像 wait 太短，根因在此。
+                    .requestMatchers("/actuator/**")
+                    .permitAll()
                     .anyRequest()
                     .authenticated())
         .oauth2ResourceServer(o -> o.jwt(jwt -> {}));

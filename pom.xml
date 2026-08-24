@@ -55,6 +55,16 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
+        <!--
+          /actuator/health 健康探针: Docker HEALTHCHECK + deploy 脚本 wget 探测。
+          只暴露 health（application.yml management.endpoints），不开放 metrics/env。
+          教训（saas-springboot v0.1.7）: SecurityConfig 必须 permitAll /actuator/**，
+          否则 anyRequest().authenticated() 把探针 401，deploy 健康循环假性超时。
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
         <!-- @Valid 校验。 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

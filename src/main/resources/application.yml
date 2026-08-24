@@ -39,6 +39,14 @@ server:
   # 家族端口约定：springboot=8080（conventions §6）。CORS allowlist 见 WebConfig。
   port: 8080
 
+# 健康探针只暴露 health（Docker HEALTHCHECK + deploy 脚本 wget 用）。
+# 不开 metrics/env/heapdump 等敏感面（同 saas-springboot）。
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
 logging:
   level:
     root: INFO
