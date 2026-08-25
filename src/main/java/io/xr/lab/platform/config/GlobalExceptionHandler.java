@@ -1,5 +1,6 @@
 package io.xr.lab.platform.config;
 
+import io.xr.lab.platform.auth.sso.SaasAuthException;
 import io.xr.lab.shared.dto.ErrorResponse;
 import java.util.NoSuchElementException;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  *   <li>IllegalArgumentException -> 400 BAD_REQUEST
  *   <li>SecurityException / AuthenticationException -> 401 INVALID_CREDENTIALS
  *   <li>NoSuchElementException -> 404 NOT_FOUND
+ *   <li>SaasAuthException -> 502 SAAS_UPSTREAM_ERROR（SSO 上游失败带详情）
  * </ul>
  */
 @RestControllerAdvice
@@ -28,6 +30,12 @@ public class GlobalExceptionHandler {
   @ExceptionHandler({SecurityException.class, AuthenticationException.class})
   public ResponseEntity<ErrorResponse> unauthorized(Exception e) {
     return respond(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", e.getMessage());
+  }
+
+  /** SSO 上游（saas IdP）失败 — 502 带 saas 侧错误详情。曾落默认 500 无 body， 排障只能猜是哪一跳挂了。 */
+  @ExceptionHandler(SaasAuthException.class)
+  public ResponseEntity<ErrorResponse> saasUpstream(SaasAuthException e) {
+    return respond(HttpStatus.BAD_GATEWAY, "SAAS_UPSTREAM_ERROR", e.getMessage());
   }
 
   @ExceptionHandler(NoSuchElementException.class)
