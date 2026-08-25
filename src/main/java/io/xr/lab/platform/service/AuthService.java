@@ -274,8 +274,10 @@ public class AuthService {
    */
   public SsoAuthResult ssoAuthorize(String businessRedirect, String frontendState) {
     String state = frontendState == null ? "" : frontendState;
+    // scope 必须 ∈ apps.scopes 种子（shared V014: lab.read, lab.write）。
+    // 曾发 "openid profile email" → saas Authorize 抛 INVALID_SCOPE 500，浏览器只见 502。
     SaasAuthClient.AuthorizeCodeResponse resp =
-        saasAuth.authorize(labConfig.sso().callbackRedirectBase(), "openid profile email", state);
+        saasAuth.authorize(labConfig.sso().callbackRedirectBase(), "lab.read lab.write", state);
     String authorizeUrl =
         labConfig.sso().saasBase()
             + "/login?code="
