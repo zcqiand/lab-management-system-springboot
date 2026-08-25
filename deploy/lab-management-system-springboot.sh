@@ -59,6 +59,7 @@ if [ ! -f "$BASE/springboot.env" ]; then
       # v0.1.9 — shared/openapi.yaml TypeSpec @format("uuid") 让 springboot UUID 接 Guid,
       # 与 3 个 saas 后端 V014/V009 seed client_id 同源。
       printf 'LAB_SAAS_BASE=https://saas-springboot.xiangru.uk\n'
+      printf 'LAB_SSO_LOGIN_URL=https://saas-nextjs.xiangru.uk\n'
       printf 'LAB_SAAS_CLIENT_ID=11111111-1111-1111-1111-111111111111\n'
       printf 'LAB_SAAS_CLIENT_SECRET=%s\n' "$LAB_SAAS_CLIENT_SECRET"
       printf 'LAB_SAAS_DEFAULT_TENANT_ID=%s\n' "${LAB_SAAS_DEFAULT_TENANT_ID:-00000000-0000-0000-0000-000000000001}"
@@ -116,6 +117,14 @@ if ! grep -q '^LAB_CORS_ALLOWED_ORIGINS=' "$BASE/springboot.env"; then
   echo "→ append LAB_CORS_ALLOWED_ORIGINS to existing $BASE/springboot.env"
   umask 077
   printf 'LAB_CORS_ALLOWED_ORIGINS=https://lab-react.xiangru.uk,https://lab-vue.xiangru.uk,http://localhost:5173,http://localhost:5174\n' >> "$BASE/springboot.env"
+fi
+
+# v0.1.14 起: IdP 登录页 = saas 前端域名（不是 API 域名，API /login 404）。
+# 早期 env 只有 LAB_SAAS_BASE，authorizeUrl 曾拼出 {API}/login 404。append-only 补。
+if ! grep -q '^LAB_SSO_LOGIN_URL=' "$BASE/springboot.env"; then
+  echo "→ append LAB_SSO_LOGIN_URL to existing $BASE/springboot.env"
+  umask 077
+  printf 'LAB_SSO_LOGIN_URL=https://saas-nextjs.xiangru.uk\n' >> "$BASE/springboot.env"
 fi
 
 echo "→ image: $IMAGE"

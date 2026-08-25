@@ -279,8 +279,9 @@ public class AuthService {
     // 曾发 "openid profile email" → saas Authorize 抛 INVALID_SCOPE 500，浏览器只见 502。
     SaasAuthClient.AuthorizeCodeResponse resp =
         saasAuth.authorize(labConfig.sso().callbackRedirectBase(), "lab.read", state);
+    // 登录跳板在 saas 前端域名（effectiveLoginUrl），不是 API 域名（saasBase 的 /login 是 404）
     String authorizeUrl =
-        labConfig.sso().saasBase()
+        labConfig.sso().effectiveLoginUrl()
             + "/login?code="
             + resp.getCode()
             + "&state="

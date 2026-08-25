@@ -41,6 +41,7 @@ class AuthServiceTest {
           new LabConfig.Jwt("lab-test", 3600, 604800),
           new LabConfig.Sso(
               "http://localhost:3000",
+              null, // loginUrl 空 → effectiveLoginUrl 回落 saasBase（同旧行为）
               "test-client-id",
               "test-client-secret",
               "00000000-0000-0000-0000-000000000001",
