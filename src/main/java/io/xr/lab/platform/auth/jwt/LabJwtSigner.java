@@ -30,19 +30,10 @@ import org.springframework.stereotype.Component;
  * base64url(header).base64url(payload).base64url(HMAC-SHA256)。 payload JSON 字段按字典序输出（{@link
  * TreeMap}），保证签发和后端 hand-rolled 期望一致。
  *
- * <p>{@code @SuppressFBWarnings}:
- *
- * <ul>
- *   <li>CT_CONSTRUCTOR_THROW — 构造期 fail-fast 故意抛 IllegalStateException(env 缺失即拒); Spring 容器包装,半初始化的
- *       bean 不会泄漏
- *   <li>EI_EXPOSE_REP — secretKey() 必须返回原 SecretKey 供 NimbusJwtDecoder.withSecretKey 复用; SecretKey
- *       本身在 JDK 内部 immutable,暴露安全
- * </ul>
+ * <p>{@code secretKey()} 必须返回原 SecretKey 供 NimbusJwtDecoder.withSecretKey 复用 —— SecretKey 本身在 JDK
+ * 内部 immutable,暴露安全(EI_EXPOSE_REP / CT_CONSTRUCTOR_THROW 已 spotbugs-exclude 全局豁免)。
  */
 @Component
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
-    value = {"CT_CONSTRUCTOR_THROW", "EI_EXPOSE_REP"},
-    justification = "CT_CONSTRUCTOR_THROW 是 fail-fast 设计(env 校验);EI_EXPOSE_REP SecretKey immutable")
 public class LabJwtSigner {
 
   private static final String ALG = "HmacSHA256";

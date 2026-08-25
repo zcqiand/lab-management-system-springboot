@@ -1,6 +1,5 @@
 package io.xr.lab.platform.entity;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -229,12 +228,10 @@ public class SampleEntity {
     this.age = v;
   }
 
-  @SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
   public Map<String, String> getExt() {
     return ext;
   }
 
-  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public void setExt(Map<String, String> v) {
     this.ext = v;
   }

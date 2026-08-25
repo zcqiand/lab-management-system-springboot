@@ -1,6 +1,5 @@
 package io.xr.lab.platform.service;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.xr.lab.platform.entity.SampleReceiptEntity;
 import io.xr.lab.platform.repository.SampleReceiptRepository;
 import io.xr.lab.shared.dto.FlowAction;
@@ -21,9 +20,6 @@ public class ReportFlowService {
   private final SampleReceiptService receiptService;
   private final SampleReceiptRepository repo;
 
-  @SuppressFBWarnings(
-      value = "EI_EXPOSE_REP2",
-      justification = "Spring DI singleton: service 持有 Spring 注入的服务 / 仓储 bean 引用，是规范模式。")
   public ReportFlowService(SampleReceiptService receiptService, SampleReceiptRepository repo) {
     this.receiptService = receiptService;
     this.repo = repo;

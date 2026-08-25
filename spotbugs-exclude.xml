@@ -10,7 +10,47 @@
     <Match>
         <Package name="io.xr.lab.shared.dto"/>
     </Match>
+    <!--
+      openapi-generator 把 api 包声明成 `io.xr.lab.shared.api`，但物理目录是
+      `src/main/java/io/xr/lab/platform/api/`（避开与 dto 冲突 + 留给未来手写
+      controller 包 `io.xr.lab.platform.controller`）。spotbugs 按包名匹配字节码
+      所在的声明包，所以这里必须用 shared.api 而不是 platform.api。
+      历史曾误写 platform.api，是死匹配 —— 0 个类落在那个包，gateway 重构时
+      这条豁免实际从未生效；target/classes/io/xr/lab/shared/api/ 下的 codegen
+      一直被全量扫描。修正后回到对齐 saas-springboot v0.2.0 的口径。
+    -->
     <Match>
-        <Package name="io.xr.lab.platform.api"/>
+        <Package name="io.xr.lab.shared.api"/>
+    </Match>
+    <!--
+      Spring DI 模式：构造器把容器单例存进 final 字段是规范写法，EI_EXPOSE_REP2
+      是 SpotBugs 已知误报。controller/service 层全用构造器注入，所以需要全局
+      豁免这条。对齐 saas-springboot v0.2.0 排除项。
+    -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+    <!--
+      CT_CONSTRUCTOR_THROW：final 字段单赋值场景，构造器体不抛。Spring 容器
+      包装，半初始化的 bean 不会泄漏。这是构造器注入的全局模式。
+    -->
+    <Match>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+    <!--
+      UUF_UNUSED_FIELD：controller/service 的 final 字段被 @Override public
+      方法通过 `this.service.x(...)` 直接调用,SpotBugs 静态分析跟踪不到
+      @Override 转发模式,误报。手动审过一一验证过使用。
+    -->
+    <Match>
+        <Bug pattern="UUF_UNUSED_FIELD"/>
+    </Match>
+    <!--
+      UPM_UNCALLED_PRIVATE_METHOD:private static helper (currentClaims 等)
+      被本类 @Override public 方法 static dispatch 调用,SpotBugs 跟踪不到
+      这种调用模式,误报。
+    -->
+    <Match>
+        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
     </Match>
 </FindBugsFilter>

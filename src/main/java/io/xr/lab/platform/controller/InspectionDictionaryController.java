@@ -1,6 +1,5 @@
 package io.xr.lab.platform.controller;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.xr.lab.platform.service.InspectionDictionaryService;
 import io.xr.lab.platform.service.InspectionJunctionService;
 import io.xr.lab.shared.api.InspectionDictionaryApi;
@@ -48,9 +47,6 @@ public class InspectionDictionaryController implements InspectionDictionaryApi {
   private final InspectionDictionaryService service;
   private final InspectionJunctionService junctionService;
 
-  @SuppressFBWarnings(
-      value = "EI_EXPOSE_REP2",
-      justification = "Spring DI singleton: 控制器按规范持有 service 的共享 bean 引用。")
   public InspectionDictionaryController(
       InspectionDictionaryService service, InspectionJunctionService junctionService) {
     this.service = service;

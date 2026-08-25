@@ -1,6 +1,5 @@
 package io.xr.lab.platform.mapper;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.xr.lab.platform.entity.CalculationMethodEntity;
 import io.xr.lab.shared.dto.CalculationAlgorithmType;
 import io.xr.lab.shared.dto.CalculationMethod;
@@ -29,11 +28,6 @@ public final class CalculationMethodMapper {
         .updatedAt(e.getUpdatedAt());
   }
 
-  @SuppressFBWarnings(
-      value = "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE",
-      justification =
-          "CreateCalculationMethodRequest 的两个 getter 已被 @NonNull 标，"
-              + "SpotBugs 看不到 lombok 生成代码所以误报。nullcheck 是防御性编程。")
   public static CalculationMethodEntity fromCreate(CreateCalculationMethodRequest req, String now) {
     String obj = req.getInspectionObjectCode();
     String param = req.getInspectionParameterCode();

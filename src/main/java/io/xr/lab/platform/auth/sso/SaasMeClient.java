@@ -17,11 +17,9 @@ import org.springframework.web.client.RestClient;
  *
  * <p>本类不直接 @Component，由 {@link io.xr.lab.platform.config.SsoBeansConfig} 按 profile 选 real/noop 实现。
  *
- * <p>{@code @SuppressFBWarnings}:CT_CONSTRUCTOR_THROW — 同 SaasAuthClient 的 fail-fast 设计。
+ * <p>构造期 fail-fast（env 缺失即抛 IllegalStateException 阻断 bean 创建）—— CT_CONSTRUCTOR_THROW 是 SpotBugs
+ * 已知误报（final 字段单赋值场景），已在 spotbugs-exclude.xml 全局豁免。
  */
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
-    value = "CT_CONSTRUCTOR_THROW",
-    justification = "fail-fast 设计:env 缺失立即抛 IllegalStateException 阻断 bean 创建")
 public class SaasMeClient {
 
   private final RestClient http;
@@ -111,10 +109,6 @@ public class SaasMeClient {
    * {@link SaasMenuMapper}。
    */
   @JsonIgnoreProperties(ignoreUnknown = true)
-  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
-      value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"},
-      justification =
-          "DTO mirroring saas JSON contract; instances are read-only after deserialization")
   public static class SaasMenuNode {
     @JsonProperty("id")
     private String id;
@@ -228,10 +222,6 @@ public class SaasMeClient {
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
-  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
-      value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"},
-      justification =
-          "DTO mirroring saas JSON contract; List returned/stored is read-only in this scope")
   public static class SaasCurrentUser {
     @JsonProperty("id")
     private String id;
@@ -290,10 +280,6 @@ public class SaasMeClient {
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
-  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
-      value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"},
-      justification =
-          "DTO mirroring saas JSON contract; List returned/stored is read-only in this scope")
   public static class SaasTenantMembership {
     @JsonProperty("id")
     private String id;

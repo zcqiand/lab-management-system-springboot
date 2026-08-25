@@ -41,11 +41,6 @@ import org.springframework.stereotype.Service;
  * </ul>
  */
 @Service
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
-    value = "EI_EXPOSE_REP2",
-    justification =
-        "Spring 构造器注入的 MenuSnapshotCache/SaasMenuMapper 为容器单例，与本类同生命周期；"
-            + "无外部可变引用逃逸（与仓内其他 ctor 注入 Service 同模式）")
 public class AuthService {
 
   private static final Logger log = LoggerFactory.getLogger(AuthService.class);
@@ -369,13 +364,8 @@ public class AuthService {
   }
 
   /**
-   * Controller 接收的复合结果：SsoRedirect。
-   *
-   * <p>{@code @SuppressFBWarnings}:SsoRedirect 是 codegen 生成的 DTO(setter/getter,内部 HashMap
-   * 不可变),暴露引用对 lab 业务场景无副作用——Controller 只读不回写。SpotBugs 静态检查不再标记。
+   * Controller 接收的复合结果：SsoRedirect。SsoRedirect 是 codegen 生成的 DTO(setter/getter,内部 HashMap
+   * 不可变),暴露引用对 lab 业务场景无副作用——Controller 只读不回写。
    */
-  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
-      value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"},
-      justification = "SsoRedirect is a DTO read-only in this scope")
   public record SsoAuthResult(SsoRedirect redirect) {}
 }

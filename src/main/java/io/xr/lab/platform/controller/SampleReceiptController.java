@@ -1,6 +1,5 @@
 package io.xr.lab.platform.controller;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.xr.lab.platform.directory.ConfigUserDirectory;
 import io.xr.lab.platform.service.SampleReceiptService;
 import io.xr.lab.shared.api.ReceiptsApi;
@@ -22,9 +21,6 @@ public class SampleReceiptController implements ReceiptsApi {
   private final SampleReceiptService service;
   private final ConfigUserDirectory directory;
 
-  @SuppressFBWarnings(
-      value = "EI_EXPOSE_REP2",
-      justification = "Spring DI singleton: 控制器按规范持有 service / directory 的共享 bean 引用。")
   public SampleReceiptController(SampleReceiptService service, ConfigUserDirectory directory) {
     this.service = service;
     this.directory = directory;

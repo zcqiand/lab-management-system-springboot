@@ -1,6 +1,5 @@
 package io.xr.lab.platform.controller;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.xr.lab.platform.directory.ConfigUserDirectory;
 import io.xr.lab.platform.service.ContractService;
 import io.xr.lab.shared.api.ContractsApi;
@@ -20,18 +19,12 @@ public class ContractController implements ContractsApi {
   private final ContractService service;
   private final ConfigUserDirectory directory;
 
-  @SuppressFBWarnings(
-      value = "EI_EXPOSE_REP2",
-      justification = "Spring DI singleton: 控制器按规范持有 service / directory 的共享 bean 引用。")
   public ContractController(ContractService service, ConfigUserDirectory directory) {
     this.service = service;
     this.directory = directory;
   }
 
   @Override
-  @SuppressFBWarnings(
-      value = "EI_EXPOSE_REP2",
-      justification = "Spring DI singleton: 控制器按规范持有 service / directory 的共享 bean 引用。")
   public ResponseEntity<ContractsListContracts200Response> contractsListContracts(
       Integer page, Integer pageSize, String keyword, ContractStatus status) {
     String tenant = InspectionCatalogController.currentTenantIdOrDefaultStatic(directory);

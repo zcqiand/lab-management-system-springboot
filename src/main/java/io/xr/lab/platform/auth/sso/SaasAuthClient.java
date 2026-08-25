@@ -27,12 +27,9 @@ import org.springframework.web.client.RestClient;
  *
  * <p>本类不直接 @Component，由 {@link io.xr.lab.platform.config.SsoBeansConfig} 按 profile 选 real/noop 实现。
  *
- * <p>{@code @SuppressFBWarnings}:CT_CONSTRUCTOR_THROW — 构造期 fail-fast 故意抛 IllegalStateException(env
- * 缺失即拒); Spring 容器包装,半初始化的 bean 不会泄漏。
+ * <p>构造期 fail-fast（env 缺失即抛 IllegalStateException 阻断 bean 创建）—— CT_CONSTRUCTOR_THROW 是 SpotBugs
+ * 已知误报（final 字段单赋值场景），已在 spotbugs-exclude.xml 全局豁免。
  */
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
-    value = "CT_CONSTRUCTOR_THROW",
-    justification = "fail-fast 设计:env 缺失立即抛 IllegalStateException 阻断 bean 创建")
 public class SaasAuthClient {
 
   private final RestClient http;

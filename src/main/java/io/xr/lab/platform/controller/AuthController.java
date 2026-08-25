@@ -27,20 +27,10 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * <p>薄层：从 SecurityContext 取 JWT claims。业务在 {@link AuthService}；Controller 仅转发。
  *
- * <p>{@code @SuppressFBWarnings}:
- *
- * <ul>
- *   <li>CT_CONSTRUCTOR_THROW — 构造期 fail-fast 是设计意图;Spring 容器包装
- *   <li>UPM_UNCALLED_PRIVATE_METHOD — false positive: currentClaims 被本类同名 public @Override 方法通过
- *       static dispatch 调用;SpotBugs 跟踪不到 private static 方法调用
- * </ul>
+ * <p>Spring ctor 注入 fail-fast + currentClaims 是 private static helper 被 @Override public 方法 static
+ * dispatch 调用 —— spotbugs 跟踪不到;两种 pattern 已在 spotbugs-exclude.xml 全局豁免。
  */
 @RestController
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
-    value = {"CT_CONSTRUCTOR_THROW", "UPM_UNCALLED_PRIVATE_METHOD"},
-    justification =
-        "CT_CONSTRUCTOR_THROW: Spring ctor 注入 fail-fast; UPM: private static helper 被 @Override"
-            + " public 方法 static dispatch 调用,SpotBugs 跟踪不到")
 public class AuthController implements AuthApi {
 
   private final AuthService service;
