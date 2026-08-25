@@ -42,8 +42,8 @@ fi
 # setup-vps.sh 仍是首推（VPS 一次性, 生成 nginx vhost + 目录）, 本分支仅给
 # "先有 DATABASE_URL 临时上线"的场景。
 if [ ! -f "$BASE/springboot.env" ]; then
-  if [ -n "${DATABASE_URL:-}" ] && [ -n "${DATABASE_USER:-}" ] && [ -n "${DATABASE_PASSWORD:-}" ] && [ -n "${LAB_JWT_SECRET:-}" ]; then
-    echo "→ bootstrapping $BASE/springboot.env from env DATABASE_URL/USER/PASSWORD + LAB_JWT_SECRET"
+  if [ -n "${DATABASE_URL:-}" ] && [ -n "${DATABASE_USER:-}" ] && [ -n "${DATABASE_PASSWORD:-}" ] && [ -n "${LAB_JWT_SECRET:-}" ] && [ -n "${LAB_SAAS_CLIENT_SECRET:-}" }; then
+    echo "→ bootstrapping $BASE/springboot.env from env DATABASE_URL/USER/PASSWORD + LAB_JWT_SECRET + LAB_SAAS_CLIENT_SECRET"
     umask 077
     {
       printf 'LAB_DB_URL=%s\n' "$DATABASE_URL"
@@ -54,14 +54,20 @@ if [ ! -f "$BASE/springboot.env" ]; then
       printf 'LAB_JWT_SECRET=%s\n' "$LAB_JWT_SECRET"
       # CORS 白名单：lab 前端两仓 + 本地 dev。运维可在 setup-vps 之后手工追加 origin。
       printf 'LAB_CORS_ALLOWED_ORIGINS=https://lab-react.xiangru.uk,https://lab-vue.xiangru.uk,http://localhost:5173,http://localhost:5174\n'
-      # SSO 跳板：saas IdP（lab-react .env.production 的 VITE_SAAS_BASE_URL 同源）
-      printf 'LAB_SAAS_BASE=https://saas-nextjs.xiangru.uk\n'
+      # SSO 跳板：v0.1.x 接 saas-springboot v0.2.0 真 OAuth IdP（同栈匹配）。
+      # ClientId 用固定 UUID 11111111-... 不是字符串 'lab-mgmt'，原因同 lab-aspnetcore
+      # v0.1.9 — shared/openapi.yaml TypeSpec @format("uuid") 让 springboot UUID 接 Guid,
+      # 与 3 个 saas 后端 V014/V009 seed client_id 同源。
+      printf 'LAB_SAAS_BASE=https://saas-springboot.xiangru.uk\n'
+      printf 'LAB_SAAS_CLIENT_ID=11111111-1111-1111-1111-111111111111\n'
+      printf 'LAB_SAAS_CLIENT_SECRET=%s\n' "$LAB_SAAS_CLIENT_SECRET"
+      printf 'LAB_SAAS_DEFAULT_TENANT_ID=%s\n' "${LAB_SAAS_DEFAULT_TENANT_ID:-00000000-0000-0000-0000-000000000001}"
       printf 'LAB_SSO_CALLBACK_REDIRECT=https://lab-react.xiangru.uk/login\n'
     } > "$BASE/springboot.env"
     chown deploy:deploy "$BASE/springboot.env" 2>/dev/null || true
     chmod 600 "$BASE/springboot.env"
   else
-    echo "ERROR: $BASE/springboot.env missing. Set DATABASE_URL/USER/PASSWORD + LAB_JWT_SECRET env (e.g. DATABASE_URL=jdbc:postgresql://host/lab_prod DATABASE_USER=postgres DATABASE_PASSWORD=... LAB_JWT_SECRET=<32B+ random> sudo -E sh deploy/setup-vps.sh) or run setup-vps.sh first." >&2
+    echo "ERROR: $BASE/springboot.env missing. Set DATABASE_URL/USER/PASSWORD + LAB_JWT_SECRET + LAB_SAAS_CLIENT_SECRET env (e.g. DATABASE_URL=jdbc:postgresql://host/lab_prod DATABASE_USER=postgres DATABASE_PASSWORD=... LAB_JWT_SECRET=<32B+ random> LAB_SAAS_CLIENT_SECRET=<saas-springboot V009 seeded client secret> sudo -E sh deploy/setup-vps.sh) or run setup-vps.sh first." >&2
     exit 1
   fi
 fi
