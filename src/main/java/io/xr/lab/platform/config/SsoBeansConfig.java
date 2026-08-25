@@ -90,6 +90,12 @@ public class SsoBeansConfig {
       return tenants();
     }
 
+    @Override
+    public List<SaasMenuNode> listMyMenus(String saasAccessToken, String appCode) {
+      // noop：菜单快照不可用 → AuthService.cacheMenus 落 warn，menus() 走 FALLBACK_MENUS
+      return List.of();
+    }
+
     private static List<SaasTenantMembership> tenants() {
       return List.of(
           membership("TENANT-001", List.of("admin")),

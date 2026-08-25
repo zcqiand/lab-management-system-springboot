@@ -8,8 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.xr.harness.junit.Fn;
 import io.xr.lab.platform.auth.jwt.LabJwtSigner;
 import io.xr.lab.platform.auth.jwt.NimbusLabJwtDecoderFactory;
+import io.xr.lab.platform.auth.sso.MenuSnapshotCache;
 import io.xr.lab.platform.auth.sso.SaasAuthClient;
 import io.xr.lab.platform.auth.sso.SaasMeClient;
+import io.xr.lab.platform.auth.sso.SaasMenuMapper;
 import io.xr.lab.platform.config.LabConfig;
 import io.xr.lab.platform.config.SsoBeansConfig;
 import io.xr.lab.platform.directory.ConfigUserDirectory;
@@ -49,7 +51,14 @@ class AuthServiceTest {
   private final SaasMeClient saasMe = new SsoBeansConfig.NoopSaasMeClient();
 
   private final AuthService service =
-      new AuthService(new ConfigUserDirectory("dev123456"), jwt, saasAuth, saasMe, labConfig);
+      new AuthService(
+          new ConfigUserDirectory("dev123456"),
+          jwt,
+          saasAuth,
+          saasMe,
+          labConfig,
+          new MenuSnapshotCache(),
+          new SaasMenuMapper());
 
   @Test
   @Fn({"M01.F05.I01"})
@@ -184,11 +193,44 @@ class AuthServiceTest {
 
   @Test
   @Fn({"M01.F04.I01"})
-  void menus_returnsFiveRootsMatchingMsw() {
-    java.util.List<MenuNode> menus = service.menus();
+  void menus_cacheMiss_returnsFallbackFiveRoots() {
+    // 无 saas 快照（密码登录用户 / noop / 缓存过期）→ 静态兜底菜单
+    java.util.List<MenuNode> menus = service.menus(Map.of("sub", "USER-A"));
     assertEquals(5, menus.size());
     assertEquals("menu-dashboard", menus.get(0).getId());
     assertEquals(7, menus.get(2).getChildren().size());
+  }
+
+  @Test
+  @Fn({"M01.F04.I01"})
+  void menus_cacheHit_returnsSaasSnapshot() {
+    // 预填快照：SSO 登录用户的菜单来自缓存（saas 快照映射结果）
+    MenuSnapshotCache cache = new MenuSnapshotCache();
+    cache.put(
+        "USER-A",
+        java.util.List.of(
+            new MenuNode().id("m-lab-dash").label("总览").path("/dashboard"),
+            new MenuNode().id("grp-res").label("资源管理").icon("resource")));
+    AuthService ssoService =
+        new AuthService(
+            new ConfigUserDirectory("dev123456"),
+            jwt,
+            saasAuth,
+            saasMe,
+            labConfig,
+            cache,
+            new SaasMenuMapper());
+    java.util.List<MenuNode> menus = ssoService.menus(Map.of("sub", "USER-A"));
+    assertEquals(2, menus.size());
+    assertEquals("总览", menus.get(0).getLabel());
+    assertEquals("资源管理", menus.get(1).getLabel());
+  }
+
+  @Test
+  @Fn({"M01.F04.I01"})
+  void menus_nullClaims_returnsFallback() {
+    // controller 层 currentClaims() 对非 JWT 上下文返回 Map.of() → menus 不抛
+    assertEquals(5, service.menus(Map.of()).size());
   }
 
   @Test

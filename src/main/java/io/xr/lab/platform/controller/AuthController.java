@@ -56,7 +56,7 @@ public class AuthController implements AuthApi {
 
   @Override
   public ResponseEntity<List<MenuNode>> authGetMenus() {
-    return ResponseEntity.ok(service.menus());
+    return ResponseEntity.ok(service.menus(currentClaims()));
   }
 
   @Override

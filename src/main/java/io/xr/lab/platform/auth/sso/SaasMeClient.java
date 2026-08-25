@@ -80,9 +80,151 @@ public class SaasMeClient {
     }
   }
 
+  /** 拉当前用户在指定 app 下的授权菜单树（saas EffectiveMenuNode[] 扁平树形数组）。 */
+  public List<SaasMenuNode> listMyMenus(String saasAccessToken, String appCode) {
+    try {
+      SaasMenuNode[] arr =
+          http.get()
+              .uri("/api/v1/me/menus?appCode=" + appCode)
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + saasAccessToken)
+              .retrieve()
+              .body(SaasMenuNode[].class);
+      return arr == null ? List.of() : List.of(arr);
+    } catch (HttpClientErrorException e) {
+      throw new SaasAuthException.InvalidGrant(
+          "saas /me/menus " + e.getStatusCode() + " " + truncate(e.getResponseBodyAsString(), 200));
+    } catch (HttpServerErrorException e) {
+      throw new SaasAuthException.UpstreamUnavailable(
+          "saas /me/menus 5xx: " + e.getStatusCode(), e);
+    } catch (ResourceAccessException e) {
+      throw new SaasAuthException.UpstreamUnavailable("saas /me/menus connect failed", e);
+    }
+  }
+
   private static String truncate(String s, int max) {
     if (s == null) return "";
     return s.length() <= max ? s : s.substring(0, max) + "...";
+  }
+
+  /**
+   * saas /api/v1/me/menus 返回的 EffectiveMenuNode（树形：children 递归）。 字段与 saas DB MenuRow 一致；lab 侧映射见
+   * {@link SaasMenuMapper}。
+   */
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+      value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"},
+      justification =
+          "DTO mirroring saas JSON contract; instances are read-only after deserialization")
+  public static class SaasMenuNode {
+    @JsonProperty("id")
+    private String id;
+
+    @JsonProperty("appId")
+    private String appId;
+
+    @JsonProperty("parentId")
+    private String parentId;
+
+    @JsonProperty("code")
+    private String code;
+
+    @JsonProperty("name")
+    private String name;
+
+    @JsonProperty("path")
+    private String path;
+
+    @JsonProperty("icon")
+    private String icon;
+
+    @JsonProperty("type")
+    private String type;
+
+    @JsonProperty("sortOrder")
+    private Integer sortOrder;
+
+    @JsonProperty("children")
+    private List<SaasMenuNode> children;
+
+    public String getId() {
+      return id;
+    }
+
+    public void setId(String id) {
+      this.id = id;
+    }
+
+    public String getAppId() {
+      return appId;
+    }
+
+    public void setAppId(String appId) {
+      this.appId = appId;
+    }
+
+    public String getParentId() {
+      return parentId;
+    }
+
+    public void setParentId(String parentId) {
+      this.parentId = parentId;
+    }
+
+    public String getCode() {
+      return code;
+    }
+
+    public void setCode(String code) {
+      this.code = code;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public String getPath() {
+      return path;
+    }
+
+    public void setPath(String path) {
+      this.path = path;
+    }
+
+    public String getIcon() {
+      return icon;
+    }
+
+    public void setIcon(String icon) {
+      this.icon = icon;
+    }
+
+    public String getType() {
+      return type;
+    }
+
+    public void setType(String type) {
+      this.type = type;
+    }
+
+    public Integer getSortOrder() {
+      return sortOrder;
+    }
+
+    public void setSortOrder(Integer sortOrder) {
+      this.sortOrder = sortOrder;
+    }
+
+    public List<SaasMenuNode> getChildren() {
+      return children;
+    }
+
+    public void setChildren(List<SaasMenuNode> children) {
+      this.children = children;
+    }
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
