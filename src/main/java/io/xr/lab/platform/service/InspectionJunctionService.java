@@ -318,6 +318,30 @@ public class InspectionJunctionService {
     objectReportNameRepo.deleteById(key);
   }
 
+  public List<ObjectReportNameLink> listObjectReportNameLinks(
+      String inspectionObjectCode, String reportNameCode) {
+    return new ArrayList<>(objectReportNameRepo.findAll())
+        .stream()
+            .filter(
+                e ->
+                    (inspectionObjectCode == null || inspectionObjectCode.isBlank())
+                        || inspectionObjectCode.equals(e.getInspectionObjectCode()))
+            .filter(
+                e ->
+                    (reportNameCode == null || reportNameCode.isBlank())
+                        || reportNameCode.equals(e.getReportNameCode()))
+            .map(this::toObjectReportNameLink)
+            .collect(Collectors.toList());
+  }
+
+  private ObjectReportNameLink toObjectReportNameLink(InspectionObjectReportNameEntity e) {
+    ObjectReportNameLink dto = new ObjectReportNameLink();
+    dto.setInspectionObjectCode(e.getInspectionObjectCode());
+    dto.setReportNameCode(e.getReportNameCode());
+    dto.setRemark(e.getRemark());
+    return dto;
+  }
+
   // === M06.F07/F04 report-name ↔ standard (role) ===
 
   public void linkReportNameStandard(ReportNameStandardLink body) {
@@ -349,6 +373,28 @@ public class InspectionJunctionService {
     reportNameStandardRepo.deleteById(key);
   }
 
+  public List<ReportNameStandardLink> listReportNameStandardLinks(
+      String reportNameCode, InspectionStandardRole role) {
+    return new ArrayList<>(reportNameStandardRepo.findAll())
+        .stream()
+            .filter(
+                e ->
+                    (reportNameCode == null || reportNameCode.isBlank())
+                        || reportNameCode.equals(e.getReportNameCode()))
+            .filter(e -> role == null || role.equals(e.getRole()))
+            .map(this::toReportNameStandardLink)
+            .collect(Collectors.toList());
+  }
+
+  private ReportNameStandardLink toReportNameStandardLink(InspectionReportNameStandardEntity e) {
+    ReportNameStandardLink dto = new ReportNameStandardLink();
+    dto.setReportNameCode(e.getReportNameCode());
+    dto.setInspectionStandardCode(e.getInspectionStandardCode());
+    dto.setRole(e.getRole());
+    dto.setRemark(e.getRemark());
+    return dto;
+  }
+
   // === M06.F07/F03 report-name ↔ parameter ===
 
   public void linkReportNameParameter(ReportNameParameterLink body) {
@@ -371,6 +417,30 @@ public class InspectionJunctionService {
           "ReportNameParameter link not found: " + reportNameCode + "/" + inspectionParameterCode);
     }
     reportNameParameterRepo.deleteById(key);
+  }
+
+  public List<ReportNameParameterLink> listReportNameParameterLinks(
+      String reportNameCode, String inspectionParameterCode) {
+    return new ArrayList<>(reportNameParameterRepo.findAll())
+        .stream()
+            .filter(
+                e ->
+                    (reportNameCode == null || reportNameCode.isBlank())
+                        || reportNameCode.equals(e.getReportNameCode()))
+            .filter(
+                e ->
+                    (inspectionParameterCode == null || inspectionParameterCode.isBlank())
+                        || inspectionParameterCode.equals(e.getInspectionParameterCode()))
+            .map(this::toReportNameParameterLink)
+            .collect(Collectors.toList());
+  }
+
+  private ReportNameParameterLink toReportNameParameterLink(InspectionReportNameParameterEntity e) {
+    ReportNameParameterLink dto = new ReportNameParameterLink();
+    dto.setReportNameCode(e.getReportNameCode());
+    dto.setInspectionParameterCode(e.getInspectionParameterCode());
+    dto.setRemark(e.getRemark());
+    return dto;
   }
 
   // === M06.F08 parameter ↔ interface (config jsonb) ===
@@ -396,6 +466,31 @@ public class InspectionJunctionService {
           "ParamInterface link not found: " + inspectionParameterCode + "/" + paramInterfaceCode);
     }
     paramInterfaceLinkRepo.deleteById(key);
+  }
+
+  public List<ParamInterfaceLink> listParamInterfaceLinks(
+      String inspectionParameterCode, String paramInterfaceCode) {
+    return new ArrayList<>(paramInterfaceLinkRepo.findAll())
+        .stream()
+            .filter(
+                e ->
+                    (inspectionParameterCode == null || inspectionParameterCode.isBlank())
+                        || inspectionParameterCode.equals(e.getInspectionParameterCode()))
+            .filter(
+                e ->
+                    (paramInterfaceCode == null || paramInterfaceCode.isBlank())
+                        || paramInterfaceCode.equals(e.getParamInterfaceCode()))
+            .map(this::toParamInterfaceLink)
+            .collect(Collectors.toList());
+  }
+
+  private ParamInterfaceLink toParamInterfaceLink(ParamInterfaceLinkEntity e) {
+    ParamInterfaceLink dto = new ParamInterfaceLink();
+    dto.setInspectionParameterCode(e.getInspectionParameterCode());
+    dto.setParamInterfaceCode(e.getParamInterfaceCode());
+    dto.setReportNameCode(e.getReportNameCode());
+    dto.setConfig(deserializeConfig(e.getConfig()));
+    return dto;
   }
 
   // === helpers ===
@@ -424,6 +519,17 @@ public class InspectionJunctionService {
       return MAPPER.writeValueAsString(config);
     } catch (Exception ex) {
       throw new IllegalStateException("Failed to serialize param_interface_links.config", ex);
+    }
+  }
+
+  private static Map<String, Object> deserializeConfig(String json) {
+    if (json == null || json.isBlank()) {
+      return null;
+    }
+    try {
+      return MAPPER.readValue(json, new TypeReference<Map<String, Object>>() {});
+    } catch (Exception ex) {
+      throw new IllegalStateException("Failed to deserialize param_interface_links.config", ex);
     }
   }
 }

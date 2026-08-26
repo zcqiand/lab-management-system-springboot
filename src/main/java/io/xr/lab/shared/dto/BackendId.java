@@ -6,10 +6,10 @@ import jakarta.annotation.Generated;
 import jakarta.validation.constraints.*;
 import java.util.*;
 
-/** 4 个槽位;id 锁定,避免拼写漂移 */
+/** 已废弃 (ADR-0014);4 个槽位,id 锁定避免拼写漂移 */
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-20T13:31:51.674991500+08:00[Asia/Shanghai]",
+    date = "2026-08-26T12:43:04.549030500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public enum BackendId {
   MSW("msw"),

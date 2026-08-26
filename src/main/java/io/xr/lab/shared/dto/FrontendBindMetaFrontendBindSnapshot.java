@@ -14,7 +14,7 @@ import org.springframework.lang.Nullable;
 @JsonTypeName("FrontendBindMeta.FrontendBindSnapshot")
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-20T13:31:51.674991500+08:00[Asia/Shanghai]",
+    date = "2026-08-26T12:43:04.549030500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public class FrontendBindMetaFrontendBindSnapshot {
 
@@ -42,13 +42,16 @@ public class FrontendBindMetaFrontendBindSnapshot {
   }
 
   /**
-   * Get registry
+   * 已废弃 (ADR-0014);保留以维持 BackendRegistry schema 在 openapi.yaml 里的可达性
    *
    * @return registry
    */
   @NotNull
   @Valid
-  @Schema(name = "registry", requiredMode = Schema.RequiredMode.REQUIRED)
+  @Schema(
+      name = "registry",
+      description = "已废弃 (ADR-0014);保留以维持 BackendRegistry schema 在 openapi.yaml 里的可达性",
+      requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("registry")
   public BackendRegistry getRegistry() {
     return registry;

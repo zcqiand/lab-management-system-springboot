@@ -12,15 +12,15 @@ import java.util.List;
 import java.util.Objects;
 import org.springframework.lang.Nullable;
 
-/** InspectionDictionaryListSpecialtyObjectLinks200Response */
-@JsonTypeName("InspectionDictionary_listSpecialtyObjectLinks_200_response")
+/** ReportNamesListReportNameStandardLinks200Response */
+@JsonTypeName("ReportNames_listReportNameStandardLinks_200_response")
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
     date = "2026-08-26T12:43:04.549030500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
-public class InspectionDictionaryListSpecialtyObjectLinks200Response {
+public class ReportNamesListReportNameStandardLinks200Response {
 
-  private List<@Valid SpecialtyObjectLink> items = new ArrayList<>();
+  private List<@Valid ReportNameStandardLink> items = new ArrayList<>();
 
   private Integer page;
 
@@ -28,27 +28,27 @@ public class InspectionDictionaryListSpecialtyObjectLinks200Response {
 
   private Long total;
 
-  public InspectionDictionaryListSpecialtyObjectLinks200Response() {
+  public ReportNamesListReportNameStandardLinks200Response() {
     super();
   }
 
   /** Constructor with only required parameters */
-  public InspectionDictionaryListSpecialtyObjectLinks200Response(
-      List<@Valid SpecialtyObjectLink> items, Integer page, Integer pageSize, Long total) {
+  public ReportNamesListReportNameStandardLinks200Response(
+      List<@Valid ReportNameStandardLink> items, Integer page, Integer pageSize, Long total) {
     this.items = items;
     this.page = page;
     this.pageSize = pageSize;
     this.total = total;
   }
 
-  public InspectionDictionaryListSpecialtyObjectLinks200Response items(
-      List<@Valid SpecialtyObjectLink> items) {
+  public ReportNamesListReportNameStandardLinks200Response items(
+      List<@Valid ReportNameStandardLink> items) {
     this.items = items;
     return this;
   }
 
-  public InspectionDictionaryListSpecialtyObjectLinks200Response addItemsItem(
-      SpecialtyObjectLink itemsItem) {
+  public ReportNamesListReportNameStandardLinks200Response addItemsItem(
+      ReportNameStandardLink itemsItem) {
     if (this.items == null) {
       this.items = new ArrayList<>();
     }
@@ -65,16 +65,16 @@ public class InspectionDictionaryListSpecialtyObjectLinks200Response {
   @Valid
   @Schema(name = "items", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("items")
-  public List<@Valid SpecialtyObjectLink> getItems() {
+  public List<@Valid ReportNameStandardLink> getItems() {
     return items;
   }
 
   @JsonProperty("items")
-  public void setItems(List<@Valid SpecialtyObjectLink> items) {
+  public void setItems(List<@Valid ReportNameStandardLink> items) {
     this.items = items;
   }
 
-  public InspectionDictionaryListSpecialtyObjectLinks200Response page(Integer page) {
+  public ReportNamesListReportNameStandardLinks200Response page(Integer page) {
     this.page = page;
     return this;
   }
@@ -96,7 +96,7 @@ public class InspectionDictionaryListSpecialtyObjectLinks200Response {
     this.page = page;
   }
 
-  public InspectionDictionaryListSpecialtyObjectLinks200Response pageSize(Integer pageSize) {
+  public ReportNamesListReportNameStandardLinks200Response pageSize(Integer pageSize) {
     this.pageSize = pageSize;
     return this;
   }
@@ -118,7 +118,7 @@ public class InspectionDictionaryListSpecialtyObjectLinks200Response {
     this.pageSize = pageSize;
   }
 
-  public InspectionDictionaryListSpecialtyObjectLinks200Response total(Long total) {
+  public ReportNamesListReportNameStandardLinks200Response total(Long total) {
     this.total = total;
     return this;
   }
@@ -148,15 +148,13 @@ public class InspectionDictionaryListSpecialtyObjectLinks200Response {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    InspectionDictionaryListSpecialtyObjectLinks200Response
-        inspectionDictionaryListSpecialtyObjectLinks200Response =
-            (InspectionDictionaryListSpecialtyObjectLinks200Response) o;
-    return Objects.equals(this.items, inspectionDictionaryListSpecialtyObjectLinks200Response.items)
-        && Objects.equals(this.page, inspectionDictionaryListSpecialtyObjectLinks200Response.page)
-        && Objects.equals(
-            this.pageSize, inspectionDictionaryListSpecialtyObjectLinks200Response.pageSize)
-        && Objects.equals(
-            this.total, inspectionDictionaryListSpecialtyObjectLinks200Response.total);
+    ReportNamesListReportNameStandardLinks200Response
+        reportNamesListReportNameStandardLinks200Response =
+            (ReportNamesListReportNameStandardLinks200Response) o;
+    return Objects.equals(this.items, reportNamesListReportNameStandardLinks200Response.items)
+        && Objects.equals(this.page, reportNamesListReportNameStandardLinks200Response.page)
+        && Objects.equals(this.pageSize, reportNamesListReportNameStandardLinks200Response.pageSize)
+        && Objects.equals(this.total, reportNamesListReportNameStandardLinks200Response.total);
   }
 
   @Override
@@ -167,7 +165,7 @@ public class InspectionDictionaryListSpecialtyObjectLinks200Response {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("class InspectionDictionaryListSpecialtyObjectLinks200Response {\n");
+    sb.append("class ReportNamesListReportNameStandardLinks200Response {\n");
     sb.append("    items: ").append(toIndentedString(items)).append("\n");
     sb.append("    page: ").append(toIndentedString(page)).append("\n");
     sb.append("    pageSize: ").append(toIndentedString(pageSize)).append("\n");

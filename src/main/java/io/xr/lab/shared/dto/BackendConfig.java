@@ -10,13 +10,14 @@ import java.util.*;
 import java.util.Objects;
 import org.springframework.lang.Nullable;
 
-/** 4-backend 运行时切换配置。运行时由消费方仓各自实现(React Context / Vue pinia store) */
+/** 已废弃 (ADR-0014):用 VITE_API_BASE_URL / NEXT_PUBLIC_API_BASE_URL 替代;4-backend 运行时切换配置 */
 @Schema(
     name = "BackendConfig",
-    description = "4-backend 运行时切换配置。运行时由消费方仓各自实现(React Context / Vue pinia store)")
+    description =
+        "已废弃 (ADR-0014):用 VITE_API_BASE_URL / NEXT_PUBLIC_API_BASE_URL 替代;4-backend 运行时切换配置")
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-20T13:31:51.674991500+08:00[Asia/Shanghai]",
+    date = "2026-08-26T12:43:04.549030500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public class BackendConfig {
 

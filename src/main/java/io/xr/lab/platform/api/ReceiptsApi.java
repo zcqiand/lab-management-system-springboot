@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-20T13:31:51.674991500+08:00[Asia/Shanghai]",
+    date = "2026-08-26T12:43:04.549030500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 @Validated
 @Tag(name = "receipts", description = "the receipts API")

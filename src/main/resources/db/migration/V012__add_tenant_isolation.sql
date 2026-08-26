@@ -1,7 +1,7 @@
 -- V012__add_tenant_isolation.sql
 -- 多租户隔离：业务数据表加 tenant_id（裸标量，无 FK）。
 -- 租户真相源在 saas 身份平台，lab 不建 tenants 表；tenant_id 由后端从 token 的
--- tenant_id claim 注入。M06 检测能力字典（专项/项目/参数/标准/报告名称/计算方法/
+-- tenant_id claim 注入。M06 检测能力字典（专项/项目/参数/标准/报告名称/计算规则/
 -- 参数界面 + junction）是平台级共享字典，不加 tenant_id。
 --
 -- 同时把原「全局唯一」业务键改为「同租户内唯一」（不同租户可有相同合同号/委托号）。

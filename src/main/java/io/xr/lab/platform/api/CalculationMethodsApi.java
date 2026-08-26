@@ -28,13 +28,13 @@ import org.springframework.web.bind.annotation.*;
 
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-20T13:31:51.674991500+08:00[Asia/Shanghai]",
+    date = "2026-08-26T12:43:04.549030500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 @Validated
 @Tag(name = "calculation-methods", description = "the calculation-methods API")
 public interface CalculationMethodsApi {
 
-  String PATH_CALCULATION_RULES_CREATE_CALCULATION_RULE = "/api/calculation-methods";
+  String PATH_CALCULATION_METHODS_CREATE_CALCULATION_METHOD = "/api/calculation-methods";
 
   /**
    * POST /api/calculation-methods
@@ -66,7 +66,7 @@ public interface CalculationMethodsApi {
       })
   @RequestMapping(
       method = RequestMethod.POST,
-      value = CalculationMethodsApi.PATH_CALCULATION_RULES_CREATE_CALCULATION_RULE,
+      value = CalculationMethodsApi.PATH_CALCULATION_METHODS_CREATE_CALCULATION_METHOD,
       produces = {"application/json"},
       consumes = {"application/json"})
   ResponseEntity<CalculationMethod> calculationMethodsCreateCalculationMethod(
@@ -75,7 +75,7 @@ public interface CalculationMethodsApi {
           @RequestBody
           CreateCalculationMethodRequest createCalculationMethodRequest);
 
-  String PATH_CALCULATION_RULES_DELETE_CALCULATION_RULE =
+  String PATH_CALCULATION_METHODS_DELETE_CALCULATION_METHOD =
       "/api/calculation-methods/{inspectionObjectCode}/{inspectionParameterCode}";
 
   /**
@@ -105,7 +105,7 @@ public interface CalculationMethodsApi {
       })
   @RequestMapping(
       method = RequestMethod.DELETE,
-      value = CalculationMethodsApi.PATH_CALCULATION_RULES_DELETE_CALCULATION_RULE,
+      value = CalculationMethodsApi.PATH_CALCULATION_METHODS_DELETE_CALCULATION_METHOD,
       produces = {"application/json"})
   ResponseEntity<Void> calculationMethodsDeleteCalculationMethod(
       @Parameter(
@@ -123,7 +123,7 @@ public interface CalculationMethodsApi {
           @PathVariable("inspectionParameterCode")
           String inspectionParameterCode);
 
-  String PATH_CALCULATION_RULES_GET_CALCULATION_RULE =
+  String PATH_CALCULATION_METHODS_GET_CALCULATION_METHOD =
       "/api/calculation-methods/{inspectionObjectCode}/{inspectionParameterCode}";
 
   /**
@@ -157,7 +157,7 @@ public interface CalculationMethodsApi {
       })
   @RequestMapping(
       method = RequestMethod.GET,
-      value = CalculationMethodsApi.PATH_CALCULATION_RULES_GET_CALCULATION_RULE,
+      value = CalculationMethodsApi.PATH_CALCULATION_METHODS_GET_CALCULATION_METHOD,
       produces = {"application/json"})
   ResponseEntity<CalculationMethod> calculationMethodsGetCalculationMethod(
       @Parameter(
@@ -175,7 +175,7 @@ public interface CalculationMethodsApi {
           @PathVariable("inspectionParameterCode")
           String inspectionParameterCode);
 
-  String PATH_CALCULATION_RULES_LIST_CALCULATION_RULES = "/api/calculation-methods";
+  String PATH_CALCULATION_METHODS_LIST_CALCULATION_METHODS = "/api/calculation-methods";
 
   /**
    * GET /api/calculation-methods
@@ -208,7 +208,7 @@ public interface CalculationMethodsApi {
       })
   @RequestMapping(
       method = RequestMethod.GET,
-      value = CalculationMethodsApi.PATH_CALCULATION_RULES_LIST_CALCULATION_RULES,
+      value = CalculationMethodsApi.PATH_CALCULATION_METHODS_LIST_CALCULATION_METHODS,
       produces = {"application/json"})
   ResponseEntity<List<CalculationMethod>> calculationMethodsListCalculationMethods(
       @Parameter(name = "inspectionObjectCode", description = "", in = ParameterIn.QUERY)
@@ -222,7 +222,7 @@ public interface CalculationMethodsApi {
           @Nullable
           String inspectionParameterCode);
 
-  String PATH_CALCULATION_RULES_UPDATE_CALCULATION_RULE =
+  String PATH_CALCULATION_METHODS_UPDATE_CALCULATION_METHOD =
       "/api/calculation-methods/{inspectionObjectCode}/{inspectionParameterCode}";
 
   /**
@@ -257,7 +257,7 @@ public interface CalculationMethodsApi {
       })
   @RequestMapping(
       method = RequestMethod.PUT,
-      value = CalculationMethodsApi.PATH_CALCULATION_RULES_UPDATE_CALCULATION_RULE,
+      value = CalculationMethodsApi.PATH_CALCULATION_METHODS_UPDATE_CALCULATION_METHOD,
       produces = {"application/json"},
       consumes = {"application/json"})
   ResponseEntity<CalculationMethod> calculationMethodsUpdateCalculationMethod(

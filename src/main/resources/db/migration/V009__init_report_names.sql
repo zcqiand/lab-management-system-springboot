@@ -1,7 +1,7 @@
 -- V009__init_report_names.sql
--- M06 检测能力：报告名称（M06.F07）+ 3 张 report-name junction 表 + 计算方法（M06.F05）。
--- TypeSpec 来源: tsp/models/report-name.tsp / calculation-method.tsp
--- 业务域: M06.F05 计算方法 / M06.F07 报告名称
+-- M06 检测能力：报告名称（M06.F07）+ 3 张 report-name junction 表 + 计算规则（M06.F05）。
+-- TypeSpec 来源: tsp/models/report-name.tsp / calculation-rule.tsp
+-- 业务域: M06.F05 计算规则 / M06.F07 报告名称
 
 CREATE TYPE calculation_algorithm_type AS ENUM (
     'simple_avg',
@@ -77,8 +77,8 @@ CREATE TABLE inspection_report_name_parameters (
         REFERENCES inspection_parameters (code) ON DELETE CASCADE
 );
 
--- 5. inspection_calculation_methods 计算方法（M06.F05）复合主键
-CREATE TABLE inspection_calculation_methods (
+-- 5. inspection_calculation_rules 计算规则（M06.F05）复合主键
+CREATE TABLE inspection_calculation_rules (
     inspection_object_code      text        NOT NULL,
     inspection_parameter_code   text        NOT NULL,
     testing_standard_code       text,
@@ -104,9 +104,9 @@ CREATE TABLE inspection_calculation_methods (
     CONSTRAINT calc_rule_report_fk FOREIGN KEY (report_name_code)
         REFERENCES inspection_report_names (code) ON DELETE SET NULL
 );
-COMMENT ON TABLE inspection_calculation_methods IS '计算方法（M06.F05）。';
+COMMENT ON TABLE inspection_calculation_rules IS '计算规则（M06.F05）。';
 
 CREATE INDEX idx_obj_rn_object ON inspection_object_report_names (inspection_object_code);
 CREATE INDEX idx_rn_std_report ON inspection_report_name_standards (report_name_code);
 CREATE INDEX idx_rn_param_report ON inspection_report_name_parameters (report_name_code);
-CREATE INDEX idx_calc_rule_object ON inspection_calculation_methods (inspection_object_code);
+CREATE INDEX idx_calc_rule_object ON inspection_calculation_rules (inspection_object_code);

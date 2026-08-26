@@ -116,4 +116,47 @@ public class InspectionReportNameController implements ReportNamesApi {
         body.getReportNameCode(), body.getInspectionStandardCode(), body.getRole());
     return ResponseEntity.noContent().build();
   }
+
+  // === junction GET（Page<T>，shared 契约补齐）===
+
+  @Override
+  public ResponseEntity<io.xr.lab.shared.dto.ReportNamesListObjectReportNameLinks200Response>
+      reportNamesListObjectReportNameLinks(String inspectionObjectCode, String reportNameCode) {
+    List<ObjectReportNameLink> list =
+        junctionService.listObjectReportNameLinks(inspectionObjectCode, reportNameCode);
+    return ResponseEntity.ok(
+        new io.xr.lab.shared.dto.ReportNamesListObjectReportNameLinks200Response()
+            .items(list)
+            .page(1)
+            .pageSize(list.size())
+            .total((long) list.size()));
+  }
+
+  @Override
+  public ResponseEntity<io.xr.lab.shared.dto.ReportNamesListReportNameStandardLinks200Response>
+      reportNamesListReportNameStandardLinks(
+          String reportNameCode, io.xr.lab.shared.dto.InspectionStandardRole role) {
+    List<ReportNameStandardLink> list =
+        junctionService.listReportNameStandardLinks(reportNameCode, role);
+    return ResponseEntity.ok(
+        new io.xr.lab.shared.dto.ReportNamesListReportNameStandardLinks200Response()
+            .items(list)
+            .page(1)
+            .pageSize(list.size())
+            .total((long) list.size()));
+  }
+
+  @Override
+  public ResponseEntity<io.xr.lab.shared.dto.ReportNamesListReportNameParameterLinks200Response>
+      reportNamesListReportNameParameterLinks(
+          String reportNameCode, String inspectionParameterCode) {
+    List<ReportNameParameterLink> list =
+        junctionService.listReportNameParameterLinks(reportNameCode, inspectionParameterCode);
+    return ResponseEntity.ok(
+        new io.xr.lab.shared.dto.ReportNamesListReportNameParameterLinks200Response()
+            .items(list)
+            .page(1)
+            .pageSize(list.size())
+            .total((long) list.size()));
+  }
 }

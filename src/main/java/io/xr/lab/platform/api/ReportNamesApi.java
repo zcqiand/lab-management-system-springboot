@@ -15,9 +15,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.xr.lab.shared.dto.CreateInspectionReportNameRequest;
 import io.xr.lab.shared.dto.ErrorResponse;
 import io.xr.lab.shared.dto.InspectionReportName;
+import io.xr.lab.shared.dto.InspectionStandardRole;
 import io.xr.lab.shared.dto.ObjectReportNameLink;
 import io.xr.lab.shared.dto.ReportNameParameterLink;
 import io.xr.lab.shared.dto.ReportNameStandardLink;
+import io.xr.lab.shared.dto.ReportNamesListObjectReportNameLinks200Response;
+import io.xr.lab.shared.dto.ReportNamesListReportNameParameterLinks200Response;
+import io.xr.lab.shared.dto.ReportNamesListReportNameStandardLinks200Response;
 import io.xr.lab.shared.dto.ReportNamesListReportNames200Response;
 import io.xr.lab.shared.dto.ReportNamesUnlinkObjectReportNameRequest;
 import io.xr.lab.shared.dto.ReportNamesUnlinkReportNameParameterRequest;
@@ -33,7 +37,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-20T13:31:51.674991500+08:00[Asia/Shanghai]",
+    date = "2026-08-26T12:43:04.549030500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 @Validated
 @Tag(name = "report-names", description = "the report-names API")
@@ -264,6 +268,157 @@ public interface ReportNamesApi {
           @Valid
           @RequestBody
           ReportNameStandardLink reportNameStandardLink);
+
+  String PATH_REPORT_NAMES_LIST_OBJECT_REPORT_NAME_LINKS = "/api/report-names/links/object";
+
+  /**
+   * GET /api/report-names/links/object
+   *
+   * @param inspectionObjectCode (optional)
+   * @param reportNameCode (optional)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "reportNamesListObjectReportNameLinks",
+      tags = {"report-names"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema =
+                      @Schema(
+                          implementation = ReportNamesListObjectReportNameLinks200Response.class))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.GET,
+      value = ReportNamesApi.PATH_REPORT_NAMES_LIST_OBJECT_REPORT_NAME_LINKS,
+      produces = {"application/json"})
+  ResponseEntity<ReportNamesListObjectReportNameLinks200Response>
+      reportNamesListObjectReportNameLinks(
+          @Parameter(name = "inspectionObjectCode", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "inspectionObjectCode", required = false)
+              @Nullable
+              String inspectionObjectCode,
+          @Parameter(name = "reportNameCode", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "reportNameCode", required = false)
+              @Nullable
+              String reportNameCode);
+
+  String PATH_REPORT_NAMES_LIST_REPORT_NAME_PARAMETER_LINKS = "/api/report-names/links/parameter";
+
+  /**
+   * GET /api/report-names/links/parameter
+   *
+   * @param reportNameCode (optional)
+   * @param inspectionParameterCode (optional)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "reportNamesListReportNameParameterLinks",
+      tags = {"report-names"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema =
+                      @Schema(
+                          implementation =
+                              ReportNamesListReportNameParameterLinks200Response.class))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.GET,
+      value = ReportNamesApi.PATH_REPORT_NAMES_LIST_REPORT_NAME_PARAMETER_LINKS,
+      produces = {"application/json"})
+  ResponseEntity<ReportNamesListReportNameParameterLinks200Response>
+      reportNamesListReportNameParameterLinks(
+          @Parameter(name = "reportNameCode", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "reportNameCode", required = false)
+              @Nullable
+              String reportNameCode,
+          @Parameter(name = "inspectionParameterCode", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "inspectionParameterCode", required = false)
+              @Nullable
+              String inspectionParameterCode);
+
+  String PATH_REPORT_NAMES_LIST_REPORT_NAME_STANDARD_LINKS = "/api/report-names/links/standard";
+
+  /**
+   * GET /api/report-names/links/standard
+   *
+   * @param reportNameCode (optional)
+   * @param role (optional)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "reportNamesListReportNameStandardLinks",
+      tags = {"report-names"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema =
+                      @Schema(
+                          implementation = ReportNamesListReportNameStandardLinks200Response.class))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.GET,
+      value = ReportNamesApi.PATH_REPORT_NAMES_LIST_REPORT_NAME_STANDARD_LINKS,
+      produces = {"application/json"})
+  ResponseEntity<ReportNamesListReportNameStandardLinks200Response>
+      reportNamesListReportNameStandardLinks(
+          @Parameter(name = "reportNameCode", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "reportNameCode", required = false)
+              @Nullable
+              String reportNameCode,
+          @Parameter(name = "role", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "role", required = false)
+              @Nullable
+              InspectionStandardRole role);
 
   String PATH_REPORT_NAMES_LIST_REPORT_NAMES = "/api/report-names";
 

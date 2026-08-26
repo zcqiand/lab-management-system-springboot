@@ -16,6 +16,7 @@ import io.xr.lab.shared.dto.CreateParamInterfaceRequest;
 import io.xr.lab.shared.dto.ErrorResponse;
 import io.xr.lab.shared.dto.ParamInterface;
 import io.xr.lab.shared.dto.ParamInterfaceLink;
+import io.xr.lab.shared.dto.ParamInterfacesListParamInterfaceLinks200Response;
 import io.xr.lab.shared.dto.ParamInterfacesListParamInterfaces200Response;
 import io.xr.lab.shared.dto.ParamInterfacesUnlinkParamInterfaceRequest;
 import io.xr.lab.shared.dto.UpdateParamInterfaceRequest;
@@ -29,7 +30,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-20T13:31:51.674991500+08:00[Asia/Shanghai]",
+    date = "2026-08-26T12:43:04.549030500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 @Validated
 @Tag(name = "param-interfaces", description = "the param-interfaces API")
@@ -184,6 +185,56 @@ public interface ParamInterfacesApi {
   ResponseEntity<Void> paramInterfacesLinkParamInterface(
       @Parameter(name = "ParamInterfaceLink", description = "", required = true) @Valid @RequestBody
           ParamInterfaceLink paramInterfaceLink);
+
+  String PATH_PARAM_INTERFACES_LIST_PARAM_INTERFACE_LINKS = "/api/param-interfaces/links";
+
+  /**
+   * GET /api/param-interfaces/links
+   *
+   * @param inspectionParameterCode (optional)
+   * @param paramInterfaceCode (optional)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "paramInterfacesListParamInterfaceLinks",
+      tags = {"param-interfaces"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema =
+                      @Schema(
+                          implementation = ParamInterfacesListParamInterfaceLinks200Response.class))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.GET,
+      value = ParamInterfacesApi.PATH_PARAM_INTERFACES_LIST_PARAM_INTERFACE_LINKS,
+      produces = {"application/json"})
+  ResponseEntity<ParamInterfacesListParamInterfaceLinks200Response>
+      paramInterfacesListParamInterfaceLinks(
+          @Parameter(name = "inspectionParameterCode", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "inspectionParameterCode", required = false)
+              @Nullable
+              String inspectionParameterCode,
+          @Parameter(name = "paramInterfaceCode", description = "", in = ParameterIn.QUERY)
+              @Valid
+              @RequestParam(value = "paramInterfaceCode", required = false)
+              @Nullable
+              String paramInterfaceCode);
 
   String PATH_PARAM_INTERFACES_LIST_PARAM_INTERFACES = "/api/param-interfaces";
 

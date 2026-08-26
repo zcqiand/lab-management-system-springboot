@@ -14,7 +14,7 @@ import org.springframework.lang.Nullable;
 @Schema(name = "TokenStorageKeys", description = "前端持久化 key 命名约定;后端契约不感知,但前端实现必须遵守")
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-20T13:31:51.674991500+08:00[Asia/Shanghai]",
+    date = "2026-08-26T12:43:04.549030500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public class TokenStorageKeys {
 
@@ -117,39 +117,6 @@ public class TokenStorageKeys {
 
   private ActiveTenantIdEnum activeTenantId;
 
-  /** 当前激活后端槽位(用于跨刷新记忆) */
-  public enum ActiveBackendEnum {
-    LAB_ACTIVE_BACKEND("lab.activeBackend");
-
-    private final String value;
-
-    ActiveBackendEnum(String value) {
-      this.value = value;
-    }
-
-    @JsonValue
-    public String getValue() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return String.valueOf(value);
-    }
-
-    @JsonCreator
-    public static ActiveBackendEnum fromValue(String value) {
-      for (ActiveBackendEnum b : ActiveBackendEnum.values()) {
-        if (b.value.equals(value)) {
-          return b;
-        }
-      }
-      throw new IllegalArgumentException("Unexpected value '" + value + "'");
-    }
-  }
-
-  private ActiveBackendEnum activeBackend;
-
   /** permissions 缓存(避免每次路由跳转都打 /auth/permissions) */
   public enum PermissionsCacheEnum {
     LAB_PERMISSIONS("lab.permissions");
@@ -192,12 +159,10 @@ public class TokenStorageKeys {
       AccessTokenEnum accessToken,
       RefreshTokenEnum refreshToken,
       ActiveTenantIdEnum activeTenantId,
-      ActiveBackendEnum activeBackend,
       PermissionsCacheEnum permissionsCache) {
     this.accessToken = accessToken;
     this.refreshToken = refreshToken;
     this.activeTenantId = activeTenantId;
-    this.activeBackend = activeBackend;
     this.permissionsCache = permissionsCache;
   }
 
@@ -276,31 +241,6 @@ public class TokenStorageKeys {
     this.activeTenantId = activeTenantId;
   }
 
-  public TokenStorageKeys activeBackend(ActiveBackendEnum activeBackend) {
-    this.activeBackend = activeBackend;
-    return this;
-  }
-
-  /**
-   * 当前激活后端槽位(用于跨刷新记忆)
-   *
-   * @return activeBackend
-   */
-  @NotNull
-  @Schema(
-      name = "activeBackend",
-      description = "当前激活后端槽位(用于跨刷新记忆)",
-      requiredMode = Schema.RequiredMode.REQUIRED)
-  @JsonProperty("activeBackend")
-  public ActiveBackendEnum getActiveBackend() {
-    return activeBackend;
-  }
-
-  @JsonProperty("activeBackend")
-  public void setActiveBackend(ActiveBackendEnum activeBackend) {
-    this.activeBackend = activeBackend;
-  }
-
   public TokenStorageKeys permissionsCache(PermissionsCacheEnum permissionsCache) {
     this.permissionsCache = permissionsCache;
     return this;
@@ -338,13 +278,12 @@ public class TokenStorageKeys {
     return Objects.equals(this.accessToken, tokenStorageKeys.accessToken)
         && Objects.equals(this.refreshToken, tokenStorageKeys.refreshToken)
         && Objects.equals(this.activeTenantId, tokenStorageKeys.activeTenantId)
-        && Objects.equals(this.activeBackend, tokenStorageKeys.activeBackend)
         && Objects.equals(this.permissionsCache, tokenStorageKeys.permissionsCache);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(accessToken, refreshToken, activeTenantId, activeBackend, permissionsCache);
+    return Objects.hash(accessToken, refreshToken, activeTenantId, permissionsCache);
   }
 
   @Override
@@ -354,7 +293,6 @@ public class TokenStorageKeys {
     sb.append("    accessToken: ").append(toIndentedString(accessToken)).append("\n");
     sb.append("    refreshToken: ").append(toIndentedString(refreshToken)).append("\n");
     sb.append("    activeTenantId: ").append(toIndentedString(activeTenantId)).append("\n");
-    sb.append("    activeBackend: ").append(toIndentedString(activeBackend)).append("\n");
     sb.append("    permissionsCache: ").append(toIndentedString(permissionsCache)).append("\n");
     sb.append("}");
     return sb.toString();

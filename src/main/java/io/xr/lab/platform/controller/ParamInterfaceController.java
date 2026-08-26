@@ -81,4 +81,20 @@ public class ParamInterfaceController implements ParamInterfacesApi {
         body.getInspectionParameterCode(), body.getParamInterfaceCode());
     return ResponseEntity.noContent().build();
   }
+
+  // === junction GET（Page<T>，shared 契约补齐）===
+
+  @Override
+  public ResponseEntity<io.xr.lab.shared.dto.ParamInterfacesListParamInterfaceLinks200Response>
+      paramInterfacesListParamInterfaceLinks(
+          String inspectionParameterCode, String paramInterfaceCode) {
+    List<ParamInterfaceLink> list =
+        junctionService.listParamInterfaceLinks(inspectionParameterCode, paramInterfaceCode);
+    return ResponseEntity.ok(
+        new io.xr.lab.shared.dto.ParamInterfacesListParamInterfaceLinks200Response()
+            .items(list)
+            .page(1)
+            .pageSize(list.size())
+            .total((long) list.size()));
+  }
 }

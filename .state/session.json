@@ -10,8 +10,8 @@
     "L0-L5 全绿（lab-springboot 153 条目 0 软告警）；suite --all 14 项目全绿"
   ],
   "next": [
-    "非阻塞 cleanup：spotbugs BX_UNBOXING_IMMEDIATELY_REBOXED / NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE 豁免复查（保留项）",
-    "非阻塞：lab-react LoginPage client_id 注释已在两前端仓修正（e827982/56ce12d），行为无变化"
+    "非阻塞：lab-react LoginPage client_id 注释已在两前端仓修正（e827982/56ce12d），行为无变化",
+    "已复查关闭：BX_UNBOXING_IMMEDIATELY_REBOXED / NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE 在本仓 effort=Max/threshold=Low 全量报告 0 实例（spotbugsXml.xml 验证），无需豁免。saas 需要是其 codegen @Nullable getter 模式，lab 的 shared.dto 包级豁免已覆盖"
   ],
   "open_questions": [],
   "dont": [
