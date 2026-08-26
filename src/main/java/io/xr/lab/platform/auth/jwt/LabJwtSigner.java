@@ -16,7 +16,9 @@ import org.springframework.stereotype.Component;
 /**
  * LabJwtSigner — 真 HMAC HS256 JWT 签发/验证（对齐 B1 真后端 OAuth 2.0 + JWT 方案）。
  *
- * <p>读取 LAB_JWT_SECRET（≥32 字节，缺/弱抛 {@link IllegalStateException} 阻断 bean 创建）。提供：
+ * <p>读取 JWT_SIGNING_KEY env（≥32 字节，缺/弱抛 {@link IllegalStateException} 阻断 bean 创建）。 application.yml
+ * 把 `lab.jwt.secret` 占位映射到 env JWT_SIGNING_KEY（与 saas 兄弟仓对齐命名， Phase 4 env 对称化后所有 9 仓共享
+ * dev-key-32-bytes-minimum-length!）。提供：
  *
  * <ul>
  *   <li>{@link #issue(String, String)} — access token（typ=access, 1h TTL, 支持 tenant_id claim）
@@ -55,11 +57,11 @@ public class LabJwtSigner {
       @Value("${lab.jwt.refresh-ttl-seconds}") long refreshTtlSeconds) {
     if (secret == null || secret.isEmpty()) {
       throw new IllegalStateException(
-          "LAB_JWT_SECRET required (>=32 bytes). Set via env var or lab.jwt.secret property.");
+          "JWT_SIGNING_KEY required (>=32 bytes). Set via env var or lab.jwt.secret property.");
     }
     if (secret.getBytes(StandardCharsets.UTF_8).length < 32) {
       throw new IllegalStateException(
-          "LAB_JWT_SECRET must be >=32 bytes (got "
+          "JWT_SIGNING_KEY must be >=32 bytes (got "
               + secret.getBytes(StandardCharsets.UTF_8).length
               + "). Use openssl rand -base64 48.");
     }

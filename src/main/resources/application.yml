@@ -62,12 +62,12 @@ lab:
     issuer: lab-management-system
     ttl-seconds: 3600
     refresh-ttl-seconds: 604800
-    secret: ${LAB_JWT_SECRET:dev-lab-jwt-secret-dev-lab-jwt-secret-dev-lab-jwt-secret}
+    secret: ${JWT_SIGNING_KEY:dev-key-32-bytes-minimum-length!}
   sso:
     # dev 默认值与 aspnetcore 仓 appsettings.Development.json 同款（lab-mgmt client 在
     # saas apps 表注册，redirect 白名单 5173/5174 login + 3001 callback）。
     # prod 必走 env 覆盖，client-secret 不得带出本机。
-    saas-base: ${LAB_SAAS_BASE:http://localhost:3000}
+    saas-base: ${LAB_SAAS_BASE_URL:http://localhost:3000}
     # IdP 登录页 base（authorizeUrl 拼 {loginUrl}/login）。该页面由 saas 前端提供；
     # 空 = 回落 saas-base（dev 时 saas-nextjs :3000 既是前端也带 API routes）。
     login-url: ${LAB_SSO_LOGIN_URL:}

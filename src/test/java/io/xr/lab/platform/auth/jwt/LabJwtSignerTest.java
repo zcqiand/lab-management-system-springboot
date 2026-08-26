@@ -20,7 +20,7 @@ import org.springframework.security.oauth2.jwt.JwtException;
  *   <li>access token 签发 → NimbusJwtDecoder 解出 → claims 命中
  *   <li>refresh token 签发（typ=refresh, saas_refresh_token claim 内嵌）
  *   <li>篡改 payload 验签失败
- *   <li>缺 / 弱 LAB_JWT_SECRET 构造抛 {@link IllegalStateException}
+ *   <li>缺 / 弱 JWT_SIGNING_KEY 构造抛 {@link IllegalStateException}
  * </ul>
  */
 class LabJwtSignerTest {
@@ -81,7 +81,7 @@ class LabJwtSignerTest {
     IllegalStateException ex =
         assertThrows(
             IllegalStateException.class, () -> new LabJwtSigner(null, "lab-test", 3600, 604800));
-    assertTrue(ex.getMessage().contains("LAB_JWT_SECRET"));
+    assertTrue(ex.getMessage().contains("JWT_SIGNING_KEY"));
   }
 
   @Test
