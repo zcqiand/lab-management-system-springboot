@@ -13,7 +13,7 @@
 -- M02/M03 业务表（V001/V002）：contract_status / flow_status / receipt_result
 -- M04.F05 技术要求（V005）：requirement_value_type / requirement_comparison /
 --   requirement_verification_status / requirement_judgment_mode
--- M06 计算规则（V009）：calculation_algorithm_type
+-- M06 计算方法（V009）：calculation_algorithm_type
 -- M06 字典（V008）：inspection_parameter_source_type / inspection_standard_status /
 --   qualification_level / inspection_standard_role
 -- V006 audit_action 不在此列（仍是 PG enum，V006 阶段未被任何 JPA 仓直接使用，
@@ -50,8 +50,8 @@ DROP TYPE IF EXISTS requirement_comparison CASCADE;
 DROP TYPE IF EXISTS requirement_verification_status CASCADE;
 DROP TYPE IF EXISTS requirement_judgment_mode CASCADE;
 
--- 3. M06.F05 计算规则 1 个 enum
-ALTER TABLE inspection_calculation_rules
+-- 3. M06.F05 计算方法 1 个 enum
+ALTER TABLE inspection_calculation_methods
     ALTER COLUMN algorithm_type TYPE text USING algorithm_type::text,
     ALTER COLUMN algorithm_type SET DEFAULT 'manual';
 DROP TYPE IF EXISTS calculation_algorithm_type CASCADE;

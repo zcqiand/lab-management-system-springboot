@@ -53,11 +53,22 @@ mvn -q spotless:apply
 
 # DB — lab-shared SQL SSOT 落地：Flyway replay V001-V013
 echo "[gen-shared] step 3/3 — DB: copy shared/sql/migrations/* → src/main/resources/db/migration/"
+# 分叉保护（2026-08-26 prod 502 事故）：本仓 V014/V015 已偏离 shared 同名版本
+# （本仓 V014 直接 ALTER inspection_calculation_methods、V015 是 dev-only smoke seed，
+#  且 VPS flyway history 记的是本仓版 checksum）。shared 的同名文件拷入会造成
+# checksum mismatch → 启动崩。shared 侧收敛前，这两版本地为准、不覆盖。
+# 待办：shared V014/V015 与本仓分叉收敛后删除此豁免（见 session.json）。
+DIVERGED_VERSIONS="V014 V015"
 SHARED_SQL="$SHARED_DIR/sql/migrations"
 if [ -d "$SHARED_SQL" ]; then
   mkdir -p "$ROOT/src/main/resources/db/migration"
   for f in "$SHARED_SQL"/V*.sql; do
     [ -e "$f" ] || continue
+    ver=$(basename "$f" | cut -d_ -f1)
+    if echo "$DIVERGED_VERSIONS" | grep -qw "$ver"; then
+      echo "[gen-shared] SKIP diverged migration: $(basename "$f") (local version is authoritative)"
+      continue
+    fi
     cp "$f" "$ROOT/src/main/resources/db/migration/"
   done
   [ -f "$SHARED_SQL/README.md" ] && cp "$SHARED_SQL/README.md" "$ROOT/src/main/resources/db/migration/README.md"
