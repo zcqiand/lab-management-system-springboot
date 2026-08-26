@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "project": "lab-management-system-springboot",
-  "current_task": "prod SSO 全链验证完成（2026-08-26）：authorize→saas跳板→callback→JWT→me/menus 全通，code 一次性防重放生效",
+  "current_task": "SSO 错误语义修复完成（v0.1.17）：SaasAuthException 分流，重放/过期 400 INVALID_GRANT 对齐 msw 契约，线上已验证",
   "done": [
     "spotbugs-exclude.xml:把死匹配 `io.xr.lab.platform.api` 改成真声明包 `io.xr.lab.shared.api`（codegen 包按字节码包名匹配；目录是 platform/api 但 package 声明是 shared.api）",
     "spotbugs-exclude.xml:新增 4 条 bug-pattern 全局豁免 — EI_EXPOSE_REP/EI_EXPOSE_REP2 / CT_CONSTRUCTOR_THROW / UUF_UNUSED_FIELD / UPM_UNCALLED_PRIVATE_METHOD（Spring DI 容器单例 + final 字段单赋值 + private static helper @Override 转发 — 全部 SpotBugs 已知误报模式，对齐 saas-springboot v0.2.0 口径）",
@@ -10,14 +10,10 @@
     "L0-L5 全绿（lab-springboot 153 条目 0 软告警）；suite --all 14 项目全绿"
   ],
   "next": [
-    "非阻塞：ssoCallback 失败（code 重放/过期）经 SaasAuthException 映射后浏览器拿到 CF 502 换皮 —— 错误语义应 4xx，可作 cleanup",
-    "非阻塞：lab-react LoginPage.tsx:31 OAUTH_CLIENT_ID=lab-mgmt 硬编码，后端 ssoAuthorize 忽略之（用 env UUID），仅文档性偏差",
-    "原 spotbugs cleanup 复查项保留"
+    "非阻塞 cleanup：spotbugs BX_UNBOXING_IMMEDIATELY_REBOXED / NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE 豁免复查（保留项）",
+    "非阻塞：lab-react LoginPage client_id 注释已在两前端仓修正（e827982/56ce12d），行为无变化"
   ],
-  "open_questions": [
-    "ApiUtil.java staged 删除但未 commit：是上一会话决定去掉 codegen 产物（理由：gen-shared.sh 还会重出），还是无意 commit？当前 target/classes/io/xr/lab/shared/api/ApiUtil.class 不再被 mvn compile 重出（源已删），但 spotbugs-exclude 的 `io.xr.lab.shared.api` 包豁免仍然兜底 stale 类 — 安全",
-    "SaasMeClient 构造期 IllegalStateException(env 缺失) 是 fail-fast 设计意图，从 class-level @SuppressFBWarnings 删除后只剩 Javadoc 描述；下一位 reviewer 可能问 '为什么 class-level 抑制没了'，spotbugs-exclude.xml 第 18-21 行的解释记得指向 SaasMeClient 那一段"
-  ],
+  "open_questions": [],
   "dont": [
     "不要再回到 per-class @SuppressFBWarnings 模式 — 上一会话的 12 条 US_USELESS_SUPPRESSION 警告就是踩这个坑（class-level / method-level 抑制在不同 SpotBugs 扫描下都会被反复标 'unnecessary'，因为 suppressions 实际无效 — 真 bug 是 controller 字段被 @Override 使用，SpotBugs 不跟踪这条路径）",
     "不要动 .harness/stack.json（L1/L2/L3/L4 命令） — 这次 fix 在 spotbugs-exclude.xml + src/ 两侧都修了，没动 stack",
