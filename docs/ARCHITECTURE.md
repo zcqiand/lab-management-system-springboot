@@ -46,7 +46,7 @@
 
 | 维度 | saas-springboot | lab-springboot（本仓） |
 |---|---|---|
-| 产品域 | 多租户 OAuth IdP | 实验室检测业务（合同/接样/样品/报告） |
+| 产品域 | 多租户 OAuth IdP | 建筑工程实验室管理系统（合同/接样/样品/报告） |
 | **Flyway** | `enabled: false` | **`enabled: true`** + V014 永久分叉 |
 | `baseline-on-migrate` | — | `true` / `baseline-version: "13"` |
 | 业务表 | shared OAuth 表 | lab 业务表（contracts/receipts/samples/methods …） |
@@ -640,7 +640,7 @@ done
 
 | 维度 | saas-springboot | lab-springboot（本仓） |
 |---|---|---|
-| **产品域** | 多租户 OAuth IdP（authorize/callback/refresh/menus） | 实验室检测业务（合同/接样/样品/检测/报告） |
+| **产品域** | 多租户 OAuth IdP（authorize/callback/refresh/menus） | 建筑工程实验室管理系统（合同/接样/样品/检测/报告） |
 | **Flyway** | `enabled: false`（schema 由 shared SQL + sync-db 全量灌入 + JPA validate） | **`enabled: true`**（V001-V017 replay，含 V014 永久分叉管理） |
 | **DB migration 编号** | 与 shared 一一对应 | 与 shared **错位**（V008 = shared V008；V009 = shared V008 init_report_names；V014 永久分叉 + V017 rename） |
 | **JWT 算法** | (历史：dev `alg=none` `DevJwtDecoder @Profile("dev")`)；Phase 2A 后 saas 也删 DevJwtDecoder，4 仓现在统一 HS256 真验签 | **HS256 真签名**（LabJwtSigner + Nimbus）；未走 dev `alg=none` 兼容 |

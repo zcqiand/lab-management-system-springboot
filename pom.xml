@@ -1,28 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project 
+    
+    
+    xmlns="http://maven.apache.org/POM/4.0.0"
+         
+    
+    
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <!--
       Spring Boot 3.x + Java 17 + JUnit5 + Spotless + SpotBugs。
       这是脚手架。spotless / spotbugs 已在 <build><plugins> 声明并接入 L1/L2 门。
       路径与版本耦合由适配器管理；项目要换栈，跑 scripts/upgrade_project.py 或联系 operator。
     -->
-
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.4.1</version>
         <relativePath/>
     </parent>
-
     <groupId>lab-management-system-springboot</groupId>
     <artifactId>lab-management-system-springboot</artifactId>
     <version>0.1.0-SNAPSHOT</version>
-    <name>实验室管理系统SpringBoot后端</name>
-    <description>实验室管理系统SpringBoot后端</description>
-
+    <name>建筑工程实验室管理系统SpringBoot后端</name>
+    <description>建筑工程实验室管理系统SpringBoot后端</description>
     <properties>
         <java.version>21</java.version>
         <maven.compiler.release>21</maven.compiler.release>
@@ -30,7 +32,6 @@
         <spotless.version>2.43.0</spotless.version>
         <spotbugs.version>4.9.3.2</spotbugs.version>
     </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -101,7 +102,6 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
-
         <!-- 测试 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -125,7 +125,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
