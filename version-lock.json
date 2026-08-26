@@ -1,0 +1,11 @@
+{
+  "version_lock": {
+    "java": "21",
+    "spring-boot": "3.4.1",
+    "flyway": "（随 spring-boot-starter-parent）",
+    "postgresql-driver": "（随 spring-boot-starter-parent）",
+    "junit5": "（随 starter-test）",
+    "spotless-maven-plugin": "2.2.22? （见 pom.xml）",
+    "maven": "3.9+"
+  }
+}
