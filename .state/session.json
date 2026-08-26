@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "project": "lab-management-system-springboot",
-  "current_task": "SSO 错误语义修复完成（v0.1.17）：SaasAuthException 分流，重放/过期 400 INVALID_GRANT 对齐 msw 契约，线上已验证",
+  "current_task": "junction GET 4 端点实现 + v0.1.18 tag（7894ac5）",
   "done": [
     "spotbugs-exclude.xml:把死匹配 `io.xr.lab.platform.api` 改成真声明包 `io.xr.lab.shared.api`（codegen 包按字节码包名匹配；目录是 platform/api 但 package 声明是 shared.api）",
     "spotbugs-exclude.xml:新增 4 条 bug-pattern 全局豁免 — EI_EXPOSE_REP/EI_EXPOSE_REP2 / CT_CONSTRUCTOR_THROW / UUF_UNUSED_FIELD / UPM_UNCALLED_PRIVATE_METHOD（Spring DI 容器单例 + final 字段单赋值 + private static helper @Override 转发 — 全部 SpotBugs 已知误报模式，对齐 saas-springboot v0.2.0 口径）",
@@ -10,8 +10,7 @@
     "L0-L5 全绿（lab-springboot 153 条目 0 软告警）；suite --all 14 项目全绿"
   ],
   "next": [
-    "非阻塞：lab-react LoginPage client_id 注释已在两前端仓修正（e827982/56ce12d），行为无变化",
-    "已复查关闭：BX_UNBOXING_IMMEDIATELY_REBOXED / NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE 在本仓 effort=Max/threshold=Low 全量报告 0 实例（spotbugsXml.xml 验证），无需豁免。saas 需要是其 codegen @Nullable getter 模式，lab 的 shared.dto 包级豁免已覆盖"
+    "无（spotbugs 豁免复查已关闭：0 实例无需豁免）"
   ],
   "open_questions": [],
   "dont": [
