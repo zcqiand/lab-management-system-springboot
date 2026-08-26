@@ -1,28 +1,30 @@
 {
   "schema": 1,
   "project": "lab-management-system-springboot",
-  "current_task": "junction GET 4 端点上线（v0.1.21，经 3 次 flyway 撞号事故修复）+ prod 验证通过",
+  "current_task": "V014 永久分叉定格 + gen-shared abort 防护上线（v0.1.22）— 8/26 lab prod 502 事故根治",
+  "last_session_at": "2026-08-26",
+  "last_session_summary": "DIVERGED_VERSIONS 缩到 V014 单点 + cmp abort 防护覆盖其余迁移；V014 经 emit-schema 实测不可收敛（演化版 ALTER methods 表 vs fresh replay 链 ALTER rules 表,语义互补各自不可替换），定格永久结构性分叉并写入脚本注释。lab_dev flyway V014 checksum 已 repair (-1860597146,等价 flyway repair)。/handoff 二次门禁 --all exit 0",
   "done": [
-    "spotbugs-exclude.xml:把死匹配 `io.xr.lab.platform.api` 改成真声明包 `io.xr.lab.shared.api`（codegen 包按字节码包名匹配；目录是 platform/api 但 package 声明是 shared.api）",
-    "spotbugs-exclude.xml:新增 4 条 bug-pattern 全局豁免 — EI_EXPOSE_REP/EI_EXPOSE_REP2 / CT_CONSTRUCTOR_THROW / UUF_UNUSED_FIELD / UPM_UNCALLED_PRIVATE_METHOD（Spring DI 容器单例 + final 字段单赋值 + private static helper @Override 转发 — 全部 SpotBugs 已知误报模式，对齐 saas-springboot v0.2.0 口径）",
-    "src/main/java:删 19 处冗余 @SuppressFBWarnings（SaasMeClient 内 3 个 inner class、12 个 controller 构造器 + SampleEntity.getExt/setExt + CalculationMethodMapper.fromCreate + AuthService class + ReportFlowService ctor + LabJwtSigner class + SaasAuthClient class），原 suppressions 在 bug-pattern 全局豁免后被 SpotBugs 标 US_USELESS_SUPPRESSION",
-    "spotless:apply 重排所有修改的文件",
-    "L0-L5 全绿（lab-springboot 153 条目 0 软告警）；suite --all 14 项目全绿"
+    "scripts/gen-shared.sh：DIVERGED_VERSIONS=\"V014\";其余 V*.sql 拷贝前 cmp,目标已存在且内容不同 -> FATAL abort(防 8/26 事故重演)",
+    "V014 定永久分叉(演化版锁死 lab_prod checksum,旧版是 fresh replay 必需)",
+    "lab_dev flyway_schema_history V014 checksum repair：1200090096 -> -1860597146",
+    "本仓迁移文件零改动(V014/V015/V017 字节未动,lab_prod flyway 安全)",
+    "gate L0-L5 全绿 153 条目 0 软告警;suite --all 15 项目全绿",
+    "commit a2fa729 + tag v0.1.22-20260826 + push origin/master"
   ],
   "next": [
-    "URGENT 待办：shared 仓 V014__enums_to_text（旧版 ALTER rules 表）与本仓 V014（演化版 ALTER methods 表）分叉收敛 — shared 侧应更新 V014 内容对齐本仓（但 shared V014 已被 nextjs 侧 sync-db 消费过，需确认 nextjs lab_dev 库的 flyway/schema history 状态再动）",
-    "收敛完成后删除 gen-shared.sh 的 DIVERGED_VERSIONS=\"V014 V015\" 豁免（scripts/gen-shared.sh 注释有指引）",
-    "本仓 V015__smoke_seed_dict.sql 首行注释仍是历史笔误 \"-- V016__...\" — checksum 锁死不能改，收敛时以新版本号重写"
+    "无阻塞。可选：dev 启动一次 springboot(连 lab_dev)让 V017 实际落地,之后 M97.F01 重新 emit 可拿到 methods 命名的 schema.ts"
   ],
-  "open_questions": [
-    "事故复盘（2026-08-26 v0.1.18/19/20 三连败）：gen-shared 拷贝 shared 迁移覆盖本仓已演化同名版本 → flyway checksum mismatch → 容器启动崩 → prod 502 约 40 分钟。防御已加（DIVERGED_VERSIONS），根治靠 shared 分叉收敛"
-  ],
+  "open_questions": [],
   "dont": [
-    "不要再回到 per-class @SuppressFBWarnings 模式 — 上一会话的 12 条 US_USELESS_SUPPRESSION 警告就是踩这个坑（class-level / method-level 抑制在不同 SpotBugs 扫描下都会被反复标 'unnecessary'，因为 suppressions 实际无效 — 真 bug 是 controller 字段被 @Override 使用，SpotBugs 不跟踪这条路径）",
-    "不要动 .harness/stack.json（L1/L2/L3/L4 命令） — 这次 fix 在 spotbugs-exclude.xml + src/ 两侧都修了，没动 stack",
-    "不要加 EI_EXPOSE_REP/REP2 的 controller 级 @SuppressFBWarnings — 全局豁免已覆盖，再加 class-level 会被 SpotBugs 标 US_USELESS_SUPPRESSION",
-    "不要把 AuthService / SaasMeClient / SaasAuthClient 的 IllegalStateException 改回 throws / 不抛 — fail-fast 是设计意图（env 缺失立即阻断 bean 创建），CLAUDE.md §2 禁止字段注入但允许构造器 fail-fast",
-    "不要直接修改 docs/functions/function-tree.md → 走 python scripts/tree_change.py -p lab-management-system-springboot --approve 提案(human-in-the-loop)"
+    "不要再尝试把 V014 收敛成任何一版 -- 演化版锁死 lab_prod checksum,旧版是 fresh replay 必需,两版语义互补。想动它先读 gen-shared.sh 注释",
+    "不要把 gen-shared.sh 的 cmp abort 防护和 V014 豁免拆掉「简化」-- 那是 8/26 prod 502 40 分钟事故的防线",
+    "不要手改 V015__smoke_seed_dict.sql 首行笔误注释 \"-- V016__...\" -- checksum 锁死(-62419208),想修以新版本号重写",
+    "不要再回到 per-class @SuppressFBWarnings 模式(US_USELESS_SUPPRESSION 陷阱,全局豁免已覆盖)",
+    "不要动 .harness/stack.json;不要把 AuthService/SaasMeClient/SaasAuthClient 的 IllegalStateException 改回不抛(fail-fast 设计意图)",
+    "不要直接修改 docs/functions/function-tree.md -> 走 tree_change.py --approve 提案(human-in-the-loop)"
   ],
-  "active_branch": "master"
+  "last_gate_passed_at": "2026-08-26T17:30+08:00",
+  "active_branch": "master",
+  "ahead_of_origin": "0"
 }
