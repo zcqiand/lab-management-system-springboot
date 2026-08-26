@@ -127,6 +127,46 @@ if ! grep -q '^LAB_SSO_LOGIN_URL=' "$BASE/springboot.env"; then
   printf 'LAB_SSO_LOGIN_URL=https://saas-nextjs.xiangru.uk\n' >> "$BASE/springboot.env"
 fi
 
+# v0.1.16 起: LAB_SAAS_* 系列 append-only 补齐 + SECRET fail-fast。
+# 事故（2026-08-26 prod SSO 502）: 早期 env 只有一行 LAB_SAAS_BASE，CLIENT_ID/
+# CLIENT_SECRET/DEFAULT_TENANT_ID/CALLBACK_REDIRECT 全缺 → app 静默回落
+# application.yml 默认 client-id='lab-mgmt'（字符串）→ saas 400 INVALID_CLIENT
+# → 502 被 Cloudflare 换皮丢 CORS 头，浏览器误报 CORS。缺失项必须补，补不了的报错。
+if ! grep -q '^LAB_SAAS_BASE=' "$BASE/springboot.env"; then
+  echo "→ append LAB_SAAS_BASE to existing $BASE/springboot.env"
+  umask 077
+  printf 'LAB_SAAS_BASE=https://saas-springboot.xiangru.uk\n' >> "$BASE/springboot.env"
+fi
+if ! grep -q '^LAB_SSO_CALLBACK_REDIRECT=' "$BASE/springboot.env"; then
+  echo "→ append LAB_SSO_CALLBACK_REDIRECT to existing $BASE/springboot.env"
+  umask 077
+  printf 'LAB_SSO_CALLBACK_REDIRECT=https://lab-react.xiangru.uk/login\n' >> "$BASE/springboot.env"
+fi
+if ! grep -q '^LAB_SAAS_CLIENT_ID=' "$BASE/springboot.env"; then
+  echo "→ append LAB_SAAS_CLIENT_ID to existing $BASE/springboot.env"
+  umask 077
+  printf 'LAB_SAAS_CLIENT_ID=11111111-1111-1111-1111-111111111111\n' >> "$BASE/springboot.env"
+fi
+if ! grep -q '^LAB_SAAS_DEFAULT_TENANT_ID=' "$BASE/springboot.env"; then
+  echo "→ append LAB_SAAS_DEFAULT_TENANT_ID to existing $BASE/springboot.env"
+  umask 077
+  printf 'LAB_SAAS_DEFAULT_TENANT_ID=%s\n' "${LAB_SAAS_DEFAULT_TENANT_ID:-00000000-0000-0000-0000-000000000001}" >> "$BASE/springboot.env"
+fi
+# CLIENT_SECRET 无默认值: 优先 append SSH env 转发过来的（ci.yml envs 段）,
+# 两处都没有 → fail-fast。静默回落 yml 占位值 'lab-mgmt-secret' 在 prod 必 401。
+if ! grep -q '^LAB_SAAS_CLIENT_SECRET=' "$BASE/springboot.env"; then
+  if [ -n "${LAB_SAAS_CLIENT_SECRET:-}" ]; then
+    echo "→ append LAB_SAAS_CLIENT_SECRET (from SSH env) to existing $BASE/springboot.env"
+    umask 077
+    printf 'LAB_SAAS_CLIENT_SECRET=%s\n' "$LAB_SAAS_CLIENT_SECRET" >> "$BASE/springboot.env"
+  else
+    echo "ERROR: $BASE/springboot.env has no LAB_SAAS_CLIENT_SECRET and SSH env did not forward one. Set it in the env-file or add LAB_SAAS_CLIENT_SECRET to ci.yml envs — otherwise the app falls back to the dev placeholder and saas rejects every token exchange." >&2
+    exit 1
+  fi
+fi
+# 漂移可见性: 部署日志回显生效的 SSO 出口配置（SECRET 只显示已设,不回显值）。
+echo "→ sso env effective: LAB_SAAS_BASE=$(grep '^LAB_SAAS_BASE=' "$BASE/springboot.env" | tail -1 | cut -d= -f2-) LAB_SAAS_CLIENT_ID=$(grep '^LAB_SAAS_CLIENT_ID=' "$BASE/springboot.env" | tail -1 | cut -d= -f2-) LAB_SAAS_CLIENT_SECRET=<set:$(grep -c '^LAB_SAAS_CLIENT_SECRET=' "$BASE/springboot.env")>"
+
 echo "→ image: $IMAGE"
 echo "→ docker login"
 printf '%s' "$PASSWORD" | docker login -u "$USERNAME" --password-stdin
