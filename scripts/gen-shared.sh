@@ -51,14 +51,18 @@ sed -i '/^    public String getKind();$/d' "$DEST/io/xr/lab/shared/dto/AuthState
 # codegen 末端统一 apply，保证产物落地即 gate-ready（saas 仓是手动补的，这里进脚本）。
 mvn -q spotless:apply
 
-# DB — lab-shared SQL SSOT 落地：Flyway replay V001-V013
-echo "[gen-shared] step 3/3 — DB: copy shared/sql/migrations/* → src/main/resources/db/migration/"
-# 分叉保护（2026-08-26 prod 502 事故）：本仓 V014/V015 已偏离 shared 同名版本
-# （本仓 V014 直接 ALTER inspection_calculation_methods、V015 是 dev-only smoke seed，
-#  且 VPS flyway history 记的是本仓版 checksum）。shared 的同名文件拷入会造成
-# checksum mismatch → 启动崩。shared 侧收敛前，这两版本地为准、不覆盖。
-# 待办：shared V014/V015 与本仓分叉收敛后删除此豁免（见 session.json）。
-DIVERGED_VERSIONS="V014 V015"
+# DB - lab-shared SQL SSOT 落地：Flyway replay V001-V013
+echo "[gen-shared] step 3/3 - DB: copy shared/sql/migrations/* -> src/main/resources/db/migration/"
+# 分叉保护（2026-08-26 prod 502 事故复盘 + 2026-08-26 收敛）：
+#   * V014 是永久结构性分叉--本仓演化版直接 ALTER inspection_calculation_methods
+#     （VPS flyway history 记录其 checksum，改文件=起崩）；shared 旧版 ALTER
+#     inspection_calculation_rules 是 fresh replay 链（emit-schema / sql.replay.test /
+#     sync-db 全量重建）的必需环节--两版语义互补，各自不可替换，本地为准、不覆盖。
+#   * V015/V017 已逐字节收敛（shared V015=smoke seed、V017=条件式 rename 与本仓相同），
+#     豁免清单从 "V014 V015" 缩到 "V014"。
+#   * 其余文件：目标已存在且内容不同 = 新分叉 = 直接 abort（防 lab 事故重演，
+#     shared 侧改动必须先过「fresh replay 可执行 + flyway checksum 兼容」再进来）。
+DIVERGED_VERSIONS="V014"
 SHARED_SQL="$SHARED_DIR/sql/migrations"
 if [ -d "$SHARED_SQL" ]; then
   mkdir -p "$ROOT/src/main/resources/db/migration"
@@ -69,7 +73,14 @@ if [ -d "$SHARED_SQL" ]; then
       echo "[gen-shared] SKIP diverged migration: $(basename "$f") (local version is authoritative)"
       continue
     fi
-    cp "$f" "$ROOT/src/main/resources/db/migration/"
+    target="$ROOT/src/main/resources/db/migration/$(basename "$f")"
+    if [ -e "$target" ] && ! cmp -s "$f" "$target"; then
+      echo "[gen-shared] FATAL: migration diverged: $(basename "$f") differs between shared and this repo." >&2
+      echo "[gen-shared]          refusing to overwrite (flyway checksum on applied DBs is locked)." >&2
+      echo "[gen-shared]          resolve: converge byte-for-byte or add to DIVERGED_VERSIONS with justification." >&2
+      exit 1
+    fi
+    cp "$f" "$target"
   done
   [ -f "$SHARED_SQL/README.md" ] && cp "$SHARED_SQL/README.md" "$ROOT/src/main/resources/db/migration/README.md"
 else
