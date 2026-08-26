@@ -1,4 +1,4 @@
--- V015 重命名 inspection_calculation_rules → inspection_calculation_methods
+-- V017 重命名 inspection_calculation_rules → inspection_calculation_methods
 --
 -- 术语统一：「计算规则」→「计算方法」（v0.x 收尾命名收敛；TS/Java/C# 仓
 -- 已同步把 CalculationRule / calculation-rule / calculation-rules / 计算规则
