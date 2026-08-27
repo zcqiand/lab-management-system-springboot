@@ -75,6 +75,11 @@ lab:
     client-secret: ${LAB_SAAS_CLIENT_SECRET:lab-mgmt-secret}
     default-tenant-id: ${LAB_SAAS_DEFAULT_TENANT_ID:00000000-0000-0000-0000-000000000001}
     callback-redirect-base: ${LAB_SSO_CALLBACK_REDIRECT:http://localhost:5173/login}
+    # 服务账号（2026-08-27 密码登录拉菜单快照用）：lab 密码登录的 dev 用户无 saas
+    # 身份，login() 后用它登 saas /auth/login 换 token 拉 /me/menus。
+    # dev 默认 alice（saas seeds，role-admin 全量菜单授权）。
+    service-user: ${LAB_SAAS_SERVICE_USER:alice}
+    service-password: ${LAB_SAAS_SERVICE_PASSWORD:dev123456}
   auth:
     dev-password: ${LAB_AUTH_DEV_PASSWORD:dev123456}
   cors:

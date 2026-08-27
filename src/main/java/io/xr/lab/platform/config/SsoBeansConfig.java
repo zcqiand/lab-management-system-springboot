@@ -72,6 +72,18 @@ public class SsoBeansConfig {
       t.setScope("openid");
       return t;
     }
+
+    @Override
+    public TokenResponse serviceLogin(String username, String password) {
+      // noop：返回与 token() 同款假 accessToken，cacheMenusWithServiceAccount 走通
+      // （NoopSaasMeClient.listMyMenus 返回空树 → 空快照也命中，/menus 不 503）
+      TokenResponse t = new TokenResponse();
+      t.setAccessToken("dev-service-access-token");
+      t.setRefreshToken("dev-service-refresh-token");
+      t.setTokenType("Bearer");
+      t.setExpiresIn(3600);
+      return t;
+    }
   }
 
   public static class NoopSaasMeClient extends SaasMeClient {

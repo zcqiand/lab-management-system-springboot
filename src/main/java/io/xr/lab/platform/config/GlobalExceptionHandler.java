@@ -1,6 +1,7 @@
 package io.xr.lab.platform.config;
 
 import io.xr.lab.platform.auth.sso.SaasAuthException;
+import io.xr.lab.platform.service.MenusUnavailableException;
 import io.xr.lab.shared.dto.ErrorResponse;
 import java.util.NoSuchElementException;
 import org.springframework.http.HttpStatus;
@@ -52,6 +53,15 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(NoSuchElementException.class)
   public ResponseEntity<ErrorResponse> notFound(NoSuchElementException e) {
     return respond(HttpStatus.NOT_FOUND, "NOT_FOUND", e.getMessage());
+  }
+
+  /**
+   * 菜单快照不可用（demo 兜底删除后的 miss 形态）。503 = 可恢复的临时态：重登/refresh 可重建快照， 前端 useBackendMenus 收到非 200
+   * 回退静态菜单，不白屏。
+   */
+  @ExceptionHandler(MenusUnavailableException.class)
+  public ResponseEntity<ErrorResponse> menusUnavailable(MenusUnavailableException e) {
+    return respond(HttpStatus.SERVICE_UNAVAILABLE, "MENUS_UNAVAILABLE", e.getMessage());
   }
 
   private ResponseEntity<ErrorResponse> respond(HttpStatus status, String code, String message) {

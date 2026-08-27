@@ -45,7 +45,9 @@ class AuthServiceTest {
               "test-client-id",
               "test-client-secret",
               "00000000-0000-0000-0000-000000000001",
-              "http://localhost:8080/api/auth/sso/callback"));
+              "http://localhost:8080/api/auth/sso/callback",
+              "alice", // 服务账号（密码登录拉菜单快照用，noop saas 下不触网）
+              "dev123456"));
 
   private final LabJwtSigner jwt = new LabJwtSigner(SECRET, "lab-test", 3600, 604800);
   private final SaasAuthClient saasAuth = new SsoBeansConfig.NoopSaasAuthClient();
@@ -194,12 +196,10 @@ class AuthServiceTest {
 
   @Test
   @Fn({"M01.F04.I01"})
-  void menus_cacheMiss_returnsFallbackFiveRoots() {
-    // 无 saas 快照（密码登录用户 / noop / 缓存过期）→ 静态兜底菜单
-    java.util.List<MenuNode> menus = service.menus(Map.of("sub", "USER-A"));
-    assertEquals(5, menus.size());
-    assertEquals("menu-dashboard", menus.get(0).getId());
-    assertEquals(7, menus.get(2).getChildren().size());
+  void menus_cacheMiss_throwsMenusUnavailable() {
+    // 2026-08-27 起 demo 兜底删除：无 saas 快照（快照过期/拉取失败/重启）→
+    // MenusUnavailableException（GlobalExceptionHandler 映射 503），前端回退静态菜单
+    assertThrows(MenusUnavailableException.class, () -> service.menus(Map.of("sub", "USER-A")));
   }
 
   @Test
@@ -229,9 +229,32 @@ class AuthServiceTest {
 
   @Test
   @Fn({"M01.F04.I01"})
-  void menus_nullClaims_returnsFallback() {
-    // controller 层 currentClaims() 对非 JWT 上下文返回 Map.of() → menus 不抛
-    assertEquals(5, service.menus(Map.of()).size());
+  void menus_nullClaims_throwsMenusUnavailable() {
+    // controller 层 currentClaims() 对非 JWT 上下文返回 Map.of() → 同样 503
+    assertThrows(MenusUnavailableException.class, () -> service.menus(Map.of()));
+  }
+
+  @Test
+  @Fn({"M01.F04.I01"})
+  void login_passwordFlow_cachesServiceAccountSnapshot() {
+    // 2026-08-27 密码登录也拉快照：dev 用户无 saas 身份，login() 成功后用
+    // saas 服务账号（LabConfig.sso 配置）登 saas → 拉 /me/menus → 存 lab userId 快照。
+    // noop saas 返回空菜单树 → 快照写入空树（后续 menus() 命中，不再 503）
+    MenuSnapshotCache cache = new MenuSnapshotCache();
+    AuthService pwdService =
+        new AuthService(
+            new ConfigUserDirectory("dev123456"),
+            jwt,
+            saasAuth,
+            saasMe,
+            labConfig,
+            cache,
+            new SaasMenuMapper());
+    pwdService.login(new LoginRequest().username("admin@lab.local").password("dev123456"));
+    // login 副作用：快照已写入（noop listMyMenus 返回 List.of() → 空树也算命中）
+    assertEquals(1, cache.size());
+    // menus() 不再抛 MenusUnavailable（快照命中，即便空树）
+    pwdService.menus(Map.of("sub", "USER-A"));
   }
 
   @Test

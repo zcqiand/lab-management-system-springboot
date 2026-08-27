@@ -65,6 +65,32 @@ public class SaasAuthClient {
     this.defaultTenantId = null;
   }
 
+  /**
+   * saas /api/v1/auth/login 密码登录（服务账号用）。lab 密码登录的 dev 用户无 saas 身份， login() 成功后用本方法以 env
+   * 配置的服务账号（LAB_SAAS_SERVICE_USER/PASSWORD，dev 默认 alice/dev123456） 换 saas accessToken 再拉 /me/menus
+   * 快照。失败映射与 OAuth 端点同款。
+   */
+  public TokenResponse serviceLogin(String username, String password) {
+    LinkedHashMap<String, String> body = new LinkedHashMap<>();
+    body.put("username", username);
+    body.put("password", password);
+    body.put("tenantCode", defaultTenantId);
+    try {
+      return http.post()
+          .uri("/api/v1/auth/login")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(body)
+          .retrieve()
+          .body(TokenResponse.class);
+    } catch (HttpClientErrorException e) {
+      throw mapClientError(e);
+    } catch (HttpServerErrorException e) {
+      throw new SaasAuthException.UpstreamUnavailable("saas upstream 5xx: " + e.getStatusCode(), e);
+    } catch (ResourceAccessException e) {
+      throw new SaasAuthException.UpstreamUnavailable("saas connect failed", e);
+    }
+  }
+
   /** OAuth 2.0 §4.1.1 — 申请一次性 authorization code。 */
   public AuthorizeCodeResponse authorize(String redirectUri, String scope, String state) {
     Map<String, String> form =

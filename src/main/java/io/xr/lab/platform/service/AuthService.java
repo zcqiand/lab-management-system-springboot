@@ -97,6 +97,9 @@ public class AuthService {
       throw new SecurityException("Invalid username or password");
     }
     CurrentUser user = directory.findByUsername(username).orElseThrow(SecurityException::new);
+    // 密码登录的 dev 用户无 saas 身份 → 用服务账号拉菜单快照（demo 兜底已删，
+    // miss 时 /menus 会 503）。失败不阻塞登录（warn），用户重登/SSO 可补。
+    cacheMenusWithServiceAccount(user.getId());
     return session(user, null, null);
   }
 
@@ -189,16 +192,24 @@ public class AuthService {
   // === M01.F04.I01 动态菜单 / I02 权限集 ===
 
   /**
-   * 动态菜单：SSO/refresh 时缓存的 saas 快照优先；miss（密码登录/缓存过期/重启）回退静态 demo
-   * 菜单（FALLBACK_MENUS）。永不抛异常——菜单拉不到不应挡住整个 AppShell。
+   * 动态菜单：SSO/refresh/密码登录时缓存的 saas 快照。miss（快照过期/拉取失败/重启）抛
+   * MenusUnavailableException（GlobalExceptionHandler 映射 503）—— 2026-08-27 起 demo 兜底删除， 假树不再下发；前端
+   * useBackendMenus 失败回退静态菜单。
    */
   public List<MenuNode> menus(Map<String, Object> claims) {
     String sub = claims == null ? null : (String) claims.get("sub");
-    return menuCache.get(sub).orElseGet(() -> FALLBACK_MENUS);
+    // 2026-08-27 起 demo 兜底删除：miss 抛 503（MenusUnavailableException），
+    // 前端 useBackendMenus 失败回退静态菜单（FALLBACK_NAV / MENU_TREE）
+    return menuCache
+        .get(sub)
+        .orElseThrow(
+            () ->
+                new MenusUnavailableException(
+                    "menu snapshot unavailable for user " + sub + "; re-login to refresh"));
   }
 
   /**
-   * SSO/refresh 时点拉菜单进缓存。失败（saas 5xx/网络/4xx）只 warn 不抛——菜单不可用不应 阻塞登录主流程，用户拿 FALLBACK_MENUS，下次
+   * SSO/refresh 时点拉菜单进缓存。失败（saas 5xx/网络/4xx）只 warn 不抛——菜单不可用不应 阻塞登录主流程（miss 时 /menus 503 由前端兜底），下次
    * refresh 重试。
    */
   private void cacheMenus(String userId, String saasAccessToken) {
@@ -217,44 +228,22 @@ public class AuthService {
   /** lab 家族在 saas 注册的 appCode（seeds apps.json）。 */
   static final String LAB_APP_CODE = "lab-management";
 
-  /** 密码登录/缓存 miss 的静态兜底菜单（原 demo menus() 不动逻辑，提取为常量）。 */
-  static final List<MenuNode> FALLBACK_MENUS =
-      List.of(
-          new MenuNode().id("menu-dashboard").label("工作台").path("/dashboard").icon("dashboard"),
-          new MenuNode()
-              .id("menu-m02")
-              .label("资源管理")
-              .icon("resource")
-              .children(List.of(menu("menu-contracts", "合同管理", "/contracts"))),
-          new MenuNode()
-              .id("menu-m03")
-              .label("试验过程")
-              .icon("flow")
-              .children(
-                  List.of(
-                      menu("menu-receipts", "接样管理", "/receipts"),
-                      menu("menu-task", "任务分配", "/receipts?stage=task_assignment"),
-                      menu("menu-entry", "数据录入", "/receipts?stage=data_entry"),
-                      menu("menu-review", "报告审核", "/receipts?stage=review"),
-                      menu("menu-approve", "报告批准", "/receipts?stage=approval"),
-                      menu("menu-issue", "报告发放", "/receipts?stage=issuance"),
-                      menu("menu-archive", "报告归档", "/receipts?stage=archived"))),
-          new MenuNode()
-              .id("menu-m04")
-              .label("基础数据")
-              .icon("data")
-              .children(
-                  List.of(
-                      menu("menu-techreq", "技术要求", "/technical-requirements"),
-                      menu("menu-models", "型号维护", "/catalog/models"),
-                      menu("menu-specs", "规格维护", "/catalog/specs"),
-                      menu("menu-grades", "等级维护", "/catalog/grades"),
-                      menu("menu-brands", "牌号维护", "/catalog/brands"))),
-          new MenuNode()
-              .id("menu-m05")
-              .label("数据统计")
-              .icon("stats")
-              .children(List.of(menu("menu-summary", "报告汇总", "/summary"))));
+  /**
+   * 密码登录路径的菜单快照：dev 用户无 saas 身份，用服务账号（lab.sso.service-user/password， dev 默认 alice/dev123456）登 saas
+   * /auth/login 换 token 再拉 /me/menus。失败只 warn—— 登录主流程不受影响，miss 时 /menus 503 由前端兜底。
+   */
+  private void cacheMenusWithServiceAccount(String userId) {
+    if (userId == null) {
+      return;
+    }
+    try {
+      SaasAuthClient.TokenResponse t =
+          saasAuth.serviceLogin(labConfig.sso().serviceUser(), labConfig.sso().servicePassword());
+      cacheMenus(userId, t.getAccessToken());
+    } catch (RuntimeException e) {
+      log.warn("service-account menu snapshot failed for user {}: {}", userId, e.getMessage());
+    }
+  }
 
   public PermissionSet permissions() {
     return new PermissionSet().permissions(DEMO_PERMISSIONS);

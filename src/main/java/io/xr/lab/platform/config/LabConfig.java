@@ -19,6 +19,8 @@ public record LabConfig(Jwt jwt, Sso sso) {
    * @param saasBase saas 后端 API base（SaasAuthClient/SaasMeClient 调 /api/v1/oauth|me 用）
    * @param loginUrl saas IdP 登录页 base（authorizeUrl 拼 {loginUrl}/login?code=...；该页面 由 saas 前端提供，不在
    *     API 域名上）。空则回落 saasBase（dev 时 nextjs 同源）
+   * @param serviceUser saas 服务账号（lab 密码登录后替 dev 用户拉 /me/menus 快照用；dev 默认 alice）
+   * @param servicePassword 服务账号密码（dev 默认 dev123456；prod 走 env 不得带出本机）
    */
   public record Sso(
       String saasBase,
@@ -26,7 +28,9 @@ public record LabConfig(Jwt jwt, Sso sso) {
       String clientId,
       String clientSecret,
       String defaultTenantId,
-      String callbackRedirectBase) {
+      String callbackRedirectBase,
+      String serviceUser,
+      String servicePassword) {
 
     public String effectiveLoginUrl() {
       return loginUrl == null || loginUrl.isBlank() ? saasBase : loginUrl;
