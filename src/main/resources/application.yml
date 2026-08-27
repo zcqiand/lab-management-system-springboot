@@ -15,11 +15,12 @@ spring:
   # postgres 直连（ADR 决议 2026-08-18）：lab-shared SQL 本就是 postgres 方言 V001-V013，
   # Flyway 直接 replay，不搞 sqlite 双栈。
   # 与 nextjs 共用一个库：默认指向 lab_dev（100.79.128.25，同 nextjs .env.local 的
-  # DATABASE_URL）。LAB_DB_URL 可切走（如空库 replay 演练 / 未来独立实例）。
+  # DATABASE_URL）。DATABASE_URL 可切走（如空库 replay 演练 / 未来独立实例）；
+  # JDBC_URL 兜底兼容 db-env.sh 工作流（与 saas-springboot 同款双层占位符）。
   datasource:
-    url: ${LAB_DB_URL:jdbc:postgresql://100.79.128.25:5432/lab_dev}
-    username: ${LAB_DB_USER:postgres}
-    password: ${LAB_DB_PASSWORD:qiand68+++}
+    url: ${DATABASE_URL:${JDBC_URL:jdbc:postgresql://100.79.128.25:5432/lab_dev}}
+    username: ${DATABASE_USER:postgres}
+    password: ${DATABASE_PASSWORD:qiand68+++}
     driver-class-name: org.postgresql.Driver
   flyway:
     enabled: true
@@ -37,7 +38,8 @@ spring:
 
 server:
   # 家族端口约定：springboot=8080（conventions §6）。CORS allowlist 见 WebConfig。
-  port: 8080
+  # SERVER_PORT 是全家族统一监听 key（Spring relaxed binding 原生支持）。
+  port: ${SERVER_PORT:8080}
 
 # 健康探针只暴露 health（Docker HEALTHCHECK + deploy 脚本 wget 用）。
 # 不开 metrics/env/heapdump 等敏感面（同 saas-springboot）。

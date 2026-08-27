@@ -583,7 +583,7 @@ done
 | ADR | 主题 | 本仓落地 |
 |---|---|---|
 | [ADR-0007](../../../docs/adr/0007-shared-sql-ssot.md) | shared 仓扩到双 SSOT | `db/migration/` 读自 shared；ORM 只反射（`ddl-auto: validate`）；本仓 §3.5、§3.6 全部对齐 |
-| [ADR-0014](../../../docs/conventions/multi-repo-family.md#4-后端配置env-driven-单-urladr-0014) | env-driven 单 URL | `LAB_DB_URL` / `LAB_JWT_SECRET` / `LAB_SAAS_*` env 切部署环境 |
+| [ADR-0014](../../../docs/conventions/multi-repo-family.md#4-后端配置env-driven-单-urladr-0014) | env-driven 单 URL | `LAB_DATABASE_URL` / `LAB_JWT_SECRET` / `LAB_SAAS_*` env 切部署环境 |
 
 ### 7.3 隐性 ADR（本仓 §3.1 / §4.4 落地）
 

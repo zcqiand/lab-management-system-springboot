@@ -5,7 +5,7 @@
 #   runtime  → eclipse-temurin:21-jre-jammy + app.jar，监听 SERVER_PORT=8080
 #
 # 数据库：PostgreSQL（远程）。容器内不持有 DB 文件 —— 运行期必须通过
-#         LAB_DB_URL / LAB_DB_USER / LAB_DB_PASSWORD 环境变量注入连接串
+#         DATABASE_URL / DATABASE_USER / DATABASE_PASSWORD（全家族统一四件套）注入连接串
 #         （由 VPS springboot.env 注入，见 deploy/lab-management-system-springboot.sh）。
 #
 # 端口：容器内 Spring Boot 监听 :8080；VPS nginx 反代到 publish 出的端口（默认 8013）。

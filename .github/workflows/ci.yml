@@ -5,8 +5,9 @@ name: ci
 # - branch push(master/main) → 只跑 test（对齐门禁 L1-L4）
 # - tag push(v<X>.<Y>.<Z>-<YYYYMMDD> per tag.md §1) → test + docker build & push + VPS 部署
 # 镜像名/SSH 路径/部署脚本用 ${{ github.event.repository.name }} 避免跨仓劫持。
-# 与 saas-springboot 的差异: env 转发多一个 LAB_JWT_SECRET（HS256 签 lab JWT,
-# deploy 脚本自举 springboot.env 时必填, 缺则 fail-fast）。
+# 与 saas-springboot 的差异: env 转发多一个 JWT_SIGNING_KEY（HS256 签 lab JWT,
+# deploy 脚本自举 springboot.env 时必填, 缺则 fail-fast; key 名与 application.yml
+# 占位符一致——曾用 LAB_JWT_SECRET, 断链修复 2026-08-28）。
 on:
   push:
     branches: [main, master]
@@ -68,7 +69,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DATABASE_USER: ${{ secrets.DATABASE_USER }}
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-          LAB_JWT_SECRET: ${{ secrets.LAB_JWT_SECRET }}
+          JWT_SIGNING_KEY: ${{ secrets.JWT_SIGNING_KEY }}
           LAB_SAAS_CLIENT_SECRET: ${{ secrets.LAB_SAAS_CLIENT_SECRET }}
           LAB_SAAS_DEFAULT_TENANT_ID: ${{ secrets.LAB_SAAS_DEFAULT_TENANT_ID }}
           NGINX_DOMAIN: ${{ vars.NGINX_DOMAIN }}
@@ -77,7 +78,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          envs: DATABASE_URL,DATABASE_USER,DATABASE_PASSWORD,LAB_JWT_SECRET,LAB_SAAS_CLIENT_SECRET,LAB_SAAS_DEFAULT_TENANT_ID,NGINX_DOMAIN,NGINX_CERT_BASENAME
+          envs: DATABASE_URL,DATABASE_USER,DATABASE_PASSWORD,JWT_SIGNING_KEY,LAB_SAAS_CLIENT_SECRET,LAB_SAAS_DEFAULT_TENANT_ID,NGINX_DOMAIN,NGINX_CERT_BASENAME
           script: |
             # 自举: 首次部署无 /home/deploy/<repo>/ 时自动建 + 拉 deploy 脚本
             set -e
@@ -93,11 +94,11 @@ jobs:
               curl -fsSL "https://raw.githubusercontent.com/zcqiand/${REPO}/refs/heads/master/deploy/nginx-vps.conf.example" -o "nginx-vps.conf.example" || true
             fi
             # 缺 springboot.env 时, deploy 脚本会从 SSH env 透传过来的
-            # DATABASE_URL/USER/PASSWORD + LAB_JWT_SECRET + LAB_SAAS_CLIENT_SECRET 自举 (UMASK 077, chmod 600).
+            # DATABASE_URL/USER/PASSWORD + JWT_SIGNING_KEY + LAB_SAAS_CLIENT_SECRET 自举 (UMASK 077, chmod 600).
             # 后续 deploy 不需要这些 env (env-file 已存在).
             echo "→ env on remote: DATABASE_URL_set=$([ -n \"${DATABASE_URL:-}\" ] && echo yes || echo no) LAB_SAAS_CLIENT_SECRET_set=$([ -n \"${LAB_SAAS_CLIENT_SECRET:-}\" ] && echo yes || echo no)"
             if [ ! -f "springboot.env" ]; then
-              if [ -n "$DATABASE_URL" ] && [ -n "$DATABASE_USER" ] && [ -n "$DATABASE_PASSWORD" ] && [ -n "$LAB_SAAS_CLIENT_SECRET" ]; then
+              if [ -n "$DATABASE_URL" ] && [ -n "$DATABASE_USER" ] && [ -n "$DATABASE_PASSWORD" ] && [ -n "$JWT_SIGNING_KEY" ] && [ -n "$LAB_SAAS_CLIENT_SECRET" ]; then
                 echo "→ springboot.env will be bootstrapped by deploy script from SSH env (含 SSO 4 字段)"
               else
                 echo "ERROR: springboot.env missing AND DATABASE_URL/USER/PASSWORD/LAB_SAAS_CLIENT_SECRET secrets not forwarded, deploy script will fail-fast" >&2

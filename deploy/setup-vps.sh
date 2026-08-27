@@ -9,7 +9,7 @@
 #
 # Spring Boot 是后端, 与 nextjs 一样需要 PostgreSQL 远程连接, 但本脚本**不**生成
 # springboot.env（避免把数据库密码写进 setup）：springboot.env 由 deploy 脚本首启自举
-# 时从环境 DATABASE_URL/USER/PASSWORD + LAB_JWT_SECRET 读入。本脚本只保证:
+# 时从环境 DATABASE_URL/USER/PASSWORD + JWT_SIGNING_KEY 读入。本脚本只保证:
 #   1. apt 装 nginx、docker (如未装, 幂等)
 #   2. 创建 deploy 用户 (key-only SSH) + 加进 docker 组
 #   3. 建 /home/deploy/lab-management-system-springboot/
@@ -22,7 +22,7 @@
 #   b) 本地跑: ssh-copy-id -i ~/.ssh/id_ed25519_gh-deploy.pub deploy@VPS（lab 系已做则跳过）
 #   c) lab-springboot repo 的 GitHub Repository Secrets 加:
 #        DOCKER_USERNAME / DOCKER_PASSWORD / VPS_HOST / VPS_USER / VPS_SSH_KEY
-#        DATABASE_URL / DATABASE_USER / DATABASE_PASSWORD / LAB_JWT_SECRET
+#        DATABASE_URL / DATABASE_USER / DATABASE_PASSWORD / JWT_SIGNING_KEY
 #      以及 Variables: NGINX_DOMAIN / NGINX_CERT_BASENAME
 
 set -eu
@@ -108,6 +108,6 @@ log "剩下手工:"
 log "  1) cert: /etc/nginx/ssl/${CERT_BASENAME}.{crt,key}（复用 lab 系的可跳过）"
 log "  2) ssh-copy-id -i ~/.ssh/id_ed25519_gh-deploy.pub deploy@\$(hostname -I | awk '{print \$1}')（lab 系已做可跳过）"
 log "  3) lab-springboot repo GitHub Secrets: DOCKER_USERNAME / DOCKER_PASSWORD / VPS_HOST / VPS_USER / VPS_SSH_KEY"
-log "  4) GitHub Secrets（首次 deploy 自举 springboot.env 用）: DATABASE_URL / DATABASE_USER / DATABASE_PASSWORD / LAB_JWT_SECRET"
-log "     （LAB_JWT_SECRET: 32B+ 随机串, HS256 签 lab 自家 JWT; 不设则 deploy fail-fast）"
+log "  4) GitHub Secrets（首次 deploy 自举 springboot.env 用）: DATABASE_URL / DATABASE_USER / DATABASE_PASSWORD / JWT_SIGNING_KEY"
+log "     （JWT_SIGNING_KEY: 32B+ 随机串, HS256 签 lab 自家 JWT; 不设则 deploy fail-fast）"
 log "  5) GitHub Variables: NGINX_DOMAIN=lab-springboot.<你的域> / NGINX_CERT_BASENAME=<cert basename>"

@@ -9,14 +9,14 @@
 # CI 同时 push :latest + :<tag> 两份镜像,回滚只要手动指定旧 tag 再跑一次本脚本。
 #
 # 与姊妹仓 saas-identity-platform-springboot.sh 的差异:
-#   - env 名走 LAB_* 家族: LAB_DB_URL/USER/PASSWORD（非 SPRING_DATASOURCE_*）
+#   - DB env 是全家族统一四件套 DATABASE_URL/USER/PASSWORD/NAME（值 jdbc: 格式）
 #   - HOST_PORT=8013（lab 家族 801x: vue=8010 react=8011 nextjs=8012 springboot=8013）
-#   - 额外 env: LAB_JWT_SECRET（必填 fail-fast，不用 dev 默认值）、
-#     LAB_SAAS_BASE / LAB_SSO_CALLBACK_REDIRECT（SSO 跳板指向 saas-nextjs IdP）、
+#   - 额外 env: JWT_SIGNING_KEY（必填 fail-fast，不用 dev 默认值；与代码占位符同名）、
+#     LAB_SAAS_BASE_URL / LAB_SSO_CALLBACK_REDIRECT（SSO 跳板指向 saas-nextjs IdP）、
 #     LAB_CORS_ALLOWED_ORIGINS（lab 前端域）
 #
 # 前置: deploy 用户需在 docker 组中(sudo usermod -aG docker deploy)。
-#        springboot.env 必须由 setup-vps.sh 或本脚本首启生成(LAB_DB_URL 必填)。
+#        springboot.env 必须由 setup-vps.sh 或本脚本首启生成(DATABASE_URL 必填)。
 
 set -eu
 
@@ -38,27 +38,31 @@ if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
 fi
 
 # springboot.env 自举保护: 缺失时, 如 $DATABASE_URL + $DATABASE_USER + $DATABASE_PASSWORD 在环境里,
-# 自动生成（LAB_* 映射 + CORS 白名单 + JWT/SSO 必填项校验）; 否则 fail fast。
+# 自动生成（全家族统一 DATABASE_* key + CORS 白名单 + JWT/SSO 必填项校验）; 否则 fail fast。
 # setup-vps.sh 仍是首推（VPS 一次性, 生成 nginx vhost + 目录）, 本分支仅给
 # "先有 DATABASE_URL 临时上线"的场景。
 if [ ! -f "$BASE/springboot.env" ]; then
-  if [ -n "${DATABASE_URL:-}" ] && [ -n "${DATABASE_USER:-}" ] && [ -n "${DATABASE_PASSWORD:-}" ] && [ -n "${LAB_JWT_SECRET:-}" ] && [ -n "${LAB_SAAS_CLIENT_SECRET:-}" }; then
-    echo "→ bootstrapping $BASE/springboot.env from env DATABASE_URL/USER/PASSWORD + LAB_JWT_SECRET + LAB_SAAS_CLIENT_SECRET"
+  if [ -n "${DATABASE_URL:-}" ] && [ -n "${DATABASE_USER:-}" ] && [ -n "${DATABASE_PASSWORD:-}" ] && [ -n "${JWT_SIGNING_KEY:-}" ] && [ -n "${LAB_SAAS_CLIENT_SECRET:-}" }; then
+    echo "→ bootstrapping $BASE/springboot.env from env DATABASE_URL/USER/PASSWORD + JWT_SIGNING_KEY + LAB_SAAS_CLIENT_SECRET"
     umask 077
     {
-      printf 'LAB_DB_URL=%s\n' "$DATABASE_URL"
-      printf 'LAB_DB_USER=%s\n' "$DATABASE_USER"
-      printf 'LAB_DB_PASSWORD=%s\n' "$DATABASE_PASSWORD"
+      printf 'DATABASE_URL=%s\n' "$DATABASE_URL"
+      printf 'DATABASE_USER=%s\n' "$DATABASE_USER"
+      printf 'DATABASE_PASSWORD=%s\n' "$DATABASE_PASSWORD"
       printf 'SERVER_PORT=8080\n'
       # JWT 签名密钥（HS256 ≥32B）。prod 必填 —— 不落 dev 默认值。
-      printf 'LAB_JWT_SECRET=%s\n' "$LAB_JWT_SECRET"
+      # key 名与 application.yml 占位符一致（JWT_SIGNING_KEY；曾用 LAB_JWT_SECRET，
+      # 2026-08-28 断链修复：老名无读者，prod 曾静默回落 dev 默认密钥）。
+      printf 'JWT_SIGNING_KEY=%s\n' "$JWT_SIGNING_KEY"
       # CORS 白名单：lab 前端两仓 + 本地 dev。运维可在 setup-vps 之后手工追加 origin。
       printf 'LAB_CORS_ALLOWED_ORIGINS=https://lab-react.xiangru.uk,https://lab-vue.xiangru.uk,http://localhost:5173,http://localhost:5174\n'
       # SSO 跳板：v0.1.x 接 saas-springboot v0.2.0 真 OAuth IdP（同栈匹配）。
       # ClientId 用固定 UUID 11111111-... 不是字符串 'lab-mgmt'，原因同 lab-aspnetcore
       # v0.1.9 — shared/openapi.yaml TypeSpec @format("uuid") 让 springboot UUID 接 Guid,
       # 与 3 个 saas 后端 V014/V009 seed client_id 同源。
-      printf 'LAB_SAAS_BASE=https://saas-springboot.xiangru.uk\n'
+      # saas-base 的 key 是 LAB_SAAS_BASE_URL（yml 占位符名；曾误写 LAB_SAAS_BASE
+      # 丢 _URL 后缀 → 无读者，SSO 出口静默回落 localhost:3000）。
+      printf 'LAB_SAAS_BASE_URL=https://saas-springboot.xiangru.uk\n'
       printf 'LAB_SSO_LOGIN_URL=https://saas-nextjs.xiangru.uk\n'
       printf 'LAB_SAAS_CLIENT_ID=11111111-1111-1111-1111-111111111111\n'
       printf 'LAB_SAAS_CLIENT_SECRET=%s\n' "$LAB_SAAS_CLIENT_SECRET"
@@ -68,17 +72,20 @@ if [ ! -f "$BASE/springboot.env" ]; then
     chown deploy:deploy "$BASE/springboot.env" 2>/dev/null || true
     chmod 600 "$BASE/springboot.env"
   else
-    echo "ERROR: $BASE/springboot.env missing. Set DATABASE_URL/USER/PASSWORD + LAB_JWT_SECRET + LAB_SAAS_CLIENT_SECRET env (e.g. DATABASE_URL=jdbc:postgresql://host/lab_prod DATABASE_USER=postgres DATABASE_PASSWORD=... LAB_JWT_SECRET=<32B+ random> LAB_SAAS_CLIENT_SECRET=<saas-springboot V009 seeded client secret> sudo -E sh deploy/setup-vps.sh) or run setup-vps.sh first." >&2
+    echo "ERROR: $BASE/springboot.env missing. Set DATABASE_URL/USER/PASSWORD + JWT_SIGNING_KEY + LAB_SAAS_CLIENT_SECRET env (e.g. DATABASE_URL=jdbc:postgresql://host/lab_prod DATABASE_USER=postgres DATABASE_PASSWORD=... JWT_SIGNING_KEY=<32B+ random> LAB_SAAS_CLIENT_SECRET=<saas-springboot V009 seeded client secret> sudo -E sh deploy/setup-vps.sh) or run setup-vps.sh first." >&2
     exit 1
   fi
 fi
-# 校验 springboot.env 里有 LAB_DB_URL + LAB_JWT_SECRET（即使 env-file 已存在, 内容可能是上一次失败留下的）
-if ! grep -q '^LAB_DB_URL=' "$BASE/springboot.env"; then
-  echo "ERROR: $BASE/springboot.env has no LAB_DB_URL line" >&2
+# 校验 springboot.env 里有 DATABASE_URL + JWT_SIGNING_KEY（即使 env-file 已存在, 内容可能是上一次失败留下的）
+# 老契约迁移提示: 旧 env-file 里是 LAB_DATABASE_URL/LAB_JWT_SECRET/LAB_SAAS_BASE 等
+# 老 key 名 —— 二选一: 手工改 key 名, 或备份后删掉 env-file 带 secrets 重跑本脚本重建。
+# 改 env-file 后必须走本脚本重建容器（--env-file 只在 docker create 时读, restart 不重读）。
+if ! grep -q '^DATABASE_URL=' "$BASE/springboot.env"; then
+  echo "ERROR: $BASE/springboot.env has no DATABASE_URL line (old key LAB_DATABASE_URL? see migration note above)" >&2
   exit 1
 fi
-if ! grep -q '^LAB_JWT_SECRET=' "$BASE/springboot.env"; then
-  echo "ERROR: $BASE/springboot.env has no LAB_JWT_SECRET line" >&2
+if ! grep -q '^JWT_SIGNING_KEY=' "$BASE/springboot.env"; then
+  echo "ERROR: $BASE/springboot.env has no JWT_SIGNING_KEY line (old key LAB_JWT_SECRET? see migration note above)" >&2
   exit 1
 fi
 
@@ -132,10 +139,10 @@ fi
 # CLIENT_SECRET/DEFAULT_TENANT_ID/CALLBACK_REDIRECT 全缺 → app 静默回落
 # application.yml 默认 client-id='lab-mgmt'（字符串）→ saas 400 INVALID_CLIENT
 # → 502 被 Cloudflare 换皮丢 CORS 头，浏览器误报 CORS。缺失项必须补，补不了的报错。
-if ! grep -q '^LAB_SAAS_BASE=' "$BASE/springboot.env"; then
-  echo "→ append LAB_SAAS_BASE to existing $BASE/springboot.env"
+if ! grep -q '^LAB_SAAS_BASE_URL=' "$BASE/springboot.env"; then
+  echo "→ append LAB_SAAS_BASE_URL to existing $BASE/springboot.env"
   umask 077
-  printf 'LAB_SAAS_BASE=https://saas-springboot.xiangru.uk\n' >> "$BASE/springboot.env"
+  printf 'LAB_SAAS_BASE_URL=https://saas-springboot.xiangru.uk\n' >> "$BASE/springboot.env"
 fi
 if ! grep -q '^LAB_SSO_CALLBACK_REDIRECT=' "$BASE/springboot.env"; then
   echo "→ append LAB_SSO_CALLBACK_REDIRECT to existing $BASE/springboot.env"
@@ -165,7 +172,7 @@ if ! grep -q '^LAB_SAAS_CLIENT_SECRET=' "$BASE/springboot.env"; then
   fi
 fi
 # 漂移可见性: 部署日志回显生效的 SSO 出口配置（SECRET 只显示已设,不回显值）。
-echo "→ sso env effective: LAB_SAAS_BASE=$(grep '^LAB_SAAS_BASE=' "$BASE/springboot.env" | tail -1 | cut -d= -f2-) LAB_SAAS_CLIENT_ID=$(grep '^LAB_SAAS_CLIENT_ID=' "$BASE/springboot.env" | tail -1 | cut -d= -f2-) LAB_SAAS_CLIENT_SECRET=<set:$(grep -c '^LAB_SAAS_CLIENT_SECRET=' "$BASE/springboot.env")>"
+echo "→ sso env effective: LAB_SAAS_BASE_URL=$(grep '^LAB_SAAS_BASE_URL=' "$BASE/springboot.env" | tail -1 | cut -d= -f2-) LAB_SAAS_CLIENT_ID=$(grep '^LAB_SAAS_CLIENT_ID=' "$BASE/springboot.env" | tail -1 | cut -d= -f2-) LAB_SAAS_CLIENT_SECRET=<set:$(grep -c '^LAB_SAAS_CLIENT_SECRET=' "$BASE/springboot.env")>"
 
 echo "→ image: $IMAGE"
 echo "→ docker login"
