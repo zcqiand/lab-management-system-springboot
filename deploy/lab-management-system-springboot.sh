@@ -42,7 +42,7 @@ fi
 # setup-vps.sh 仍是首推（VPS 一次性, 生成 nginx vhost + 目录）, 本分支仅给
 # "先有 DATABASE_URL 临时上线"的场景。
 if [ ! -f "$BASE/springboot.env" ]; then
-  if [ -n "${DATABASE_URL:-}" ] && [ -n "${DATABASE_USER:-}" ] && [ -n "${DATABASE_PASSWORD:-}" ] && [ -n "${JWT_SIGNING_KEY:-}" ] && [ -n "${LAB_SAAS_CLIENT_SECRET:-}" }; then
+  if [ -n "${DATABASE_URL:-}" ] && [ -n "${DATABASE_USER:-}" ] && [ -n "${DATABASE_PASSWORD:-}" ] && [ -n "${JWT_SIGNING_KEY:-}" ] && [ -n "${LAB_SAAS_CLIENT_SECRET:-}" ]; then
     echo "→ bootstrapping $BASE/springboot.env from env DATABASE_URL/USER/PASSWORD + JWT_SIGNING_KEY + LAB_SAAS_CLIENT_SECRET"
     umask 077
     {
