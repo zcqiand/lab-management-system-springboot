@@ -68,6 +68,18 @@ if [ ! -f "$BASE/springboot.env" ]; then
       printf 'LAB_SAAS_CLIENT_SECRET=%s\n' "$LAB_SAAS_CLIENT_SECRET"
       printf 'LAB_SAAS_DEFAULT_TENANT_ID=%s\n' "${LAB_SAAS_DEFAULT_TENANT_ID:-00000000-0000-0000-0000-000000000001}"
       printf 'LAB_SSO_CALLBACK_REDIRECT=https://lab-react.xiangru.uk/login\n'
+      # 服务账号（菜单快照）:禁兜底 —— 缺了 login 后拉菜单静默吃 dev 默认 alice
+      if [ -z "${LAB_SAAS_SERVICE_USER:-}" ] || [ -z "${LAB_SAAS_SERVICE_PASSWORD:-}" ]; then
+        echo "ERROR: LAB_SAAS_SERVICE_USER/PASSWORD env required to bootstrap $BASE/springboot.env (add to ci.yml envs; yml fallback 是 dev 值 alice, prod 不得静默兜底)" >&2
+        exit 1
+      fi
+      printf 'LAB_SAAS_SERVICE_USER=%s\n' "$LAB_SAAS_SERVICE_USER"
+      printf 'LAB_SAAS_SERVICE_PASSWORD=%s\n' "$LAB_SAAS_SERVICE_PASSWORD"
+      # JWT 三件套显式写(值=契约文件值;禁 yml 占位默认值静默兜底)
+      printf 'JWT_ISSUER=lab-management-system\n'
+      printf 'JWT_AUDIENCE=lab-management-system-clients\n'
+      printf 'JWT_TTL_SECONDS=3600\n'
+      printf 'DATABASE_NAME=lab_prod\n'
     } > "$BASE/springboot.env"
     chown deploy:deploy "$BASE/springboot.env" 2>/dev/null || true
     chmod 600 "$BASE/springboot.env"
@@ -173,6 +185,32 @@ if ! grep -q '^LAB_SAAS_CLIENT_SECRET=' "$BASE/springboot.env"; then
 fi
 # 漂移可见性: 部署日志回显生效的 SSO 出口配置（SECRET 只显示已设,不回显值）。
 echo "→ sso env effective: LAB_SAAS_BASE_URL=$(grep '^LAB_SAAS_BASE_URL=' "$BASE/springboot.env" | tail -1 | cut -d= -f2-) LAB_SAAS_CLIENT_ID=$(grep '^LAB_SAAS_CLIENT_ID=' "$BASE/springboot.env" | tail -1 | cut -d= -f2-) LAB_SAAS_CLIENT_SECRET=<set:$(grep -c '^LAB_SAAS_CLIENT_SECRET=' "$BASE/springboot.env")>"
+
+# 2026-08-28 key 对齐(老 env-file 迁移): 逐 key append-if-missing 到
+# .env.production 全集(suite L0.5 check_deploy_parity 锁死)。service 账号是
+# secret 类:老文件已有则保留;没有则从 env 传入,fail-fast 不兜底。
+if [ -f "$BASE/springboot.env" ]; then
+  append_if_missing() {
+    key="$1"; val="$2"
+    if ! grep -q "^${key}=" "$BASE/springboot.env"; then
+      echo "→ append ${key} to existing $BASE/springboot.env"
+      umask 077
+      printf '%s=%s\n' "$key" "$val" >> "$BASE/springboot.env"
+    fi
+  }
+  append_if_missing DATABASE_NAME 'lab_prod'
+  append_if_missing JWT_ISSUER 'lab-management-system'
+  append_if_missing JWT_AUDIENCE 'lab-management-system-clients'
+  append_if_missing JWT_TTL_SECONDS '3600'
+  if ! grep -q '^LAB_SAAS_SERVICE_USER=' "$BASE/springboot.env"; then
+    if [ -z "${LAB_SAAS_SERVICE_USER:-}" ] || [ -z "${LAB_SAAS_SERVICE_PASSWORD:-}" ]; then
+      echo "ERROR: LAB_SAAS_SERVICE_USER/PASSWORD missing in $BASE/springboot.env and not forwarded via ci.yml envs (yml fallback 是 dev 值, prod 不得静默兜底)" >&2
+      exit 1
+    fi
+    append_if_missing LAB_SAAS_SERVICE_USER "$LAB_SAAS_SERVICE_USER"
+    append_if_missing LAB_SAAS_SERVICE_PASSWORD "$LAB_SAAS_SERVICE_PASSWORD"
+  fi
+fi
 
 echo "→ image: $IMAGE"
 echo "→ docker login"
