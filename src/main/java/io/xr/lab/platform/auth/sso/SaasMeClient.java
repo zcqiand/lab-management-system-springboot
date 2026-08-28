@@ -22,6 +22,17 @@ import org.springframework.web.client.RestClient;
  */
 public class SaasMeClient {
 
+  /**
+   * M09.F03.I04 — /me/menus 返 Map<appCode, List<EffectiveMenuNode>> 的 TypeReference（命名静态内部类以满足
+   * SpotBugs SIC_INNER_SHOULD_BE_STATIC_ANON）。
+   */
+  private static final org.springframework.core.ParameterizedTypeReference<
+          java.util.Map<String, List<SaasMenuNode>>>
+      MENUS_MAP_TYPE =
+          org.springframework.core.ParameterizedTypeReference.forType(
+              new com.fasterxml.jackson.core.type.TypeReference<
+                  java.util.Map<String, List<SaasMenuNode>>>() {}.getType());
+
   private final RestClient http;
 
   public SaasMeClient(String saasBase) {
@@ -78,16 +89,25 @@ public class SaasMeClient {
     }
   }
 
-  /** 拉当前用户在指定 app 下的授权菜单树（saas EffectiveMenuNode[] 扁平树形数组）。 */
+  /**
+   * 拉当前用户在指定 app 下的授权菜单树。
+   *
+   * <p>2026-08-28 saas MeService.getMyMenus 真实现后，/me/menus 返 Map<appCode, List<EffectiveMenuNode>>
+   * （一次性返回该用户在所有 app 下的有效菜单）。本方法拉整张 Map 后按 appCode 取子树。
+   */
   public List<SaasMenuNode> listMyMenus(String saasAccessToken, String appCode) {
     try {
-      SaasMenuNode[] arr =
+      java.util.Map<String, List<SaasMenuNode>> map =
           http.get()
-              .uri("/api/v1/me/menus?appCode=" + appCode)
+              .uri("/api/v1/me/menus")
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + saasAccessToken)
               .retrieve()
-              .body(SaasMenuNode[].class);
-      return arr == null ? List.of() : List.of(arr);
+              .body(MENUS_MAP_TYPE);
+      if (map == null) {
+        return List.of();
+      }
+      List<SaasMenuNode> tree = map.get(appCode);
+      return tree == null ? List.of() : tree;
     } catch (HttpClientErrorException e) {
       throw new SaasAuthException.InvalidGrant(
           "saas /me/menus " + e.getStatusCode() + " " + truncate(e.getResponseBodyAsString(), 200));
