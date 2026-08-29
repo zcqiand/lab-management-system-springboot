@@ -263,21 +263,22 @@ public class AuthService {
    */
   public SsoAuthResult ssoAuthorize(String businessRedirect, String frontendState) {
     String state = frontendState == null ? "" : frontendState;
-    // scope 必须精确 ∈ apps.scopes 种子的单个值（shared V014: "lab.read" | "lab.write"；
-    // saas 侧 Contains 是单值精确匹配，不接受 space-separated）。
-    // 曾发 "openid profile email" → saas Authorize 抛 INVALID_SCOPE 500，浏览器只见 502。
-    SaasAuthClient.AuthorizeCodeResponse resp =
-        saasAuth.authorize(labConfig.sso().callbackRedirectBase(), "lab.read", state);
-    // 登录跳板在 saas 前端域名（effectiveLoginUrl），不是 API 域名（saasBase 的 /login 是 404）
+    // 2026-08-29 标准化: 不再调 saas authorize 预拿 code。
+    //   - saas-springboot authorize 不要求 saas session(confidential client 模式 work),
+    //     但用户体验差: 用户已在 saas 登录又被跳 saas 登录页(冗余)。
+    //   - 跟 lab-aspnetcore v0.2.11 同款改造: 直接 302 跳 saas 登录页(带 redirect_uri + state)。
+    //   - saas-vue/saas-react LoginPage 已支持 ?redirect_uri=&state= 参数:
+    //     用户登录 → saas 写 session cookie → saas-react 自动调 saas /oauth/authorize
+    //     拿 code → 302 跳回 lab-callback?code=&state= → lab 前端 POST
+    //     /api/auth/sso/callback {code, state} → ssoCallback 用 clientSecret
+    //     调 saas /token 拿 access_token + refresh_token。
     String authorizeUrl =
         labConfig.sso().effectiveLoginUrl()
-            + "/login?code="
-            + resp.getCode()
+            + "/login?redirect_uri="
+            + labConfig.sso().callbackRedirectBase()
             + "&state="
-            + resp.getState()
-            + "&redirect_uri="
-            + labConfig.sso().callbackRedirectBase();
-    return new SsoAuthResult(new SsoRedirect().authorizeUrl(authorizeUrl).state(resp.getState()));
+            + state;
+    return new SsoAuthResult(new SsoRedirect().authorizeUrl(authorizeUrl).state(state));
   }
 
   /**
