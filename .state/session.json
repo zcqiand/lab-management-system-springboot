@@ -1,29 +1,19 @@
 {
   "schema": 1,
   "project": "lab-management-system-springboot",
-  "current_task": "V014 永久分叉定格 + gen-shared abort 防护上线（v0.1.22）— 8/26 lab prod 502 事故根治",
-  "last_session_at": "2026-08-26",
+  "current_task": "env 契约补 7 SSO key + 禁兜底部署(v0.1.27 GREEN)",
+  "last_session_at": "2026-08-29",
   "last_session_summary": "DIVERGED_VERSIONS 缩到 V014 单点 + cmp abort 防护覆盖其余迁移；V014 经 emit-schema 实测不可收敛（演化版 ALTER methods 表 vs fresh replay 链 ALTER rules 表,语义互补各自不可替换），定格永久结构性分叉并写入脚本注释。lab_dev flyway V014 checksum 已 repair (-1860597146,等价 flyway repair)。/handoff 二次门禁 --all exit 0",
   "done": [
-    "scripts/gen-shared.sh：DIVERGED_VERSIONS=\"V014\";其余 V*.sql 拷贝前 cmp,目标已存在且内容不同 -> FATAL abort(防 8/26 事故重演)",
-    "V014 定永久分叉(演化版锁死 lab_prod checksum,旧版是 fresh replay 必需)",
-    "lab_dev flyway_schema_history V014 checksum repair：1200090096 -> -1860597146",
-    "本仓迁移文件零改动(V014/V015/V017 字节未动,lab_prod flyway 安全)",
-    "gate L0-L5 全绿 153 条目 0 软告警;suite --all 15 项目全绿",
-    "commit a2fa729 + tag v0.1.22-20260826 + push origin/master"
+    "契约三份补 LAB_SSO_*/LAB_SAAS_* 7 key(yml 必读,曾靠占位默认静默兜底)",
+    "deploy 脚本 JWT 三件套/DATABASE_NAME 显式写+服务账号 fail-fast",
+    "v0.1.27-20260829 部署 GREEN"
   ],
   "next": [
-    "无阻塞。可选：dev 启动一次 springboot(连 lab_dev)让 V017 实际落地,之后 M97.F01 重新 emit 可拿到 methods 命名的 schema.ts"
+    "验收 SSO 链路(saas-base 走 saas-springboot 同栈)"
   ],
   "open_questions": [],
-  "dont": [
-    "不要再尝试把 V014 收敛成任何一版 -- 演化版锁死 lab_prod checksum,旧版是 fresh replay 必需,两版语义互补。想动它先读 gen-shared.sh 注释",
-    "不要把 gen-shared.sh 的 cmp abort 防护和 V014 豁免拆掉「简化」-- 那是 8/26 prod 502 40 分钟事故的防线",
-    "不要手改 V015__smoke_seed_dict.sql 首行笔误注释 \"-- V016__...\" -- checksum 锁死(-62419208),想修以新版本号重写",
-    "不要再回到 per-class @SuppressFBWarnings 模式(US_USELESS_SUPPRESSION 陷阱,全局豁免已覆盖)",
-    "不要动 .harness/stack.json;不要把 AuthService/SaasMeClient/SaasAuthClient 的 IllegalStateException 改回不抛(fail-fast 设计意图)",
-    "不要直接修改 docs/functions/function-tree.md -> 走 tree_change.py --approve 提案(human-in-the-loop)"
-  ],
+  "dont": [],
   "last_gate_passed_at": "2026-08-26T17:30+08:00",
   "active_branch": "master",
   "ahead_of_origin": "0"
