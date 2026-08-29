@@ -63,7 +63,9 @@ if [ ! -f "$BASE/springboot.env" ]; then
       # saas-base 的 key 是 LAB_SAAS_BASE_URL（yml 占位符名；曾误写 LAB_SAAS_BASE
       # 丢 _URL 后缀 → 无读者，SSO 出口静默回落 localhost:3000）。
       printf 'LAB_SAAS_BASE_URL=https://saas-springboot.xiangru.uk\n'
-      printf 'LAB_SSO_LOGIN_URL=https://saas-nextjs.xiangru.uk\n'
+      # 登录 UI 同栈匹配：lab-react 后端是 lab-springboot → 登录页指 saas-react
+      #（2026-08-29 前指 saas-nextjs；saas-react LoginPage 已补 OAuth code 回跳）
+      printf 'LAB_SSO_LOGIN_URL=https://saas-react.xiangru.uk\n'
       printf 'LAB_SAAS_CLIENT_ID=11111111-1111-1111-1111-111111111111\n'
       printf 'LAB_SAAS_CLIENT_SECRET=%s\n' "$LAB_SAAS_CLIENT_SECRET"
       printf 'LAB_SAAS_DEFAULT_TENANT_ID=%s\n' "${LAB_SAAS_DEFAULT_TENANT_ID:-00000000-0000-0000-0000-000000000001}"
@@ -140,10 +142,15 @@ fi
 
 # v0.1.14 起: IdP 登录页 = saas 前端域名（不是 API 域名，API /login 404）。
 # 早期 env 只有 LAB_SAAS_BASE，authorizeUrl 曾拼出 {API}/login 404。append-only 补。
+# v0.1.27: 登录 UI 同栈匹配 saas-react（lab-react 后端 = 本仓）。存量 env 里
+# 脚本旧默认 saas-nextjs 原地迁移；自定义值不动。
 if ! grep -q '^LAB_SSO_LOGIN_URL=' "$BASE/springboot.env"; then
   echo "→ append LAB_SSO_LOGIN_URL to existing $BASE/springboot.env"
   umask 077
-  printf 'LAB_SSO_LOGIN_URL=https://saas-nextjs.xiangru.uk\n' >> "$BASE/springboot.env"
+  printf 'LAB_SSO_LOGIN_URL=https://saas-react.xiangru.uk\n' >> "$BASE/springboot.env"
+elif grep -q '^LAB_SSO_LOGIN_URL=https://saas-nextjs\.xiangru\.uk$' "$BASE/springboot.env"; then
+  echo "→ migrate stale LAB_SSO_LOGIN_URL saas-nextjs -> saas-react (同栈匹配) in $BASE/springboot.env"
+  sed -i 's#^LAB_SSO_LOGIN_URL=https://saas-nextjs\.xiangru\.uk$#LAB_SSO_LOGIN_URL=https://saas-react.xiangru.uk#' "$BASE/springboot.env"
 fi
 
 # v0.1.16 起: LAB_SAAS_* 系列 append-only 补齐 + SECRET fail-fast。
