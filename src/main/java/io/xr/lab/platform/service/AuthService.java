@@ -277,7 +277,9 @@ public class AuthService {
             + "/login?redirect_uri="
             + labConfig.sso().callbackRedirectBase()
             + "&state="
-            + state;
+            + state
+            + "&client_id="
+            + labConfig.sso().clientId();
     return new SsoAuthResult(new SsoRedirect().authorizeUrl(authorizeUrl).state(state));
   }
 
