@@ -96,9 +96,11 @@ class AuthServiceTest {
     AuthService.SsoAuthResult result = service.ssoAuthorize("/dashboard", "frontend-csrf-state");
     assertNotNull(result.redirect().getAuthorizeUrl());
     // 2026-08-29 standardized: lab backend no longer pre-fetches code from saas authorize.
-    assertTrue(result.redirect().getAuthorizeUrl().contains("/login?redirect_uri="),
+    assertTrue(
+        result.redirect().getAuthorizeUrl().contains("/login?redirect_uri="),
         "expected 302 to saas login with redirect_uri, got " + result.redirect().getAuthorizeUrl());
-    assertTrue(result.redirect().getAuthorizeUrl().contains("state=frontend-csrf-state"),
+    assertTrue(
+        result.redirect().getAuthorizeUrl().contains("state=frontend-csrf-state"),
         "expected state echo in authorize url");
     // RFC 6749 §10.12：前端 state 原样透传 saas 回显，前端比对
     assertEquals("frontend-csrf-state", result.redirect().getState());
