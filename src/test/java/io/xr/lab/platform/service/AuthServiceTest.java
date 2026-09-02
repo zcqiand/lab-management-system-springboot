@@ -45,7 +45,7 @@ class AuthServiceTest {
               "test-client-id",
               "test-client-secret",
               "00000000-0000-0000-0000-000000000001",
-              "http://localhost:8080/api/auth/sso/callback",
+              "http://localhost:5202/api/auth/sso/callback",
               "alice", // 服务账号（密码登录拉菜单快照用，noop saas 下不触网）
               "dev123456"));
 
@@ -66,8 +66,7 @@ class AuthServiceTest {
   @Test
   @Fn({"M01.F05.I01"})
   void login_success_returnsSessionWithTenants() {
-    LoginResponse resp =
-        service.login(new LoginRequest().username("admin@lab.local").password("dev123456"));
+    LoginResponse resp = service.login(new LoginRequest().username("alice").password("dev123456"));
     assertNotNull(resp.getToken());
     assertNotNull(resp.getRefreshToken());
     assertEquals("USER-A", resp.getUser().getId());
@@ -87,7 +86,7 @@ class AuthServiceTest {
   void login_badPassword_throwsUnauthorized() {
     assertThrows(
         SecurityException.class,
-        () -> service.login(new LoginRequest().username("admin@lab.local").password("wrong")));
+        () -> service.login(new LoginRequest().username("alice").password("wrong")));
   }
 
   @Test
@@ -113,7 +112,7 @@ class AuthServiceTest {
         new io.xr.lab.shared.dto.SsoCallbackRequest()
             .grantType(io.xr.lab.shared.dto.OAuthGrantType.AUTHORIZATION_CODE)
             .code("dev-code")
-            .redirectUri("http://localhost:8080/api/auth/sso/callback")
+            .redirectUri("http://localhost:5202/api/auth/sso/callback")
             .state("frontend-csrf-state");
 
     LoginResponse resp = service.ssoCallback(body);
@@ -132,8 +131,7 @@ class AuthServiceTest {
   @Test
   @Fn({"M01.F05.I04"})
   void refresh_roundTripsNewToken() {
-    LoginResponse first =
-        service.login(new LoginRequest().username("admin@lab.local").password("dev123456"));
+    LoginResponse first = service.login(new LoginRequest().username("alice").password("dev123456"));
     LoginResponse second =
         service.refresh(
             new io.xr.lab.shared.dto.RefreshTokenRequest().refreshToken(first.getRefreshToken()));
@@ -256,7 +254,7 @@ class AuthServiceTest {
             labConfig,
             cache,
             new SaasMenuMapper());
-    pwdService.login(new LoginRequest().username("admin@lab.local").password("dev123456"));
+    pwdService.login(new LoginRequest().username("alice").password("dev123456"));
     // login 副作用：快照已写入（noop listMyMenus 返回 List.of() → 空树也算命中）
     assertEquals(1, cache.size());
     // menus() 不再抛 MenusUnavailable（快照命中，即便空树）

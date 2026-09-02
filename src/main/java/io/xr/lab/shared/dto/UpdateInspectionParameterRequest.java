@@ -15,7 +15,7 @@ import org.springframework.lang.Nullable;
 /** UpdateInspectionParameterRequest */
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-26T12:43:04.549030500+08:00[Asia/Shanghai]",
+    date = "2026-09-02T21:47:39.355598900+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public class UpdateInspectionParameterRequest {
 

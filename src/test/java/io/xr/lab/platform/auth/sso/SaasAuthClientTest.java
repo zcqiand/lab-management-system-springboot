@@ -59,7 +59,7 @@ class SaasAuthClientTest {
             .addHeader("Content-Type", "application/json"));
 
     SaasAuthClient.AuthorizeCodeResponse resp =
-        client.authorize("http://localhost:8080/callback", "openid profile", "client-state-123");
+        client.authorize("http://localhost:5202/callback", "openid profile", "client-state-123");
 
     assertEquals("auth-code-xyz", resp.getCode());
     assertEquals("client-state-123", resp.getState());
@@ -84,7 +84,7 @@ class SaasAuthClientTest {
             .addHeader("Content-Type", "application/json"));
 
     SaasAuthClient.TokenResponse resp =
-        client.token("authorization_code", "auth-code-xyz", null, "http://localhost:8080/callback");
+        client.token("authorization_code", "auth-code-xyz", null, "http://localhost:5202/callback");
 
     assertEquals("saas-at", resp.getAccessToken());
     assertEquals("saas-rt", resp.getRefreshToken());

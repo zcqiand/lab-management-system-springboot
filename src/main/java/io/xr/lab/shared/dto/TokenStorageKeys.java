@@ -14,7 +14,7 @@ import org.springframework.lang.Nullable;
 @Schema(name = "TokenStorageKeys", description = "前端持久化 key 命名约定;后端契约不感知,但前端实现必须遵守")
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-26T12:43:04.549030500+08:00[Asia/Shanghai]",
+    date = "2026-09-02T21:47:39.355598900+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public class TokenStorageKeys {
 

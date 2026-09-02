@@ -37,9 +37,9 @@ spring:
     open-in-view: false
 
 server:
-  # 家族端口约定：springboot=8080（conventions §6）。CORS allowlist 见 WebConfig。
+  # 家族端口约定：springboot=5205（conventions §6 2026-09-02 端口分段：saas=5100 段、lab=5200 段）。
   # SERVER_PORT 是全家族统一监听 key（Spring relaxed binding 原生支持）。
-  port: ${SERVER_PORT:8080}
+  port: ${SERVER_PORT:5205}
 
 # 健康探针只暴露 health（Docker HEALTHCHECK + deploy 脚本 wget 用）。
 # 不开 metrics/env/heapdump 等敏感面（同 saas-springboot）。
@@ -67,16 +67,16 @@ lab:
     secret: ${JWT_SIGNING_KEY:dev-key-32-bytes-minimum-length!}
   sso:
     # dev 默认值与 aspnetcore 仓 appsettings.Development.json 同款（lab-mgmt client 在
-    # saas apps 表注册，redirect 白名单 5173/5174 login + 3001 callback）。
+    # saas apps 表注册，redirect 白名单 5202/5203 login + 5201 callback，V018 已迁新端口）。
     # prod 必走 env 覆盖，client-secret 不得带出本机。
-    saas-base: ${LAB_SAAS_BASE_URL:http://localhost:3000}
+    saas-base: ${LAB_SAAS_BASE_URL:http://localhost:5101}
     # IdP 登录页 base（authorizeUrl 拼 {loginUrl}/login）。该页面由 saas 前端提供；
-    # 空 = 回落 saas-base（dev 时 saas-nextjs :3000 既是前端也带 API routes）。
+    # 空 = 回落 saas-base（dev 时 saas-nextjs :5101 既是前端也带 API routes）。
     login-url: ${LAB_SSO_LOGIN_URL:}
-    client-id: ${LAB_SAAS_CLIENT_ID:lab-mgmt}
+    client-id: ${LAB_SAAS_CLIENT_ID:11111111-1111-1111-1111-111111111111}  # V017: client_id 收敛 UUID
     client-secret: ${LAB_SAAS_CLIENT_SECRET:lab-mgmt-secret}
     default-tenant-id: ${LAB_SAAS_DEFAULT_TENANT_ID:00000000-0000-0000-0000-000000000001}
-    callback-redirect-base: ${LAB_SSO_CALLBACK_REDIRECT:http://localhost:5173/login}
+    callback-redirect-base: ${LAB_SSO_CALLBACK_REDIRECT:http://localhost:5202/login}
     # 服务账号（2026-08-27 密码登录拉菜单快照用）：lab 密码登录的 dev 用户无 saas
     # 身份，login() 后用它登 saas /auth/login 换 token 拉 /me/menus。
     # dev 默认 alice（saas seeds，role-admin 全量菜单授权）。
@@ -85,4 +85,4 @@ lab:
   auth:
     dev-password: ${LAB_AUTH_DEV_PASSWORD:dev123456}
   cors:
-    allowed-origins: ${LAB_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174,http://localhost:3000}
+    allowed-origins: ${LAB_CORS_ALLOWED_ORIGINS:http://localhost:5201,http://localhost:5202,http://localhost:5203}

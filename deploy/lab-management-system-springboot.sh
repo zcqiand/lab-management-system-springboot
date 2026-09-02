@@ -49,13 +49,13 @@ if [ ! -f "$BASE/springboot.env" ]; then
       printf 'DATABASE_URL=%s\n' "$DATABASE_URL"
       printf 'DATABASE_USER=%s\n' "$DATABASE_USER"
       printf 'DATABASE_PASSWORD=%s\n' "$DATABASE_PASSWORD"
-      printf 'SERVER_PORT=8080\n'
+      printf 'SERVER_PORT=5205\n'
       # JWT 签名密钥（HS256 ≥32B）。prod 必填 —— 不落 dev 默认值。
       # key 名与 application.yml 占位符一致（JWT_SIGNING_KEY；曾用 LAB_JWT_SECRET，
       # 2026-08-28 断链修复：老名无读者，prod 曾静默回落 dev 默认密钥）。
       printf 'JWT_SIGNING_KEY=%s\n' "$JWT_SIGNING_KEY"
       # CORS 白名单：lab 前端两仓 + 本地 dev。运维可在 setup-vps 之后手工追加 origin。
-      printf 'LAB_CORS_ALLOWED_ORIGINS=https://lab-react.xiangru.uk,https://lab-vue.xiangru.uk,http://localhost:5173,http://localhost:5174\n'
+      printf 'LAB_CORS_ALLOWED_ORIGINS=https://lab-react.xiangru.uk,https://lab-vue.xiangru.uk,http://localhost:5201,http://localhost:5202,http://localhost:5203\n'
       # SSO 跳板：v0.1.x 接 saas-springboot v0.2.0 真 OAuth IdP（同栈匹配）。
       # ClientId 用固定 UUID 11111111-... 不是字符串 'lab-mgmt'，原因同 lab-aspnetcore
       # v0.1.9 — shared/openapi.yaml TypeSpec @format("uuid") 让 springboot UUID 接 Guid,
@@ -137,7 +137,7 @@ fi
 if ! grep -q '^LAB_CORS_ALLOWED_ORIGINS=' "$BASE/springboot.env"; then
   echo "→ append LAB_CORS_ALLOWED_ORIGINS to existing $BASE/springboot.env"
   umask 077
-  printf 'LAB_CORS_ALLOWED_ORIGINS=https://lab-react.xiangru.uk,https://lab-vue.xiangru.uk,http://localhost:5173,http://localhost:5174\n' >> "$BASE/springboot.env"
+  printf 'LAB_CORS_ALLOWED_ORIGINS=https://lab-react.xiangru.uk,https://lab-vue.xiangru.uk,http://localhost:5201,http://localhost:5202,http://localhost:5203\n' >> "$BASE/springboot.env"
 fi
 
 # v0.1.14 起: IdP 登录页 = saas 前端域名（不是 API 域名，API /login 404）。
@@ -234,7 +234,7 @@ echo "→ docker run"
 docker run -d \
   --name "$CONTAINER_NAME" \
   --restart unless-stopped \
-  -p "127.0.0.1:${HOST_PORT}:8080" \
+  -p "127.0.0.1:${HOST_PORT}:5205" \
   --env-file "$BASE/springboot.env" \
   "$IMAGE"
 
@@ -246,7 +246,7 @@ docker ps --filter name="$CONTAINER_NAME"
 
 # 健康检查: 直接 wget /actuator/health 探 200, 不依赖 Docker HEALTHCHECK 语义。
 # （saas-springboot v0.1.8/09/10 教训: HEALTHCHECK 语义在 Docker daemon 不同版本上
-#  行为不一致; host 端口探针才可靠。wget 探 HOST_PORT, 不是容器内 8080。）
+#  行为不一致; host 端口探针才可靠。wget 探 HOST_PORT, 不是容器内 5205。）
 i=0
 while [ $i -lt 120 ]; do
   if wget --tries=1 --timeout=3 -q "http://127.0.0.1:${HOST_PORT}/actuator/health" -O /dev/null 2>/dev/null; then

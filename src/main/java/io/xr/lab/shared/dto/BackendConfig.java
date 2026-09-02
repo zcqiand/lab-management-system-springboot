@@ -17,7 +17,7 @@ import org.springframework.lang.Nullable;
         "已废弃 (ADR-0014):用 VITE_API_BASE_URL / NEXT_PUBLIC_API_BASE_URL 替代;4-backend 运行时切换配置")
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-08-26T12:43:04.549030500+08:00[Asia/Shanghai]",
+    date = "2026-09-02T21:47:39.355598900+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public class BackendConfig {
 
@@ -109,14 +109,14 @@ public class BackendConfig {
   }
 
   /**
-   * baseUrl 的展示值,例如 'http://localhost:3000/api'
+   * baseUrl 的展示值,例如 'http://localhost:5201/api'
    *
    * @return baseUrl
    */
   @NotNull
   @Schema(
       name = "baseUrl",
-      description = "baseUrl 的展示值,例如 'http://localhost:3000/api'",
+      description = "baseUrl 的展示值,例如 'http://localhost:5201/api'",
       requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("baseUrl")
   public String getBaseUrl() {

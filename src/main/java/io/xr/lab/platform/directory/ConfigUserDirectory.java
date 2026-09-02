@@ -14,8 +14,9 @@ import org.springframework.stereotype.Component;
  * <p>数据 1:1 镜像 lab-msw：
  *
  * <ul>
- *   <li>用户：admin@lab.local / dev123456（USER-A，roleCode=admin）— ADR-0008 后主键从 username 改为 email，SSO
- *       路径用 saas {@code CurrentUser.email} 回查
+ *   <li>用户：alice / dev123456（USER-A，roleCode=admin）— 2026-09-02 契约收敛：dev 凭证与 saas seed（V016
+ *       alice）同源，四方（msw/nextjs/aspnetcore/本仓）统一，contract-test 依赖； SSO 路径用 saas {@code
+ *       CurrentUser.email} 回查
  *   <li>租户：TENANT-001 city-lab / TENANT-002 district-lab / TENANT-003 third-party
  *   <li>运行时 upsert：不在 seed 里的 SSO 用户落到 {@code upserted} 内存 Map
  * </ul>
@@ -26,11 +27,7 @@ import org.springframework.stereotype.Component;
 public class ConfigUserDirectory implements UserDirectory {
 
   private static final CurrentUser DEMO_USER =
-      new CurrentUser()
-          .id("USER-A")
-          .username("admin@lab.local")
-          .displayName("管理员")
-          .roleCode("admin");
+      new CurrentUser().id("USER-A").username("alice").displayName("管理员").roleCode("admin");
 
   private static final List<MyTenant> TENANTS =
       List.of(

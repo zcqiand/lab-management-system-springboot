@@ -91,7 +91,9 @@ public class SsoBeansConfig {
     public SaasCurrentUser whoami(String saasAccessToken) {
       SaasCurrentUser u = new SaasCurrentUser();
       u.setId("USER-A");
-      u.setEmail("admin@lab.local");
+      // 2026-09-02 契约收敛：与 ConfigUserDirectory DEMO_USER.username=alice 对齐
+      // （refresh 路径 findByEmail(email) 必须命中目录行，否则 unknown user）
+      u.setEmail("alice");
       u.setDisplayName("管理员");
       u.setMemberships(tenants());
       return u;
