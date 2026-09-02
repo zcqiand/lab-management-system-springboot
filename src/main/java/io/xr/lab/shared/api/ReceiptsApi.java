@@ -8,19 +8,23 @@ package io.xr.lab.shared.api;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.xr.lab.shared.dto.CreateTestRecordRequest;
+import io.xr.lab.shared.dto.AssignTaskRequest;
+import io.xr.lab.shared.dto.CreateSampleReceiptRequest;
 import io.xr.lab.shared.dto.ErrorResponse;
-import io.xr.lab.shared.dto.TestRecord;
-import io.xr.lab.shared.dto.TestRecordsListTestRecords200Response;
-import io.xr.lab.shared.dto.TestRecordsSetVerdictRequest;
-import io.xr.lab.shared.dto.UpdateTestRecordRequest;
+import io.xr.lab.shared.dto.FlowHistoryEntry;
+import io.xr.lab.shared.dto.FlowStatus;
+import io.xr.lab.shared.dto.ReceiptsListReceipts200Response;
+import io.xr.lab.shared.dto.SampleReceipt;
+import io.xr.lab.shared.dto.UpdateSampleReceiptRequest;
 import jakarta.annotation.Generated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
@@ -28,24 +32,25 @@ import org.springframework.web.bind.annotation.*;
 
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-02T21:47:39.355598900+08:00[Asia/Shanghai]",
+    date = "2026-09-02T22:35:42.457326500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 @Validated
-@Tag(name = "test-records", description = "the test-records API")
-public interface TestRecordsApi {
+@Tag(name = "receipts", description = "the receipts API")
+public interface ReceiptsApi {
 
-  String PATH_TEST_RECORDS_CREATE_TEST_RECORD = "/api/test-records";
+  String PATH_RECEIPTS_ASSIGN_TASK = "/api/receipts/{id}/task";
 
   /**
-   * POST /api/test-records
+   * PUT /api/receipts/{id}/task
    *
-   * @param createTestRecordRequest (required)
+   * @param id (required)
+   * @param assignTaskRequest (required)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
    */
   @Operation(
-      operationId = "testRecordsCreateTestRecord",
-      tags = {"test-records"},
+      operationId = "receiptsAssignTask",
+      tags = {"receipts"},
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -53,7 +58,49 @@ public interface TestRecordsApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = TestRecord.class))
+                  schema = @Schema(implementation = SampleReceipt.class))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.PUT,
+      value = ReceiptsApi.PATH_RECEIPTS_ASSIGN_TASK,
+      produces = {"application/json"},
+      consumes = {"application/json"})
+  ResponseEntity<SampleReceipt> receiptsAssignTask(
+      @Parameter(name = "id", description = "", required = true, in = ParameterIn.PATH)
+          @PathVariable("id")
+          String id,
+      @Parameter(name = "AssignTaskRequest", description = "", required = true) @Valid @RequestBody
+          AssignTaskRequest assignTaskRequest);
+
+  String PATH_RECEIPTS_CREATE_RECEIPT = "/api/receipts";
+
+  /**
+   * POST /api/receipts
+   *
+   * @param createSampleReceiptRequest (required)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "receiptsCreateReceipt",
+      tags = {"receipts"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = SampleReceipt.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -66,27 +113,27 @@ public interface TestRecordsApi {
       })
   @RequestMapping(
       method = RequestMethod.POST,
-      value = TestRecordsApi.PATH_TEST_RECORDS_CREATE_TEST_RECORD,
+      value = ReceiptsApi.PATH_RECEIPTS_CREATE_RECEIPT,
       produces = {"application/json"},
       consumes = {"application/json"})
-  ResponseEntity<TestRecord> testRecordsCreateTestRecord(
-      @Parameter(name = "CreateTestRecordRequest", description = "", required = true)
+  ResponseEntity<SampleReceipt> receiptsCreateReceipt(
+      @Parameter(name = "CreateSampleReceiptRequest", description = "", required = true)
           @Valid
           @RequestBody
-          CreateTestRecordRequest createTestRecordRequest);
+          CreateSampleReceiptRequest createSampleReceiptRequest);
 
-  String PATH_TEST_RECORDS_DELETE_TEST_RECORD = "/api/test-records/{id}";
+  String PATH_RECEIPTS_DELETE_RECEIPT = "/api/receipts/{id}";
 
   /**
-   * DELETE /api/test-records/{id}
+   * DELETE /api/receipts/{id}
    *
    * @param id (required)
    * @return There is no content to send for this request, but the headers may be useful. (status
    *     code 204) or An unexpected error response. (status code 200)
    */
   @Operation(
-      operationId = "testRecordsDeleteTestRecord",
-      tags = {"test-records"},
+      operationId = "receiptsDeleteReceipt",
+      tags = {"receipts"},
       responses = {
         @ApiResponse(
             responseCode = "204",
@@ -103,25 +150,25 @@ public interface TestRecordsApi {
       })
   @RequestMapping(
       method = RequestMethod.DELETE,
-      value = TestRecordsApi.PATH_TEST_RECORDS_DELETE_TEST_RECORD,
+      value = ReceiptsApi.PATH_RECEIPTS_DELETE_RECEIPT,
       produces = {"application/json"})
-  ResponseEntity<Void> testRecordsDeleteTestRecord(
+  ResponseEntity<Void> receiptsDeleteReceipt(
       @Parameter(name = "id", description = "", required = true, in = ParameterIn.PATH)
           @PathVariable("id")
           String id);
 
-  String PATH_TEST_RECORDS_GET_TEST_RECORD = "/api/test-records/{id}";
+  String PATH_RECEIPTS_GET_RECEIPT = "/api/receipts/{id}";
 
   /**
-   * GET /api/test-records/{id}
+   * GET /api/receipts/{id}
    *
    * @param id (required)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
    */
   @Operation(
-      operationId = "testRecordsGetTestRecord",
-      tags = {"test-records"},
+      operationId = "receiptsGetReceipt",
+      tags = {"receipts"},
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -129,7 +176,7 @@ public interface TestRecordsApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = TestRecord.class))
+                  schema = @Schema(implementation = SampleReceipt.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -142,28 +189,25 @@ public interface TestRecordsApi {
       })
   @RequestMapping(
       method = RequestMethod.GET,
-      value = TestRecordsApi.PATH_TEST_RECORDS_GET_TEST_RECORD,
+      value = ReceiptsApi.PATH_RECEIPTS_GET_RECEIPT,
       produces = {"application/json"})
-  ResponseEntity<TestRecord> testRecordsGetTestRecord(
+  ResponseEntity<SampleReceipt> receiptsGetReceipt(
       @Parameter(name = "id", description = "", required = true, in = ParameterIn.PATH)
           @PathVariable("id")
           String id);
 
-  String PATH_TEST_RECORDS_LIST_TEST_RECORDS = "/api/test-records";
+  String PATH_RECEIPTS_GET_RECEIPT_HISTORY = "/api/receipts/{id}/history";
 
   /**
-   * GET /api/test-records
+   * GET /api/receipts/{id}/history
    *
-   * @param page (optional)
-   * @param pageSize (optional)
-   * @param sampleId (optional)
-   * @param parameterCode (optional)
+   * @param id (required)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
    */
   @Operation(
-      operationId = "testRecordsListTestRecords",
-      tags = {"test-records"},
+      operationId = "receiptsGetReceiptHistory",
+      tags = {"receipts"},
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -171,7 +215,7 @@ public interface TestRecordsApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = TestRecordsListTestRecords200Response.class))
+                  array = @ArraySchema(schema = @Schema(implementation = FlowHistoryEntry.class)))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -184,9 +228,52 @@ public interface TestRecordsApi {
       })
   @RequestMapping(
       method = RequestMethod.GET,
-      value = TestRecordsApi.PATH_TEST_RECORDS_LIST_TEST_RECORDS,
+      value = ReceiptsApi.PATH_RECEIPTS_GET_RECEIPT_HISTORY,
       produces = {"application/json"})
-  ResponseEntity<TestRecordsListTestRecords200Response> testRecordsListTestRecords(
+  ResponseEntity<List<FlowHistoryEntry>> receiptsGetReceiptHistory(
+      @Parameter(name = "id", description = "", required = true, in = ParameterIn.PATH)
+          @PathVariable("id")
+          String id);
+
+  String PATH_RECEIPTS_LIST_RECEIPTS = "/api/receipts";
+
+  /**
+   * GET /api/receipts
+   *
+   * @param page (optional)
+   * @param pageSize (optional)
+   * @param keyword (optional)
+   * @param contractId (optional)
+   * @param flowStatus (optional)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "receiptsListReceipts",
+      tags = {"receipts"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ReceiptsListReceipts200Response.class))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.GET,
+      value = ReceiptsApi.PATH_RECEIPTS_LIST_RECEIPTS,
+      produces = {"application/json"})
+  ResponseEntity<ReceiptsListReceipts200Response> receiptsListReceipts(
       @Parameter(name = "page", description = "", in = ParameterIn.QUERY)
           @Valid
           @RequestParam(value = "page", required = false)
@@ -197,30 +284,35 @@ public interface TestRecordsApi {
           @RequestParam(value = "pageSize", required = false)
           @Nullable
           Integer pageSize,
-      @Parameter(name = "sampleId", description = "", in = ParameterIn.QUERY)
+      @Parameter(name = "keyword", description = "", in = ParameterIn.QUERY)
           @Valid
-          @RequestParam(value = "sampleId", required = false)
+          @RequestParam(value = "keyword", required = false)
           @Nullable
-          String sampleId,
-      @Parameter(name = "parameterCode", description = "", in = ParameterIn.QUERY)
+          String keyword,
+      @Parameter(name = "contractId", description = "", in = ParameterIn.QUERY)
           @Valid
-          @RequestParam(value = "parameterCode", required = false)
+          @RequestParam(value = "contractId", required = false)
           @Nullable
-          String parameterCode);
+          String contractId,
+      @Parameter(name = "flowStatus", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "flowStatus", required = false)
+          @Nullable
+          FlowStatus flowStatus);
 
-  String PATH_TEST_RECORDS_SET_VERDICT = "/api/test-records/{id}/verdict";
+  String PATH_RECEIPTS_UPDATE_RECEIPT = "/api/receipts/{id}";
 
   /**
-   * PATCH /api/test-records/{id}/verdict
+   * PUT /api/receipts/{id}
    *
    * @param id (required)
-   * @param testRecordsSetVerdictRequest (required)
+   * @param updateSampleReceiptRequest (required)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
    */
   @Operation(
-      operationId = "testRecordsSetVerdict",
-      tags = {"test-records"},
+      operationId = "receiptsUpdateReceipt",
+      tags = {"receipts"},
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -228,52 +320,7 @@ public interface TestRecordsApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = TestRecord.class))
-            }),
-        @ApiResponse(
-            responseCode = "default",
-            description = "An unexpected error response.",
-            content = {
-              @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ErrorResponse.class))
-            })
-      })
-  @RequestMapping(
-      method = RequestMethod.PATCH,
-      value = TestRecordsApi.PATH_TEST_RECORDS_SET_VERDICT,
-      produces = {"application/json"},
-      consumes = {"application/json"})
-  ResponseEntity<TestRecord> testRecordsSetVerdict(
-      @Parameter(name = "id", description = "", required = true, in = ParameterIn.PATH)
-          @PathVariable("id")
-          String id,
-      @Parameter(name = "TestRecordsSetVerdictRequest", description = "", required = true)
-          @Valid
-          @RequestBody
-          TestRecordsSetVerdictRequest testRecordsSetVerdictRequest);
-
-  String PATH_TEST_RECORDS_UPDATE_TEST_RECORD = "/api/test-records/{id}";
-
-  /**
-   * PUT /api/test-records/{id}
-   *
-   * @param id (required)
-   * @param updateTestRecordRequest (required)
-   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
-   *     code 200)
-   */
-  @Operation(
-      operationId = "testRecordsUpdateTestRecord",
-      tags = {"test-records"},
-      responses = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "The request has succeeded.",
-            content = {
-              @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = TestRecord.class))
+                  schema = @Schema(implementation = SampleReceipt.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -286,15 +333,15 @@ public interface TestRecordsApi {
       })
   @RequestMapping(
       method = RequestMethod.PUT,
-      value = TestRecordsApi.PATH_TEST_RECORDS_UPDATE_TEST_RECORD,
+      value = ReceiptsApi.PATH_RECEIPTS_UPDATE_RECEIPT,
       produces = {"application/json"},
       consumes = {"application/json"})
-  ResponseEntity<TestRecord> testRecordsUpdateTestRecord(
+  ResponseEntity<SampleReceipt> receiptsUpdateReceipt(
       @Parameter(name = "id", description = "", required = true, in = ParameterIn.PATH)
           @PathVariable("id")
           String id,
-      @Parameter(name = "UpdateTestRecordRequest", description = "", required = true)
+      @Parameter(name = "UpdateSampleReceiptRequest", description = "", required = true)
           @Valid
           @RequestBody
-          UpdateTestRecordRequest updateTestRecordRequest);
+          UpdateSampleReceiptRequest updateSampleReceiptRequest);
 }

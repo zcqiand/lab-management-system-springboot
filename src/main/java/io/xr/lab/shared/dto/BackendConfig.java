@@ -17,7 +17,7 @@ import org.springframework.lang.Nullable;
         "已废弃 (ADR-0014):用 VITE_API_BASE_URL / NEXT_PUBLIC_API_BASE_URL 替代;4-backend 运行时切换配置")
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-02T21:47:39.355598900+08:00[Asia/Shanghai]",
+    date = "2026-09-02T22:35:42.457326500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public class BackendConfig {
 

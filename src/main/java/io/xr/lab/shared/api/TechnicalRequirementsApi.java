@@ -13,10 +13,11 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.xr.lab.shared.dto.CalculationMethod;
-import io.xr.lab.shared.dto.CreateCalculationMethodRequest;
+import io.xr.lab.shared.dto.CreateTechnicalRequirementRequest;
 import io.xr.lab.shared.dto.ErrorResponse;
-import io.xr.lab.shared.dto.UpdateCalculationMethodRequest;
+import io.xr.lab.shared.dto.RequirementVerificationStatus;
+import io.xr.lab.shared.dto.TechnicalRequirement;
+import io.xr.lab.shared.dto.UpdateTechnicalRequirementRequest;
 import jakarta.annotation.Generated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -28,24 +29,24 @@ import org.springframework.web.bind.annotation.*;
 
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-02T21:47:39.355598900+08:00[Asia/Shanghai]",
+    date = "2026-09-02T22:35:42.457326500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 @Validated
-@Tag(name = "calculation-methods", description = "the calculation-methods API")
-public interface CalculationMethodsApi {
+@Tag(name = "technical-requirements", description = "the technical-requirements API")
+public interface TechnicalRequirementsApi {
 
-  String PATH_CALCULATION_METHODS_CREATE_CALCULATION_METHOD = "/api/calculation-methods";
+  String PATH_TECHNICAL_REQUIREMENTS_CREATE_TECHNICAL_REQUIREMENT = "/api/technical-requirements";
 
   /**
-   * POST /api/calculation-methods
+   * POST /api/technical-requirements
    *
-   * @param createCalculationMethodRequest (required)
+   * @param createTechnicalRequirementRequest (required)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
    */
   @Operation(
-      operationId = "calculationMethodsCreateCalculationMethod",
-      tags = {"calculation-methods"},
+      operationId = "technicalRequirementsCreateTechnicalRequirement",
+      tags = {"technical-requirements"},
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -53,7 +54,7 @@ public interface CalculationMethodsApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = CalculationMethod.class))
+                  schema = @Schema(implementation = TechnicalRequirement.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -66,29 +67,31 @@ public interface CalculationMethodsApi {
       })
   @RequestMapping(
       method = RequestMethod.POST,
-      value = CalculationMethodsApi.PATH_CALCULATION_METHODS_CREATE_CALCULATION_METHOD,
+      value = TechnicalRequirementsApi.PATH_TECHNICAL_REQUIREMENTS_CREATE_TECHNICAL_REQUIREMENT,
       produces = {"application/json"},
       consumes = {"application/json"})
-  ResponseEntity<CalculationMethod> calculationMethodsCreateCalculationMethod(
-      @Parameter(name = "CreateCalculationMethodRequest", description = "", required = true)
+  ResponseEntity<TechnicalRequirement> technicalRequirementsCreateTechnicalRequirement(
+      @Parameter(name = "CreateTechnicalRequirementRequest", description = "", required = true)
           @Valid
           @RequestBody
-          CreateCalculationMethodRequest createCalculationMethodRequest);
+          CreateTechnicalRequirementRequest createTechnicalRequirementRequest);
 
-  String PATH_CALCULATION_METHODS_DELETE_CALCULATION_METHOD =
-      "/api/calculation-methods/{inspectionObjectCode}/{inspectionParameterCode}";
+  String PATH_TECHNICAL_REQUIREMENTS_DELETE_TECHNICAL_REQUIREMENT =
+      "/api/technical-requirements/{inspectionObjectCode}/{inspectionParameterCode}/{judgmentStandardCode}";
 
   /**
-   * DELETE /api/calculation-methods/{inspectionObjectCode}/{inspectionParameterCode}
+   * DELETE
+   * /api/technical-requirements/{inspectionObjectCode}/{inspectionParameterCode}/{judgmentStandardCode}
    *
    * @param inspectionObjectCode (required)
    * @param inspectionParameterCode (required)
+   * @param judgmentStandardCode (required)
    * @return There is no content to send for this request, but the headers may be useful. (status
    *     code 204) or An unexpected error response. (status code 200)
    */
   @Operation(
-      operationId = "calculationMethodsDeleteCalculationMethod",
-      tags = {"calculation-methods"},
+      operationId = "technicalRequirementsDeleteTechnicalRequirement",
+      tags = {"technical-requirements"},
       responses = {
         @ApiResponse(
             responseCode = "204",
@@ -105,162 +108,9 @@ public interface CalculationMethodsApi {
       })
   @RequestMapping(
       method = RequestMethod.DELETE,
-      value = CalculationMethodsApi.PATH_CALCULATION_METHODS_DELETE_CALCULATION_METHOD,
+      value = TechnicalRequirementsApi.PATH_TECHNICAL_REQUIREMENTS_DELETE_TECHNICAL_REQUIREMENT,
       produces = {"application/json"})
-  ResponseEntity<Void> calculationMethodsDeleteCalculationMethod(
-      @Parameter(
-              name = "inspectionObjectCode",
-              description = "",
-              required = true,
-              in = ParameterIn.PATH)
-          @PathVariable("inspectionObjectCode")
-          String inspectionObjectCode,
-      @Parameter(
-              name = "inspectionParameterCode",
-              description = "",
-              required = true,
-              in = ParameterIn.PATH)
-          @PathVariable("inspectionParameterCode")
-          String inspectionParameterCode);
-
-  String PATH_CALCULATION_METHODS_GET_CALCULATION_METHOD =
-      "/api/calculation-methods/{inspectionObjectCode}/{inspectionParameterCode}";
-
-  /**
-   * GET /api/calculation-methods/{inspectionObjectCode}/{inspectionParameterCode}
-   *
-   * @param inspectionObjectCode (required)
-   * @param inspectionParameterCode (required)
-   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
-   *     code 200)
-   */
-  @Operation(
-      operationId = "calculationMethodsGetCalculationMethod",
-      tags = {"calculation-methods"},
-      responses = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "The request has succeeded.",
-            content = {
-              @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = CalculationMethod.class))
-            }),
-        @ApiResponse(
-            responseCode = "default",
-            description = "An unexpected error response.",
-            content = {
-              @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ErrorResponse.class))
-            })
-      })
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = CalculationMethodsApi.PATH_CALCULATION_METHODS_GET_CALCULATION_METHOD,
-      produces = {"application/json"})
-  ResponseEntity<CalculationMethod> calculationMethodsGetCalculationMethod(
-      @Parameter(
-              name = "inspectionObjectCode",
-              description = "",
-              required = true,
-              in = ParameterIn.PATH)
-          @PathVariable("inspectionObjectCode")
-          String inspectionObjectCode,
-      @Parameter(
-              name = "inspectionParameterCode",
-              description = "",
-              required = true,
-              in = ParameterIn.PATH)
-          @PathVariable("inspectionParameterCode")
-          String inspectionParameterCode);
-
-  String PATH_CALCULATION_METHODS_LIST_CALCULATION_METHODS = "/api/calculation-methods";
-
-  /**
-   * GET /api/calculation-methods
-   *
-   * @param inspectionObjectCode (optional)
-   * @param inspectionParameterCode (optional)
-   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
-   *     code 200)
-   */
-  @Operation(
-      operationId = "calculationMethodsListCalculationMethods",
-      tags = {"calculation-methods"},
-      responses = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "The request has succeeded.",
-            content = {
-              @Content(
-                  mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = CalculationMethod.class)))
-            }),
-        @ApiResponse(
-            responseCode = "default",
-            description = "An unexpected error response.",
-            content = {
-              @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ErrorResponse.class))
-            })
-      })
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = CalculationMethodsApi.PATH_CALCULATION_METHODS_LIST_CALCULATION_METHODS,
-      produces = {"application/json"})
-  ResponseEntity<List<CalculationMethod>> calculationMethodsListCalculationMethods(
-      @Parameter(name = "inspectionObjectCode", description = "", in = ParameterIn.QUERY)
-          @Valid
-          @RequestParam(value = "inspectionObjectCode", required = false)
-          @Nullable
-          String inspectionObjectCode,
-      @Parameter(name = "inspectionParameterCode", description = "", in = ParameterIn.QUERY)
-          @Valid
-          @RequestParam(value = "inspectionParameterCode", required = false)
-          @Nullable
-          String inspectionParameterCode);
-
-  String PATH_CALCULATION_METHODS_UPDATE_CALCULATION_METHOD =
-      "/api/calculation-methods/{inspectionObjectCode}/{inspectionParameterCode}";
-
-  /**
-   * PUT /api/calculation-methods/{inspectionObjectCode}/{inspectionParameterCode}
-   *
-   * @param inspectionObjectCode (required)
-   * @param inspectionParameterCode (required)
-   * @param updateCalculationMethodRequest (required)
-   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
-   *     code 200)
-   */
-  @Operation(
-      operationId = "calculationMethodsUpdateCalculationMethod",
-      tags = {"calculation-methods"},
-      responses = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "The request has succeeded.",
-            content = {
-              @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = CalculationMethod.class))
-            }),
-        @ApiResponse(
-            responseCode = "default",
-            description = "An unexpected error response.",
-            content = {
-              @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ErrorResponse.class))
-            })
-      })
-  @RequestMapping(
-      method = RequestMethod.PUT,
-      value = CalculationMethodsApi.PATH_CALCULATION_METHODS_UPDATE_CALCULATION_METHOD,
-      produces = {"application/json"},
-      consumes = {"application/json"})
-  ResponseEntity<CalculationMethod> calculationMethodsUpdateCalculationMethod(
+  ResponseEntity<Void> technicalRequirementsDeleteTechnicalRequirement(
       @Parameter(
               name = "inspectionObjectCode",
               description = "",
@@ -275,8 +125,199 @@ public interface CalculationMethodsApi {
               in = ParameterIn.PATH)
           @PathVariable("inspectionParameterCode")
           String inspectionParameterCode,
-      @Parameter(name = "UpdateCalculationMethodRequest", description = "", required = true)
+      @Parameter(
+              name = "judgmentStandardCode",
+              description = "",
+              required = true,
+              in = ParameterIn.PATH)
+          @PathVariable("judgmentStandardCode")
+          String judgmentStandardCode);
+
+  String PATH_TECHNICAL_REQUIREMENTS_GET_TECHNICAL_REQUIREMENT =
+      "/api/technical-requirements/{inspectionObjectCode}/{inspectionParameterCode}/{judgmentStandardCode}";
+
+  /**
+   * GET
+   * /api/technical-requirements/{inspectionObjectCode}/{inspectionParameterCode}/{judgmentStandardCode}
+   *
+   * @param inspectionObjectCode (required)
+   * @param inspectionParameterCode (required)
+   * @param judgmentStandardCode (required)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "technicalRequirementsGetTechnicalRequirement",
+      tags = {"technical-requirements"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = TechnicalRequirement.class))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.GET,
+      value = TechnicalRequirementsApi.PATH_TECHNICAL_REQUIREMENTS_GET_TECHNICAL_REQUIREMENT,
+      produces = {"application/json"})
+  ResponseEntity<TechnicalRequirement> technicalRequirementsGetTechnicalRequirement(
+      @Parameter(
+              name = "inspectionObjectCode",
+              description = "",
+              required = true,
+              in = ParameterIn.PATH)
+          @PathVariable("inspectionObjectCode")
+          String inspectionObjectCode,
+      @Parameter(
+              name = "inspectionParameterCode",
+              description = "",
+              required = true,
+              in = ParameterIn.PATH)
+          @PathVariable("inspectionParameterCode")
+          String inspectionParameterCode,
+      @Parameter(
+              name = "judgmentStandardCode",
+              description = "",
+              required = true,
+              in = ParameterIn.PATH)
+          @PathVariable("judgmentStandardCode")
+          String judgmentStandardCode);
+
+  String PATH_TECHNICAL_REQUIREMENTS_LIST_TECHNICAL_REQUIREMENTS = "/api/technical-requirements";
+
+  /**
+   * GET /api/technical-requirements
+   *
+   * @param inspectionObjectCode (optional)
+   * @param inspectionParameterCode (optional)
+   * @param judgmentStandardCode (optional)
+   * @param verificationStatus (optional)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "technicalRequirementsListTechnicalRequirements",
+      tags = {"technical-requirements"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  array =
+                      @ArraySchema(schema = @Schema(implementation = TechnicalRequirement.class)))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.GET,
+      value = TechnicalRequirementsApi.PATH_TECHNICAL_REQUIREMENTS_LIST_TECHNICAL_REQUIREMENTS,
+      produces = {"application/json"})
+  ResponseEntity<List<TechnicalRequirement>> technicalRequirementsListTechnicalRequirements(
+      @Parameter(name = "inspectionObjectCode", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "inspectionObjectCode", required = false)
+          @Nullable
+          String inspectionObjectCode,
+      @Parameter(name = "inspectionParameterCode", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "inspectionParameterCode", required = false)
+          @Nullable
+          String inspectionParameterCode,
+      @Parameter(name = "judgmentStandardCode", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "judgmentStandardCode", required = false)
+          @Nullable
+          String judgmentStandardCode,
+      @Parameter(name = "verificationStatus", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "verificationStatus", required = false)
+          @Nullable
+          RequirementVerificationStatus verificationStatus);
+
+  String PATH_TECHNICAL_REQUIREMENTS_UPDATE_TECHNICAL_REQUIREMENT =
+      "/api/technical-requirements/{inspectionObjectCode}/{inspectionParameterCode}/{judgmentStandardCode}";
+
+  /**
+   * PUT
+   * /api/technical-requirements/{inspectionObjectCode}/{inspectionParameterCode}/{judgmentStandardCode}
+   *
+   * @param inspectionObjectCode (required)
+   * @param inspectionParameterCode (required)
+   * @param judgmentStandardCode (required)
+   * @param updateTechnicalRequirementRequest (required)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "technicalRequirementsUpdateTechnicalRequirement",
+      tags = {"technical-requirements"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = TechnicalRequirement.class))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.PUT,
+      value = TechnicalRequirementsApi.PATH_TECHNICAL_REQUIREMENTS_UPDATE_TECHNICAL_REQUIREMENT,
+      produces = {"application/json"},
+      consumes = {"application/json"})
+  ResponseEntity<TechnicalRequirement> technicalRequirementsUpdateTechnicalRequirement(
+      @Parameter(
+              name = "inspectionObjectCode",
+              description = "",
+              required = true,
+              in = ParameterIn.PATH)
+          @PathVariable("inspectionObjectCode")
+          String inspectionObjectCode,
+      @Parameter(
+              name = "inspectionParameterCode",
+              description = "",
+              required = true,
+              in = ParameterIn.PATH)
+          @PathVariable("inspectionParameterCode")
+          String inspectionParameterCode,
+      @Parameter(
+              name = "judgmentStandardCode",
+              description = "",
+              required = true,
+              in = ParameterIn.PATH)
+          @PathVariable("judgmentStandardCode")
+          String judgmentStandardCode,
+      @Parameter(name = "UpdateTechnicalRequirementRequest", description = "", required = true)
           @Valid
           @RequestBody
-          UpdateCalculationMethodRequest updateCalculationMethodRequest);
+          UpdateTechnicalRequirementRequest updateTechnicalRequirementRequest);
 }

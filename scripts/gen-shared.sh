@@ -35,10 +35,14 @@ npx --yes @openapitools/openapi-generator-cli generate \
   --additional-properties useTags=true,interfaceOnly=true,skipDefaultInterface=true,useBeanValidation=true,useSpringBoot3=true,dateLibrary=java8
 
 # 把生成的 dto + api 挪进 springboot 源码树。
-mkdir -p "$DEST/io/xr/lab/shared/dto" "$DEST/io/xr/lab/platform/api"
-rm -rf "$DEST/io/xr/lab/shared/dto"/* "$DEST/io/xr/lab/platform/api"/*
+# 目录必须与包名一致（io.xr.lab.shared.api → shared/api/）：2026-09-02 前错位拷进
+# platform/api/，javac 全量编译不挑目录能过，但 mvn spring-boot:run 增量编译
+# 撞 stale class（AuthApi 旧包名残留 target/classes）→ AuthController 构造炸
+# Unresolved compilation problems。saas 版（saas/identity/shared/api）无此错位。
+mkdir -p "$DEST/io/xr/lab/shared/dto" "$DEST/io/xr/lab/shared/api"
+rm -rf "$DEST/io/xr/lab/shared/dto"/* "$DEST/io/xr/lab/shared/api"/* "$DEST/io/xr/lab/platform/api"
 cp -r "$ROOT/.openapi-tmp/java/src/main/java/io/xr/lab/shared/dto/." "$DEST/io/xr/lab/shared/dto/"
-cp -r "$ROOT/.openapi-tmp/java/src/main/java/io/xr/lab/shared/api/." "$DEST/io/xr/lab/platform/api/"
+cp -r "$ROOT/.openapi-tmp/java/src/main/java/io/xr/lab/shared/api/." "$DEST/io/xr/lab/shared/api/"
 rm -rf "$ROOT/.openapi-tmp"
 
 # 生成器已知缺陷修补：oneOf + enum discriminator（AuthState 4 态）下，

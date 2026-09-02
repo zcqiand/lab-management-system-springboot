@@ -8,16 +8,20 @@ package io.xr.lab.shared.api;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.xr.lab.shared.dto.DashboardStats;
 import io.xr.lab.shared.dto.ErrorResponse;
-import io.xr.lab.shared.dto.SummaryData;
+import io.xr.lab.shared.dto.FlowActionRequest;
+import io.xr.lab.shared.dto.FlowActionResult;
+import io.xr.lab.shared.dto.FlowStatus;
+import io.xr.lab.shared.dto.ReceiptsListReceipts200Response;
 import jakarta.annotation.Generated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
@@ -25,23 +29,26 @@ import org.springframework.web.bind.annotation.*;
 
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-02T21:47:39.355598900+08:00[Asia/Shanghai]",
+    date = "2026-09-02T22:35:42.457326500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 @Validated
-@Tag(name = "summary", description = "the summary API")
-public interface SummaryApi {
+@Tag(name = "report-flow", description = "the report-flow API")
+public interface ReportFlowApi {
 
-  String PATH_SUMMARY_GET_DASHBOARD_STATS = "/api/summary/stats";
+  String PATH_REPORT_FLOW_LIST_FLOW_QUEUE = "/api/receipts/flow/queue";
 
   /**
-   * GET /api/summary/stats
+   * GET /api/receipts/flow/queue
    *
+   * @param stage (required)
+   * @param page (optional)
+   * @param pageSize (optional)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
    */
   @Operation(
-      operationId = "summaryGetDashboardStats",
-      tags = {"summary"},
+      operationId = "reportFlowListFlowQueue",
+      tags = {"report-flow"},
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -49,7 +56,7 @@ public interface SummaryApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = DashboardStats.class))
+                  schema = @Schema(implementation = ReceiptsListReceipts200Response.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -62,24 +69,37 @@ public interface SummaryApi {
       })
   @RequestMapping(
       method = RequestMethod.GET,
-      value = SummaryApi.PATH_SUMMARY_GET_DASHBOARD_STATS,
+      value = ReportFlowApi.PATH_REPORT_FLOW_LIST_FLOW_QUEUE,
       produces = {"application/json"})
-  ResponseEntity<DashboardStats> summaryGetDashboardStats();
+  ResponseEntity<ReceiptsListReceipts200Response> reportFlowListFlowQueue(
+      @NotNull
+          @Parameter(name = "stage", description = "", required = true, in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "stage", required = true)
+          FlowStatus stage,
+      @Parameter(name = "page", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "page", required = false)
+          @Nullable
+          Integer page,
+      @Parameter(name = "pageSize", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "pageSize", required = false)
+          @Nullable
+          Integer pageSize);
 
-  String PATH_SUMMARY_GET_REPORT_SUMMARY = "/api/summary";
+  String PATH_REPORT_FLOW_SUBMIT_FLOW_ACTION = "/api/receipts/flow";
 
   /**
-   * GET /api/summary
+   * POST /api/receipts/flow
    *
-   * @param categoryCode (optional)
-   * @param dateFrom (optional)
-   * @param dateTo (optional)
+   * @param flowActionRequest (required)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
    */
   @Operation(
-      operationId = "summaryGetReportSummary",
-      tags = {"summary"},
+      operationId = "reportFlowSubmitFlowAction",
+      tags = {"report-flow"},
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -87,7 +107,7 @@ public interface SummaryApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = SummaryData.class))
+                  array = @ArraySchema(schema = @Schema(implementation = FlowActionResult.class)))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -99,23 +119,11 @@ public interface SummaryApi {
             })
       })
   @RequestMapping(
-      method = RequestMethod.GET,
-      value = SummaryApi.PATH_SUMMARY_GET_REPORT_SUMMARY,
-      produces = {"application/json"})
-  ResponseEntity<SummaryData> summaryGetReportSummary(
-      @Parameter(name = "categoryCode", description = "", in = ParameterIn.QUERY)
-          @Valid
-          @RequestParam(value = "categoryCode", required = false)
-          @Nullable
-          String categoryCode,
-      @Parameter(name = "dateFrom", description = "", in = ParameterIn.QUERY)
-          @Valid
-          @RequestParam(value = "dateFrom", required = false)
-          @Nullable
-          String dateFrom,
-      @Parameter(name = "dateTo", description = "", in = ParameterIn.QUERY)
-          @Valid
-          @RequestParam(value = "dateTo", required = false)
-          @Nullable
-          String dateTo);
+      method = RequestMethod.POST,
+      value = ReportFlowApi.PATH_REPORT_FLOW_SUBMIT_FLOW_ACTION,
+      produces = {"application/json"},
+      consumes = {"application/json"})
+  ResponseEntity<List<FlowActionResult>> reportFlowSubmitFlowAction(
+      @Parameter(name = "FlowActionRequest", description = "", required = true) @Valid @RequestBody
+          FlowActionRequest flowActionRequest);
 }

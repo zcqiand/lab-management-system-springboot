@@ -12,12 +12,12 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.xr.lab.shared.dto.Contract;
-import io.xr.lab.shared.dto.ContractStatus;
-import io.xr.lab.shared.dto.ContractsListContracts200Response;
-import io.xr.lab.shared.dto.CreateContractRequest;
+import io.xr.lab.shared.dto.CreateTestRecordRequest;
 import io.xr.lab.shared.dto.ErrorResponse;
-import io.xr.lab.shared.dto.UpdateContractRequest;
+import io.xr.lab.shared.dto.TestRecord;
+import io.xr.lab.shared.dto.TestRecordsListTestRecords200Response;
+import io.xr.lab.shared.dto.TestRecordsSetVerdictRequest;
+import io.xr.lab.shared.dto.UpdateTestRecordRequest;
 import jakarta.annotation.Generated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -28,24 +28,24 @@ import org.springframework.web.bind.annotation.*;
 
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-02T21:47:39.355598900+08:00[Asia/Shanghai]",
+    date = "2026-09-02T22:35:42.457326500+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 @Validated
-@Tag(name = "contracts", description = "the contracts API")
-public interface ContractsApi {
+@Tag(name = "test-records", description = "the test-records API")
+public interface TestRecordsApi {
 
-  String PATH_CONTRACTS_CREATE_CONTRACT = "/api/contracts";
+  String PATH_TEST_RECORDS_CREATE_TEST_RECORD = "/api/test-records";
 
   /**
-   * POST /api/contracts
+   * POST /api/test-records
    *
-   * @param createContractRequest (required)
+   * @param createTestRecordRequest (required)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
    */
   @Operation(
-      operationId = "contractsCreateContract",
-      tags = {"contracts"},
+      operationId = "testRecordsCreateTestRecord",
+      tags = {"test-records"},
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -53,7 +53,7 @@ public interface ContractsApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = Contract.class))
+                  schema = @Schema(implementation = TestRecord.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -66,27 +66,27 @@ public interface ContractsApi {
       })
   @RequestMapping(
       method = RequestMethod.POST,
-      value = ContractsApi.PATH_CONTRACTS_CREATE_CONTRACT,
+      value = TestRecordsApi.PATH_TEST_RECORDS_CREATE_TEST_RECORD,
       produces = {"application/json"},
       consumes = {"application/json"})
-  ResponseEntity<Contract> contractsCreateContract(
-      @Parameter(name = "CreateContractRequest", description = "", required = true)
+  ResponseEntity<TestRecord> testRecordsCreateTestRecord(
+      @Parameter(name = "CreateTestRecordRequest", description = "", required = true)
           @Valid
           @RequestBody
-          CreateContractRequest createContractRequest);
+          CreateTestRecordRequest createTestRecordRequest);
 
-  String PATH_CONTRACTS_DELETE_CONTRACT = "/api/contracts/{id}";
+  String PATH_TEST_RECORDS_DELETE_TEST_RECORD = "/api/test-records/{id}";
 
   /**
-   * DELETE /api/contracts/{id}
+   * DELETE /api/test-records/{id}
    *
    * @param id (required)
    * @return There is no content to send for this request, but the headers may be useful. (status
    *     code 204) or An unexpected error response. (status code 200)
    */
   @Operation(
-      operationId = "contractsDeleteContract",
-      tags = {"contracts"},
+      operationId = "testRecordsDeleteTestRecord",
+      tags = {"test-records"},
       responses = {
         @ApiResponse(
             responseCode = "204",
@@ -103,25 +103,25 @@ public interface ContractsApi {
       })
   @RequestMapping(
       method = RequestMethod.DELETE,
-      value = ContractsApi.PATH_CONTRACTS_DELETE_CONTRACT,
+      value = TestRecordsApi.PATH_TEST_RECORDS_DELETE_TEST_RECORD,
       produces = {"application/json"})
-  ResponseEntity<Void> contractsDeleteContract(
+  ResponseEntity<Void> testRecordsDeleteTestRecord(
       @Parameter(name = "id", description = "", required = true, in = ParameterIn.PATH)
           @PathVariable("id")
           String id);
 
-  String PATH_CONTRACTS_GET_CONTRACT = "/api/contracts/{id}";
+  String PATH_TEST_RECORDS_GET_TEST_RECORD = "/api/test-records/{id}";
 
   /**
-   * GET /api/contracts/{id}
+   * GET /api/test-records/{id}
    *
    * @param id (required)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
    */
   @Operation(
-      operationId = "contractsGetContract",
-      tags = {"contracts"},
+      operationId = "testRecordsGetTestRecord",
+      tags = {"test-records"},
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -129,7 +129,7 @@ public interface ContractsApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = Contract.class))
+                  schema = @Schema(implementation = TestRecord.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -142,28 +142,28 @@ public interface ContractsApi {
       })
   @RequestMapping(
       method = RequestMethod.GET,
-      value = ContractsApi.PATH_CONTRACTS_GET_CONTRACT,
+      value = TestRecordsApi.PATH_TEST_RECORDS_GET_TEST_RECORD,
       produces = {"application/json"})
-  ResponseEntity<Contract> contractsGetContract(
+  ResponseEntity<TestRecord> testRecordsGetTestRecord(
       @Parameter(name = "id", description = "", required = true, in = ParameterIn.PATH)
           @PathVariable("id")
           String id);
 
-  String PATH_CONTRACTS_LIST_CONTRACTS = "/api/contracts";
+  String PATH_TEST_RECORDS_LIST_TEST_RECORDS = "/api/test-records";
 
   /**
-   * GET /api/contracts
+   * GET /api/test-records
    *
    * @param page (optional)
    * @param pageSize (optional)
-   * @param keyword (optional)
-   * @param status (optional)
+   * @param sampleId (optional)
+   * @param parameterCode (optional)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
    */
   @Operation(
-      operationId = "contractsListContracts",
-      tags = {"contracts"},
+      operationId = "testRecordsListTestRecords",
+      tags = {"test-records"},
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -171,7 +171,7 @@ public interface ContractsApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = ContractsListContracts200Response.class))
+                  schema = @Schema(implementation = TestRecordsListTestRecords200Response.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -184,9 +184,9 @@ public interface ContractsApi {
       })
   @RequestMapping(
       method = RequestMethod.GET,
-      value = ContractsApi.PATH_CONTRACTS_LIST_CONTRACTS,
+      value = TestRecordsApi.PATH_TEST_RECORDS_LIST_TEST_RECORDS,
       produces = {"application/json"})
-  ResponseEntity<ContractsListContracts200Response> contractsListContracts(
+  ResponseEntity<TestRecordsListTestRecords200Response> testRecordsListTestRecords(
       @Parameter(name = "page", description = "", in = ParameterIn.QUERY)
           @Valid
           @RequestParam(value = "page", required = false)
@@ -197,30 +197,30 @@ public interface ContractsApi {
           @RequestParam(value = "pageSize", required = false)
           @Nullable
           Integer pageSize,
-      @Parameter(name = "keyword", description = "", in = ParameterIn.QUERY)
+      @Parameter(name = "sampleId", description = "", in = ParameterIn.QUERY)
           @Valid
-          @RequestParam(value = "keyword", required = false)
+          @RequestParam(value = "sampleId", required = false)
           @Nullable
-          String keyword,
-      @Parameter(name = "status", description = "", in = ParameterIn.QUERY)
+          String sampleId,
+      @Parameter(name = "parameterCode", description = "", in = ParameterIn.QUERY)
           @Valid
-          @RequestParam(value = "status", required = false)
+          @RequestParam(value = "parameterCode", required = false)
           @Nullable
-          ContractStatus status);
+          String parameterCode);
 
-  String PATH_CONTRACTS_UPDATE_CONTRACT = "/api/contracts/{id}";
+  String PATH_TEST_RECORDS_SET_VERDICT = "/api/test-records/{id}/verdict";
 
   /**
-   * PUT /api/contracts/{id}
+   * PATCH /api/test-records/{id}/verdict
    *
    * @param id (required)
-   * @param updateContractRequest (required)
+   * @param testRecordsSetVerdictRequest (required)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
    */
   @Operation(
-      operationId = "contractsUpdateContract",
-      tags = {"contracts"},
+      operationId = "testRecordsSetVerdict",
+      tags = {"test-records"},
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -228,7 +228,52 @@ public interface ContractsApi {
             content = {
               @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = Contract.class))
+                  schema = @Schema(implementation = TestRecord.class))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.PATCH,
+      value = TestRecordsApi.PATH_TEST_RECORDS_SET_VERDICT,
+      produces = {"application/json"},
+      consumes = {"application/json"})
+  ResponseEntity<TestRecord> testRecordsSetVerdict(
+      @Parameter(name = "id", description = "", required = true, in = ParameterIn.PATH)
+          @PathVariable("id")
+          String id,
+      @Parameter(name = "TestRecordsSetVerdictRequest", description = "", required = true)
+          @Valid
+          @RequestBody
+          TestRecordsSetVerdictRequest testRecordsSetVerdictRequest);
+
+  String PATH_TEST_RECORDS_UPDATE_TEST_RECORD = "/api/test-records/{id}";
+
+  /**
+   * PUT /api/test-records/{id}
+   *
+   * @param id (required)
+   * @param updateTestRecordRequest (required)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "testRecordsUpdateTestRecord",
+      tags = {"test-records"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = TestRecord.class))
             }),
         @ApiResponse(
             responseCode = "default",
@@ -241,15 +286,15 @@ public interface ContractsApi {
       })
   @RequestMapping(
       method = RequestMethod.PUT,
-      value = ContractsApi.PATH_CONTRACTS_UPDATE_CONTRACT,
+      value = TestRecordsApi.PATH_TEST_RECORDS_UPDATE_TEST_RECORD,
       produces = {"application/json"},
       consumes = {"application/json"})
-  ResponseEntity<Contract> contractsUpdateContract(
+  ResponseEntity<TestRecord> testRecordsUpdateTestRecord(
       @Parameter(name = "id", description = "", required = true, in = ParameterIn.PATH)
           @PathVariable("id")
           String id,
-      @Parameter(name = "UpdateContractRequest", description = "", required = true)
+      @Parameter(name = "UpdateTestRecordRequest", description = "", required = true)
           @Valid
           @RequestBody
-          UpdateContractRequest updateContractRequest);
+          UpdateTestRecordRequest updateTestRecordRequest);
 }
