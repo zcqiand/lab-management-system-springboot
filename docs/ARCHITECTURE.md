@@ -12,7 +12,7 @@
 |---|---|
 | 新人，30 分钟搞懂这仓 | §1 → §2.1 → §4（启动链） |
 | 改 shared 契约后来同步 | §4.1 → §5（V014 永久分叉管理） |
-| 排 prod 502 / 部署不通 | §5 → §4.2 → [memory/springboot-env-drift-502-trap.md](../../../memory/springboot-env-drift-502-trap.md) |
+| 排 prod 502 / 部署不通 | §5 → §4.2 → memory/springboot-env-drift-502-trap.md |
 | 加新接口 / 加新表 | §3 → [docs/adr/0003-function-tree-requires-human-approval.md](../../../docs/adr/0003-function-tree-requires-human-approval.md) |
 | 调试 JWT / SSO / OAuth | §3.1 → [adr/0008](adr/0008-real-backend-oauth-jwt.md) |
 | 调试菜单 | §3.1 → [adr/0009](adr/0009-menus-via-lab-backend.md) |
@@ -28,14 +28,14 @@
                 ┌─────────────────────────────────────────────┐
                 │         契约仓 (lab-shared)                  │
                 │  TypeSpec (API)  +  sql/migrations (DB)     │
-                │  emit: openapi.yaml / V001-V017.sql         │
+                │  emit: openapi.yaml / V001-V018.sql         │
                 └──────┬──────────────────┬──────────────────┘
                        ▼                  ▼
-            lab-msw (:5173)         6 frontend (react/vue/nextjs)
+            lab-msw (:5200)         6 frontend (react/vue/nextjs)
                        └──── fetch ────────┘
                                   ▼
               ┌────────────────────────────────────────┐
-              │   lab-management-springboot (:8080)    │
+              │   lab-management-springboot (:5205)    │
               │   Java 17 + Spring Boot 3.4 + JPA +     │
               │   Flyway-on + HS256 JWT 真签名 +        │
               │   真 saas OAuth 2.0 直连                │
@@ -650,7 +650,7 @@ done
 | **Codegen 模式** | 同款 `openapi-generator -g spring interfaceOnly` | 同款，参数镜像 saas v0.2.0 |
 | **DB dialect** | postgres | postgres（lab-shared SQL 即 postgres 方言） |
 | **默认 profile** | dev | `no-sso`（NoopSaasAuthClient 兜底；CI 切 `default` 走真 saas） |
-| **env 漂移 502 风险** | 已知（[memory/springboot-env-drift-502-trap.md](../../../memory/springboot-env-drift-502-trap.md)） | 同款；default=no-sso 缓解 |
+| **env 漂移 502 风险** | 已知（memory/springboot-env-drift-502-trap.md） | 同款；default=no-sso 缓解 |
 | **deploy 脚本读 fat jar** | `platform-<version>.jar` | 同款，本仓 artifactId=`lab-management-system-springboot` |
 | **DevJwtDecoder 兼容性** | (历史) dev-only bean；Phase 2A 已删 | 本仓自始 HS256 真签，未用过 dev 降级 |
 | **SecurityConfig `/actuator/**`** | permitAll（教训 v0.1.7） | 同款 |
@@ -662,10 +662,10 @@ done
 
 | 陷阱 | 解法 | 出处 |
 |---|---|---|
-| `SecurityConfig` 漏 `/actuator/**` | 加 `permitAll` | [memory/springboot-actuator-401-deploy-loop-trap.md](../../../memory/springboot-actuator-401-deploy-loop-trap.md) |
-| env 漂移 → CF 502 → CORS 误诊 | 先查 VPS env-file 缺失项；改 env 必须重建容器 | [memory/springboot-env-drift-502-trap.md](../../../memory/springboot-env-drift-502-trap.md) |
-| `DevJwtDecoder` 是 dev-only（saas 历史教训） | Phase 2A 已删；现在统一 `NimbusJwtDecoder.withSecretKey` HS256 真验签；env-file 别写 `JWT_SIGNING_KEY` | [memory/springboot-dev-jwt-decoder-gap.md](../../../memory/springboot-dev-jwt-decoder-gap.md) |
-| 不知道 fat jar 名 | deploy 按 artifactId 找 jar：本仓 `lab-management-system-springboot-<version>.jar` | [memory/springboot-fat-jar-name.md](../../../memory/springboot-fat-jar-name.md) |
+| `SecurityConfig` 漏 `/actuator/**` | 加 `permitAll` | memory/springboot-actuator-401-deploy-loop-trap.md |
+| env 漂移 → CF 502 → CORS 误诊 | 先查 VPS env-file 缺失项；改 env 必须重建容器 | memory/springboot-env-drift-502-trap.md |
+| `DevJwtDecoder` 是 dev-only（saas 历史教训） | Phase 2A 已删；现在统一 `NimbusJwtDecoder.withSecretKey` HS256 真验签；env-file 别写 `JWT_SIGNING_KEY` | memory/springboot-dev-jwt-decoder-gap.md |
+| 不知道 fat jar 名 | deploy 按 artifactId 找 jar：本仓 `lab-management-system-springboot-<version>.jar` | memory/springboot-fat-jar-name.md |
 | 8/26 lab prod 502 40 分钟事故 | `gen-shared.sh` cmp abort 防护（§6.1）；DIVERGED_VERSIONS V014（§5） | session.json 2026-08-26 root-cause |
-| codegraph 工具不解析 .tsp | 看本仓 `docs/functions/function-tree.md` 就够 | [memory/codegraph-typespec-mismatch.md](../../../memory/codegraph-typespec-mismatch.md) |
-| JDK HttpClient h2c 打挂 msw | RestClient 调本地明文服务 EOF 时，强制 HTTP/1.1 | [memory/jdk-httpclient-h2c-breaks-msw.md](../../../memory/jdk-httpclient-h2c-breaks-msw.md) |
+| codegraph 工具不解析 .tsp | 看本仓 `docs/functions/function-tree.md` 就够 | memory/codegraph-typespec-mismatch.md |
+| JDK HttpClient h2c 打挂 msw | RestClient 调本地明文服务 EOF 时，强制 HTTP/1.1 | memory/jdk-httpclient-h2c-breaks-msw.md |

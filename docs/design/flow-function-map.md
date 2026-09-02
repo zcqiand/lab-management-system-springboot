@@ -130,7 +130,7 @@ flowchart LR
 
 > 「统计读视图」是 M05 子模块（M05.F01 报告汇总 + M05.F02 仪表盘）。
 > 是流程末端的只读聚合视图，不参与状态流转。
-> 与 aspnetcore 仓 [flow-function-map.md:47-59](../lab-management-system-aspnetcore/docs/design/flow-function-map.md#L47-L59) `FLOW-03 统计分析（B4）` 对称。
+> 与 aspnetcore 仓 [flow-function-map.md:47-59](../../../lab-management-system-aspnetcore/docs/design/flow-function-map.md#L47-L59) `FLOW-03 统计分析（B4）` 对称。
 
 ```mermaid
 flowchart TD
@@ -144,7 +144,7 @@ flowchart TD
 | S02 | 报告汇总查询 | 管理层 | categoryCode/dateFrom/dateTo | SummaryData 6 列行集 | — | M05.F01.I01 |
 | S03 | 仪表盘聚合 | 所有用户 | — | 计数 + 3 桶（draft/reviewing/issued）+ pendingTask | — | M05.F02.I01 |
 
-> 实现锚点：[`SummaryApi.java:69`](../../src/main/java/io/xr/lab/platform/api/SummaryApi.java) → [`SummaryController.java:33,44`](../../src/main/java/io/xr/lab/platform/controller/SummaryController.java) → [`SummaryService.java:59,75`](../../src/main/java/io/xr/lab/platform/service/SummaryService.java)；测试覆盖：[`SummaryServiceTest.java:45,65,75,86,97,129`](../../src/test/java/io/xr/lab/platform/service/SummaryServiceTest.java)。
+> 实现锚点：[`SummaryApi.java:69`](../../src/main/java/io/xr/lab/shared/api/SummaryApi.java) → [`SummaryController.java:33,44`](../../src/main/java/io/xr/lab/platform/controller/SummaryController.java) → [`SummaryService.java:59,75`](../../src/main/java/io/xr/lab/platform/service/SummaryService.java)；测试覆盖：[`SummaryServiceTest.java:45,65,75,86,97,129`](../../src/test/java/io/xr/lab/platform/service/SummaryServiceTest.java)。
 
 ### 评审时问这四个问题（FLOW-04）
 
