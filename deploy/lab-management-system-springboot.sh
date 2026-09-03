@@ -10,7 +10,8 @@
 #
 # 与姊妹仓 saas-identity-platform-springboot.sh 的差异:
 #   - DB env 是全家族统一四件套 DATABASE_URL/USER/PASSWORD/NAME（值 jdbc: 格式）
-#   - HOST_PORT=8013（lab 家族 801x: vue=8010 react=8011 nextjs=8012 springboot=8013）
+#   - 容器内 Spring Boot 监听 :5205；host=container=5205（ADR-0018 单层 port 方案），
+#     nginx 反代直接打 127.0.0.1:5205（见 nginx-vps.conf.example）
 #   - 额外 env: JWT_SIGNING_KEY（必填 fail-fast，不用 dev 默认值；与代码占位符同名）、
 #     LAB_SAAS_BASE_URL / LAB_SSO_CALLBACK_REDIRECT（SSO 跳板指向 saas-nextjs IdP）、
 #     LAB_CORS_ALLOWED_ORIGINS（lab 前端域）
@@ -26,7 +27,6 @@ VERSION="${3:-latest}"
 IMAGE="${USERNAME}/lab-management-system-springboot:${VERSION}"
 BASE="/home/deploy/lab-management-system-springboot"
 CONTAINER_NAME="lab-management-system-springboot"
-HOST_PORT=8013
 
 # nginx domain（deploy 脚本渲染 nginx vhost 时用）
 NGINX_DOMAIN="${NGINX_DOMAIN:-lab-springboot.xiangru.uk}"
@@ -153,6 +153,21 @@ elif grep -q '^LAB_SSO_LOGIN_URL=https://saas-nextjs\.xiangru\.uk$' "$BASE/sprin
   sed -i 's#^LAB_SSO_LOGIN_URL=https://saas-nextjs\.xiangru\.uk$#LAB_SSO_LOGIN_URL=https://saas-react.xiangru.uk#' "$BASE/springboot.env"
 fi
 
+# 端口分段迁移 2026-09-02 (conventions §6): 老 springboot.env 由本脚本老版本 bootstrap 时写
+# 过 SERVER_PORT=8080；2026-09-02 后 application.yml:Dockerfile:deploy.sh:HOST_PORT 已全迁
+# 5205，而 env-file 的 SERVER_PORT=8080 让 Spring Boot 仍监听 :8080。但容器 EXPOSE 5205 +
+# -p 127.0.0.1:8013:5205，wget 探针 connection refused → deploy 120s 上限 kill 容器。
+# append_if_missing 只补缺失不 reconcile stale（家族通病，见 springboot env 漂移案例库），
+# 必须显式 sed 锚定整行迁移。运维手工改 SERVER_PORT=5205 也走同一迁移逻辑。
+if ! grep -q '^SERVER_PORT=' "$BASE/springboot.env"; then
+  echo "→ append SERVER_PORT to existing $BASE/springboot.env"
+  umask 077
+  printf 'SERVER_PORT=5205\n' >> "$BASE/springboot.env"
+elif grep -q '^SERVER_PORT=8080$' "$BASE/springboot.env"; then
+  echo "→ migrate stale SERVER_PORT 8080 -> 5205 in $BASE/springboot.env (conventions §6 端口分段)"
+  sed -i 's#^SERVER_PORT=8080$#SERVER_PORT=5205#' "$BASE/springboot.env"
+fi
+
 # v0.1.16 起: LAB_SAAS_* 系列 append-only 补齐 + SECRET fail-fast。
 # 事故（2026-08-26 prod SSO 502）: 早期 env 只有一行 LAB_SAAS_BASE，CLIENT_ID/
 # CLIENT_SECRET/DEFAULT_TENANT_ID/CALLBACK_REDIRECT 全缺 → app 静默回落
@@ -234,7 +249,7 @@ echo "→ docker run"
 docker run -d \
   --name "$CONTAINER_NAME" \
   --restart unless-stopped \
-  -p "127.0.0.1:${HOST_PORT}:5205" \
+  -p "127.0.0.1:5205:5205" \
   --env-file "$BASE/springboot.env" \
   "$IMAGE"
 
@@ -246,11 +261,11 @@ docker ps --filter name="$CONTAINER_NAME"
 
 # 健康检查: 直接 wget /actuator/health 探 200, 不依赖 Docker HEALTHCHECK 语义。
 # （saas-springboot v0.1.8/09/10 教训: HEALTHCHECK 语义在 Docker daemon 不同版本上
-#  行为不一致; host 端口探针才可靠。wget 探 HOST_PORT, 不是容器内 5205。）
+#  行为不一致; host 端口探针才可靠。wget 探 127.0.0.1:5205 (host=container)。）
 i=0
 while [ $i -lt 120 ]; do
-  if wget --tries=1 --timeout=3 -q "http://127.0.0.1:${HOST_PORT}/actuator/health" -O /dev/null 2>/dev/null; then
-    echo "→ /actuator/health 200 (host 127.0.0.1:${HOST_PORT}) after ${i}s"
+  if wget --tries=1 --timeout=3 -q "http://127.0.0.1:5205/actuator/health" -O /dev/null 2>/dev/null; then
+    echo "→ /actuator/health 200 (host 127.0.0.1:5205) after ${i}s"
     break
   fi
   # 容器实际死亡 (OOM / start-cmd failure / 立刻 crash) 提前终止循环, 立刻报失败。

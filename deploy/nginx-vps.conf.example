@@ -13,7 +13,8 @@
 # 这份配置的目的:
 #   - lab.YOUR_DOMAIN 的 HTTP 301 到 HTTPS
 #   - HTTPS 终结在 VPS（持 cert）
-#   - proxy_pass 到本机容器端口 8013（由 docker run -p 127.0.0.1:8013:8080 决定）
+#   - proxy_pass 到本机容器端口 5205（host=container；ADR-0018 单层 port 方案，
+#     由 docker run -p 127.0.0.1:5205:5205 决定）
 #
 # 注意:不持有 default_server。同一台 VPS 上若 lab-react/vue/nextjs 也跑 :80 default_server,
 # springboot 这边重复声明 nginx -t 直接报错——务必先装其中一个并把 default 占位收掉。
@@ -42,9 +43,9 @@ server {
     add_header Strict-Transport-Security "max-age=31536000" always;
 
     location / {
-        # VPS 暴露端口（容器内 Spring Boot 监听 :8080）
-        # 改端口必须同步 deploy/lab-management-system-springboot.sh 的 -p
-        proxy_pass http://127.0.0.1:8013;
+        # VPS 暴露端口（容器内 Spring Boot 监听 :5205，host=container=5205）
+        # 改端口必须同步 deploy/lab-management-system-springboot.sh 的 -p 与 application.yml server.port
+        proxy_pass http://127.0.0.1:5205;
 
         proxy_http_version 1.1;
         proxy_set_header Host              $host;
