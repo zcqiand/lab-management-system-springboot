@@ -9,6 +9,7 @@ import io.xr.lab.platform.entity.ContractEntity;
 import io.xr.lab.platform.entity.SampleEntity;
 import io.xr.lab.platform.entity.SampleReceiptEntity;
 import io.xr.lab.platform.repository.ContractRepository;
+import io.xr.lab.platform.repository.InspectionReportNameRepository;
 import io.xr.lab.platform.repository.SampleReceiptRepository;
 import io.xr.lab.platform.repository.SampleRepository;
 import io.xr.lab.shared.dto.DashboardStats;
@@ -28,6 +29,7 @@ class SummaryServiceTest {
   private SampleReceiptRepository receiptRepo;
   private ContractRepository contractRepo;
   private SampleRepository sampleRepo;
+  private InspectionReportNameRepository reportNameRepo;
   private SummaryService service;
 
   @BeforeEach
@@ -35,7 +37,10 @@ class SummaryServiceTest {
     receiptRepo = org.mockito.Mockito.mock(SampleReceiptRepository.class);
     contractRepo = org.mockito.Mockito.mock(ContractRepository.class);
     sampleRepo = org.mockito.Mockito.mock(SampleRepository.class);
-    service = new SummaryService(receiptRepo, contractRepo, sampleRepo);
+    reportNameRepo = org.mockito.Mockito.mock(InspectionReportNameRepository.class);
+    // 码表预载走 findAll()（空码表：材料映射全 null → 合格率全 0，个别测试自己覆盖）
+    when(reportNameRepo.findAll()).thenReturn(java.util.List.of());
+    service = new SummaryService(receiptRepo, contractRepo, sampleRepo, reportNameRepo);
   }
 
   // M05.F01.I01 report summary

@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -70,6 +71,9 @@ public class AuthService {
   private final MembershipSnapshotCache membershipCache;
   private final SaasMenuMapper menuMapper;
 
+  // 两个构造器并存时 Spring 无从择一（回退找无参构造 → NoSuchMethodException 启动崩），
+  // 主构造器必须显式标 @Autowired（本仓铁律：构造器注入）。
+  @Autowired
   public AuthService(
       UserDirectory directory,
       LabJwtSigner jwt,

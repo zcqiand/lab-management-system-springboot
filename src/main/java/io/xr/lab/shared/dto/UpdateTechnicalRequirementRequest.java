@@ -13,7 +13,7 @@ import org.springframework.lang.Nullable;
 /** UpdateTechnicalRequirementRequest */
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-02T22:35:42.457326500+08:00[Asia/Shanghai]",
+    date = "2026-09-04T01:01:08.136686300+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public class UpdateTechnicalRequirementRequest {
 
