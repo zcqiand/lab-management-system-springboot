@@ -49,6 +49,9 @@ public class ConfigUserDirectory implements UserDirectory {
 
   private final String devPassword;
   private final ConcurrentHashMap<String, CurrentUser> upserted = new ConcurrentHashMap<>();
+  // 2026-09-03 租户体系对齐：per-user saas refresh_token（menus/me cache-miss reload 用；
+  // saas rotate-once 消费即作废，reload 后必须存回新的）。镜像 aspnetcore 同名机制。
+  private final ConcurrentHashMap<String, String> saasRefreshTokens = new ConcurrentHashMap<>();
 
   public ConfigUserDirectory(@Value("${lab.auth.dev-password:dev123456}") String devPassword) {
     this.devPassword = devPassword;
@@ -122,5 +125,24 @@ public class ConfigUserDirectory implements UserDirectory {
             .roleCode(roleCode == null || roleCode.isEmpty() ? "viewer" : roleCode);
     upserted.put(email, user);
     return user;
+  }
+
+  @Override
+  public void setSaasRefreshToken(String userId, String saasRefreshToken) {
+    if (userId == null
+        || userId.isEmpty()
+        || saasRefreshToken == null
+        || saasRefreshToken.isEmpty()) {
+      return;
+    }
+    saasRefreshTokens.put(userId, saasRefreshToken);
+  }
+
+  @Override
+  public String getSaasRefreshToken(String userId) {
+    if (userId == null || userId.isEmpty()) {
+      return null;
+    }
+    return saasRefreshTokens.get(userId);
   }
 }

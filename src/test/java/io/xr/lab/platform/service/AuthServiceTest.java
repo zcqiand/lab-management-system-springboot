@@ -15,6 +15,7 @@ import io.xr.lab.platform.auth.sso.SaasMenuMapper;
 import io.xr.lab.platform.config.LabConfig;
 import io.xr.lab.platform.config.SsoBeansConfig;
 import io.xr.lab.platform.directory.ConfigUserDirectory;
+import io.xr.lab.shared.dto.CurrentUserSession;
 import io.xr.lab.shared.dto.LoginRequest;
 import io.xr.lab.shared.dto.LoginResponse;
 import io.xr.lab.shared.dto.MenuNode;
@@ -107,7 +108,7 @@ class AuthServiceTest {
 
   @Test
   @Fn({"M01.F05.I03"})
-  void ssoCallback_returnsDemoSession() {
+  void ssoCallback_returnsSaasSession() {
     io.xr.lab.shared.dto.SsoCallbackRequest body =
         new io.xr.lab.shared.dto.SsoCallbackRequest()
             .grantType(io.xr.lab.shared.dto.OAuthGrantType.AUTHORIZATION_CODE)
@@ -117,8 +118,11 @@ class AuthServiceTest {
 
     LoginResponse resp = service.ssoCallback(body);
 
-    assertEquals("USER-A", resp.getUser().getId());
-    assertEquals(3, resp.getTenants().size());
+    // 2026-09-03 Noop saas fixture 改 UUID 体系：SSO 用户是 upsert 的 saas 身份，
+    // 租户来自 saas memberships（1 条 UUID），非 demo TENANT-00x
+    assertEquals("00000000-0000-0000-0000-b00000000001", resp.getUser().getId());
+    assertEquals(1, resp.getTenants().size());
+    assertEquals("00000000-0000-0000-0000-000000000001", resp.getTenants().get(0).getTenantId());
     assertNotNull(resp.getToken());
     // refresh token 嵌 saas refresh token
     String refreshPayload =
@@ -136,7 +140,8 @@ class AuthServiceTest {
         service.refresh(
             new io.xr.lab.shared.dto.RefreshTokenRequest().refreshToken(first.getRefreshToken()));
     assertNotNull(second.getToken());
-    assertEquals("USER-A", second.getUser().getId());
+    // 2026-09-03 Noop fixture UUID 体系：refresh 走 saas 链 upsert，用户是 saas 身份
+    assertEquals("00000000-0000-0000-0000-b00000000001", second.getUser().getId());
   }
 
   @Test
@@ -266,5 +271,52 @@ class AuthServiceTest {
   void permissions_returnsAdminFullSet() {
     assertEquals(11, service.permissions().getPermissions().size());
     assertTrue(service.permissions().getPermissions().contains("*"));
+  }
+
+  // === M00.F01.I01 租户体系对齐（2026-09-03 设计：aspnetcore 仓
+  //     docs/superpowers/specs/2026-09-03-me-tenant-alignment-design.md）===
+  // SSO 用户的 me() 必须返回 saas memberships 租户（与 ssoCallback 同体系）。
+
+  @Test
+  @Fn({"M00.F01.I01"})
+  void me_ssoUser_returnsSaasTenants_sameAsSsoCallback() {
+    io.xr.lab.shared.dto.SsoCallbackRequest body =
+        new io.xr.lab.shared.dto.SsoCallbackRequest()
+            .grantType(io.xr.lab.shared.dto.OAuthGrantType.AUTHORIZATION_CODE)
+            .code("dev-code")
+            .redirectUri("http://localhost:5202/api/auth/sso/callback")
+            .state("st-align-1");
+    LoginResponse sso = service.ssoCallback(body);
+
+    CurrentUserSession me = service.me(Map.of("sub", sso.getUser().getId()));
+
+    assertEquals(sso.getTenants().size(), me.getTenants().size());
+    assertEquals(sso.getTenants().get(0).getTenantId(), me.getTenants().get(0).getTenantId());
+    assertEquals(sso.getTenants().get(0).getTenantId(), me.getCurrentTenantId());
+  }
+
+  @Test
+  @Fn({"M00.F01.I01"})
+  void me_passwordUser_stillReturnsDemoTenants() {
+    LoginResponse login = service.login(new LoginRequest().username("alice").password("dev123456"));
+    CurrentUserSession me = service.me(Map.of("sub", login.getUser().getId()));
+    assertEquals("TENANT-001", me.getTenants().get(0).getTenantId());
+    assertEquals(3, me.getTenants().size());
+  }
+
+  @Test
+  @Fn({"M01.F05.I03"})
+  void ssoCallback_tokenCarriesTenantIdClaim() {
+    io.xr.lab.shared.dto.SsoCallbackRequest body =
+        new io.xr.lab.shared.dto.SsoCallbackRequest()
+            .grantType(io.xr.lab.shared.dto.OAuthGrantType.AUTHORIZATION_CODE)
+            .code("dev-code")
+            .redirectUri("http://localhost:5202/api/auth/sso/callback")
+            .state("st-align-2");
+    LoginResponse res = service.ssoCallback(body);
+
+    JwtDecoder decoder = NimbusLabJwtDecoderFactory.build(jwt);
+    String tenantClaim = decoder.decode(res.getToken()).getClaim("tenant_id");
+    assertNotNull(tenantClaim, "ssoCallback access token must carry tenant_id claim");
   }
 }

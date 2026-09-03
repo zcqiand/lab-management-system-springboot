@@ -1,6 +1,7 @@
 package io.xr.lab.platform.service;
 
 import io.xr.lab.platform.auth.jwt.LabJwtSigner;
+import io.xr.lab.platform.auth.sso.MembershipSnapshotCache;
 import io.xr.lab.platform.auth.sso.MenuSnapshotCache;
 import io.xr.lab.platform.auth.sso.SaasAuthClient;
 import io.xr.lab.platform.auth.sso.SaasAuthException;
@@ -66,6 +67,7 @@ public class AuthService {
   private final SaasMeClient saasMe;
   private final LabConfig labConfig;
   private final MenuSnapshotCache menuCache;
+  private final MembershipSnapshotCache membershipCache;
   private final SaasMenuMapper menuMapper;
 
   public AuthService(
@@ -76,12 +78,34 @@ public class AuthService {
       LabConfig labConfig,
       MenuSnapshotCache menuCache,
       SaasMenuMapper menuMapper) {
+    this(
+        directory,
+        jwt,
+        saasAuth,
+        saasMe,
+        labConfig,
+        menuCache,
+        new MembershipSnapshotCache(),
+        menuMapper);
+  }
+
+  /** 2026-09-03 租户体系对齐：可注入 MembershipSnapshotCache 的测试构造器。 */
+  public AuthService(
+      UserDirectory directory,
+      LabJwtSigner jwt,
+      SaasAuthClient saasAuth,
+      SaasMeClient saasMe,
+      LabConfig labConfig,
+      MenuSnapshotCache menuCache,
+      MembershipSnapshotCache membershipCache,
+      SaasMenuMapper menuMapper) {
     this.directory = directory;
     this.jwt = jwt;
     this.saasAuth = saasAuth;
     this.saasMe = saasMe;
     this.labConfig = labConfig;
     this.menuCache = menuCache;
+    this.membershipCache = membershipCache;
     this.menuMapper = menuMapper;
   }
 
@@ -133,12 +157,20 @@ public class AuthService {
     }
     SaasMeClient.SaasCurrentUser user = saasMe.whoami(t.getAccessToken());
     List<SaasMeClient.SaasTenantMembership> memberships = saasMe.listMyTenants(t.getAccessToken());
+    // 2026-09-03 修（aspnetcore 2026-08-29 同款）：新部署/重启后 upserted 目录为空，
+    // findByEmail 必抛 unknown user → hydrateAuth 自愈链断。跟 ssoCallback 同款 upsert 兜底。
     CurrentUser labUser =
         directory
             .findByEmail(user.getEmail())
-            .orElseThrow(() -> new SecurityException("unknown user"));
+            .orElseGet(
+                () ->
+                    directory.upsert(
+                        user.getId(), user.getEmail(), user.getDisplayName(), "viewer"));
+    // 2026-09-03：refresh 也要存回新 saas refresh token（rotate-once）+ memberships 快照
+    directory.setSaasRefreshToken(labUser.getId(), t.getRefreshToken());
     // 菜单快照刷新（同 ssoCallback：refresh 时也瞬时持有 accessToken）
     cacheMenus(labUser.getId(), t.getAccessToken());
+    membershipCache.put(labUser.getId(), tenantsFrom(memberships));
     return session(labUser, tenantId, tenantsFrom(memberships), t.getRefreshToken());
   }
 
@@ -152,6 +184,31 @@ public class AuthService {
 
   public CurrentUserSession me(Map<String, Object> claims) {
     CurrentUser user = resolveUser(claims);
+    // 2026-09-03 租户体系对齐（specs/2026-09-03-me-tenant-alignment-design.md §3）：
+    // SSO 用户（有 per-user saas refresh token）必须返回 saas memberships 租户，
+    // 与 ssoCallback 同体系 —— 否则前端 hydrateAuth 的 tenants.find(saas UUID)
+    // 跨体系失配 → awaiting_tenant → 卡「检查登录态…」死锁。
+    // miss（重启/TTL 过期）抛 401，前端 catch 走 /api/auth/refresh 自愈。
+    // 密码登录用户（无 per-user token）保持 demo 租户。
+    String saasRefresh = directory.getSaasRefreshToken(user.getId());
+    if (saasRefresh != null && !saasRefresh.isEmpty()) {
+      List<MyTenant> cachedTenants =
+          membershipCache
+              .get(user.getId())
+              .orElseThrow(
+                  () ->
+                      new SecurityException(
+                          "membership snapshot unavailable for user "
+                              + user.getId()
+                              + " (cache miss); refresh required"));
+      Object tenantClaim = claims.get("tenant_id");
+      String currentTenantId =
+          tenantClaim != null ? tenantClaim.toString() : cachedTenants.get(0).getTenantId();
+      return new CurrentUserSession()
+          .user(user)
+          .tenants(cachedTenants)
+          .currentTenantId(currentTenantId);
+    }
     Object tenantClaim = claims.get("tenant_id");
     String currentTenantId =
         tenantClaim != null ? tenantClaim.toString() : directory.defaultTenant().getTenantId();
@@ -316,7 +373,13 @@ public class AuthService {
                         "viewer"));
     // 菜单快照：瞬时持有 saas accessToken 的唯一时点，顺手拉菜单进缓存（失败不阻塞登录）
     cacheMenus(labUser.getId(), t.getAccessToken());
-    return session(labUser, null, tenantsFrom(memberships), t.getRefreshToken());
+    // 2026-09-03 租户体系对齐：存 per-user saas refresh token（me()/menus 的 reload 用）
+    // + memberships 快照（me() 返回 saas 租户体系）。
+    directory.setSaasRefreshToken(labUser.getId(), t.getRefreshToken());
+    membershipCache.put(labUser.getId(), tenantsFrom(memberships));
+    // token 带 tenant_id claim（whoami currentTenantId）—— me() 不再落 demo 默认租户
+    return session(
+        labUser, saasUser.getCurrentTenantId(), tenantsFrom(memberships), t.getRefreshToken());
   }
 
   // === token 签发 ===

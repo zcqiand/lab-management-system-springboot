@@ -47,4 +47,14 @@ public interface UserDirectory {
    * @return upsert 后的 lab {@link CurrentUser}
    */
   CurrentUser upsert(String id, String email, String displayName, String roleCode);
+
+  /**
+   * 持久化用户的 saas refresh_token（按 userId）。SSO/refresh 时写入；menus/me 的 cache-miss reload 路径消费（saas
+   * rotate-once：消费即作废旧 token、发新的，reload 后必须把新 token 存回）。 镜像 aspnetcore
+   * IUserDirectory.SetSaasRefreshToken（2026-08-29）/ 2026-09-03 租户体系对齐。
+   */
+  void setSaasRefreshToken(String userId, String saasRefreshToken);
+
+  /** 读用户的 saas refresh_token；无返回 null。SSO 用户判据（非空 = 走 saas 租户体系）。 */
+  String getSaasRefreshToken(String userId);
 }

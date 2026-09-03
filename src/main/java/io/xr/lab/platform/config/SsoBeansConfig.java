@@ -90,11 +90,14 @@ public class SsoBeansConfig {
     @Override
     public SaasCurrentUser whoami(String saasAccessToken) {
       SaasCurrentUser u = new SaasCurrentUser();
-      u.setId("USER-A");
-      // 2026-09-02 契约收敛：与 ConfigUserDirectory DEMO_USER.username=alice 对齐
-      // （refresh 路径 findByEmail(email) 必须命中目录行，否则 unknown user）
-      u.setEmail("alice");
+      // 2026-09-03 租户体系对齐（aspnetcore 仓 specs/2026-09-03-me-tenant-alignment-design.md）：
+      // saas 侧 id/租户改 UUID 体系（与 prod 及 aspnetcore NoopSaasMeClient 一致），
+      // 与 lab demo 目录（USER-A / TENANT-00x）可区分 —— 否则 me() 对齐测试区分不出两套体系。
+      // email 不再撞 DEMO_USER（alice）→ SSO 走 upsert 路径（与真实 prod 相同）。
+      u.setId("00000000-0000-0000-0000-b00000000001");
+      u.setEmail("admin@lab.local");
       u.setDisplayName("管理员");
+      u.setCurrentTenantId("00000000-0000-0000-0000-000000000001");
       u.setMemberships(tenants());
       return u;
     }
@@ -111,16 +114,13 @@ public class SsoBeansConfig {
     }
 
     private static List<SaasTenantMembership> tenants() {
-      return List.of(
-          membership("TENANT-001", List.of("admin")),
-          membership("TENANT-002", List.of("technician")),
-          membership("TENANT-003", List.of("viewer")));
+      return List.of(membership("00000000-0000-0000-0000-000000000001", List.of("admin")));
     }
 
     private static SaasTenantMembership membership(String tenantId, List<String> roleIds) {
       SaasTenantMembership m = new SaasTenantMembership();
       m.setId("mem-" + tenantId);
-      m.setUserId("USER-A");
+      m.setUserId("00000000-0000-0000-0000-b00000000001");
       m.setTenantId(tenantId);
       m.setRoleIds(roleIds);
       m.setStatus("active");
