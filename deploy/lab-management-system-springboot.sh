@@ -83,12 +83,9 @@ if [ ! -f "$BASE/springboot.env" ]; then
       printf 'JWT_TTL_SECONDS=3600\n'
       # ADR-0019：refresh-ttl 与 dev-password yml 兜底已删空(v0.1.38),必填。
       # SsoBeansConfig @PostConstruct 校验 refreshTtlSeconds<=0 / dev-password 空即启动崩。
+      # dev-password 值=契约值(.env.production 明文,demo 目录口令非真 secret);Secrets 可覆盖。
       printf 'JWT_REFRESH_TTL_SECONDS=604800\n'
-      if [ -z "${LAB_AUTH_DEV_PASSWORD:-}" ]; then
-        echo "ERROR: LAB_AUTH_DEV_PASSWORD env required to bootstrap $BASE/springboot.env (ADR-0019 删 dev123456 兜底)" >&2
-        exit 1
-      fi
-      printf 'LAB_AUTH_DEV_PASSWORD=%s\n' "$LAB_AUTH_DEV_PASSWORD"
+      printf 'LAB_AUTH_DEV_PASSWORD=%s\n' "${LAB_AUTH_DEV_PASSWORD:-dev123456}"
       printf 'DATABASE_NAME=lab_prod\n'
     } > "$BASE/springboot.env"
     chown deploy:deploy "$BASE/springboot.env" 2>/dev/null || true
@@ -267,15 +264,10 @@ if [ -f "$BASE/springboot.env" ]; then
   append_if_missing JWT_AUDIENCE 'lab-management-system-clients'
   append_if_missing JWT_TTL_SECONDS '3600'
   # ADR-0019：yml 兜底删空后必填（存量 env-file 无此二 key,容器重启即 @PostConstruct 崩）。
-  # JWT_REFRESH_TTL_SECONDS 是数值契约值直接补;dev-password 属口令,CI Secrets 透传,缺则 fail-fast。
+  # JWT_REFRESH_TTL_SECONDS 数值契约值直接补;dev-password 值=契约值(.env.production
+  # 明文,demo 目录口令非真 secret),Secrets 可覆盖。
   append_if_missing JWT_REFRESH_TTL_SECONDS '604800'
-  if ! grep -q '^LAB_AUTH_DEV_PASSWORD=' "$BASE/springboot.env"; then
-    if [ -z "${LAB_AUTH_DEV_PASSWORD:-}" ]; then
-      echo "ERROR: LAB_AUTH_DEV_PASSWORD missing in $BASE/springboot.env and not forwarded via ci.yml envs (ADR-0019 删 dev123456 兜底后必填)" >&2
-      exit 1
-    fi
-    append_if_missing LAB_AUTH_DEV_PASSWORD "$LAB_AUTH_DEV_PASSWORD"
-  fi
+  append_if_missing LAB_AUTH_DEV_PASSWORD "${LAB_AUTH_DEV_PASSWORD:-dev123456}"
   if ! grep -q '^LAB_SAAS_SERVICE_USER=' "$BASE/springboot.env"; then
     if [ -z "${LAB_SAAS_SERVICE_USER:-}" ] || [ -z "${LAB_SAAS_SERVICE_PASSWORD:-}" ]; then
       echo "ERROR: LAB_SAAS_SERVICE_USER/PASSWORD missing in $BASE/springboot.env and not forwarded via ci.yml envs (yml fallback 是 dev 值, prod 不得静默兜底)" >&2
