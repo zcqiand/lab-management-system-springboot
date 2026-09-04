@@ -2,6 +2,7 @@ package io.xr.lab.platform.config;
 
 import io.xr.lab.platform.auth.sso.SaasAuthClient;
 import io.xr.lab.platform.auth.sso.SaasMeClient;
+import jakarta.annotation.PostConstruct;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,9 +18,46 @@ import org.springframework.context.annotation.Profile;
  *       行为固定成 admin session（与 lab-msw handlers-extra.ts 保持一致），便于 dev 不启 saas 也能跑通。
  *   <li>{@code default}（prod / CI）:注册真 HTTP 客户端，要求 4 个 saas env 必填（{@code LAB_SAAS_CLIENT_ID} 等）。
  * </ul>
+ *
+ * <p>ADR-0019：application.yml 删字面默认值后,@PostConstruct 校验 SSO 凭据与 数据源连接串缺失即 throw（fail-fast）,与
+ * saas-springboot JwtIssuer.java 模板对齐。
  */
 @Configuration
 public class SsoBeansConfig {
+
+  private final LabConfig labConfig;
+
+  public SsoBeansConfig(LabConfig labConfig) {
+    this.labConfig = labConfig;
+  }
+
+  /**
+   * ADR-0019：prod profile 必填校验。dev 允许 saasBase 等空（NoopSaasAuthClient 不读）, 但 dev 也要求 dev_password /
+   * service_user 显式声明（避免 dev 走 no-sso 时 demo 字面 漏到 prod）。
+   */
+  @PostConstruct
+  void validateConfig() {
+    // JWT signing key 必填(任何 profile 都需要,即便 dev 也用同一个 JwtIssuer 签 token)
+    if (labConfig.jwt() == null
+        || labConfig.jwt().issuer() == null
+        || labConfig.jwt().issuer().isBlank()
+        || labConfig.jwt().ttlSeconds() <= 0
+        || labConfig.jwt().refreshTtlSeconds() <= 0) {
+      throw new IllegalStateException(
+          "lab.jwt.{issuer,ttl-seconds,refresh-ttl-seconds} 必填且非空/正整数 (ADR-0019 禁字面默认值). "
+              + "Set in .env.local (dev) or env (prod).");
+    }
+    // SSO 凭据（service account 任何 profile 都需要,no-sso 也调 serviceLogin）
+    if (labConfig.sso() == null
+        || labConfig.sso().serviceUser() == null
+        || labConfig.sso().serviceUser().isBlank()
+        || labConfig.sso().servicePassword() == null
+        || labConfig.sso().servicePassword().isBlank()) {
+      throw new IllegalStateException(
+          "lab.sso.{service-user,service-password} 必填 (ADR-0019 禁 \"alice\"/\"dev123456\" 字面默认值). "
+              + "Set in .env.local (dev) or env (prod).");
+    }
+  }
 
   @Bean
   @Profile("no-sso")

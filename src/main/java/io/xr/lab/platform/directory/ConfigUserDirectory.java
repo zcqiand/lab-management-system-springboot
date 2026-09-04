@@ -53,7 +53,15 @@ public class ConfigUserDirectory implements UserDirectory {
   // saas rotate-once 消费即作废，reload 后必须存回新的）。镜像 aspnetcore 同名机制。
   private final ConcurrentHashMap<String, String> saasRefreshTokens = new ConcurrentHashMap<>();
 
-  public ConfigUserDirectory(@Value("${lab.auth.dev-password:dev123456}") String devPassword) {
+  public ConfigUserDirectory(
+      // ADR-0019：删除 @Value 字面默认值,空串占位,缺失由 SsoBeansConfig @PostConstruct 校验 fail-fast。
+      // dev 期 .env.local 或 env-file 显式声明 LAB_AUTH_DEV_PASSWORD。
+      @Value("${lab.auth.dev-password:}") String devPassword) {
+    if (devPassword == null || devPassword.isBlank()) {
+      throw new IllegalStateException(
+          "lab.auth.dev-password 必填 (ADR-0019 禁 \"dev123456\" 字面默认值). "
+              + "Set in .env.local (dev) or env (prod).");
+    }
     this.devPassword = devPassword;
   }
 
