@@ -76,13 +76,16 @@ jobs:
           # yml fallback alice/dev123456 只属于 dev,prod 不得静默兜底
           LAB_SAAS_SERVICE_USER: ${{ secrets.LAB_SAAS_SERVICE_USER }}
           LAB_SAAS_SERVICE_PASSWORD: ${{ secrets.LAB_SAAS_SERVICE_PASSWORD }}
+          # ADR-0019：lab.auth.dev-password 必填（v0.1.38 删 dev123456 兜底）。
+          # 存量 env-file 无此 key，deploy 脚本 append_if_missing 需要它，缺则 fail-fast。
+          LAB_AUTH_DEV_PASSWORD: ${{ secrets.LAB_AUTH_DEV_PASSWORD }}
           NGINX_DOMAIN: ${{ vars.NGINX_DOMAIN }}
           NGINX_CERT_BASENAME: ${{ vars.NGINX_CERT_BASENAME }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          envs: DATABASE_URL,DATABASE_USER,DATABASE_PASSWORD,JWT_SIGNING_KEY,LAB_SAAS_CLIENT_SECRET,LAB_SAAS_DEFAULT_TENANT_ID,LAB_SAAS_SERVICE_USER,LAB_SAAS_SERVICE_PASSWORD,NGINX_DOMAIN,NGINX_CERT_BASENAME
+          envs: DATABASE_URL,DATABASE_USER,DATABASE_PASSWORD,JWT_SIGNING_KEY,LAB_SAAS_CLIENT_SECRET,LAB_SAAS_DEFAULT_TENANT_ID,LAB_SAAS_SERVICE_USER,LAB_SAAS_SERVICE_PASSWORD,LAB_AUTH_DEV_PASSWORD,NGINX_DOMAIN,NGINX_CERT_BASENAME
           script: |
             # 自举: 首次部署无 /home/deploy/<repo>/ 时自动建 + 拉 deploy 脚本
             set -e
