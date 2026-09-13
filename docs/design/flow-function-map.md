@@ -128,7 +128,7 @@ flowchart LR
 
 ## FLOW-04 统计分析（B4：M05 读视图聚合）
 
-> 「统计读视图」是 M05 子模块（M05.F01 报告汇总 + M05.F02 仪表盘）。
+> 「统计读视图」是 M05 子模块（M05.F01 报告汇总 + 仪表盘统计 M05.F01.I06；原 M05.F02 段 ADR-0033 阶段二退役）。
 > 是流程末端的只读聚合视图，不参与状态流转。
 > 与 aspnetcore 仓 [flow-function-map.md:47-59](../../../lab-management-system-aspnetcore/docs/design/flow-function-map.md#L47-L59) `FLOW-03 统计分析（B4）` 对称。
 
@@ -142,15 +142,15 @@ flowchart TD
 |---|---|---|---|---|---|---|
 | S01 | 数据积累（B2/B3 上游） | 所有角色 | — | — | — | —（B2/FLOW-02 + B3/FLOW-03 上游） |
 | S02 | 报告汇总查询 | 管理层 | categoryCode/dateFrom/dateTo | SummaryData 6 列行集 | — | M05.F01.I01 |
-| S03 | 仪表盘聚合 | 所有用户 | — | 计数 + 3 桶（draft/reviewing/issued）+ pendingTask | — | M05.F02.I01 |
+| S03 | 仪表盘聚合 | 所有用户 | — | 计数 + 3 桶（draft/reviewing/issued）+ pendingTask | — | M05.F01.I06 |
 
 > 实现锚点：[`SummaryApi.java:69`](../../src/main/java/io/xr/lab/shared/api/SummaryApi.java) → [`SummaryController.java:33,44`](../../src/main/java/io/xr/lab/platform/controller/SummaryController.java) → [`SummaryService.java:59,75`](../../src/main/java/io/xr/lab/platform/service/SummaryService.java)；测试覆盖：[`SummaryServiceTest.java:45,65,75,86,97,129`](../../src/test/java/io/xr/lab/platform/service/SummaryServiceTest.java)。
 
 ### 评审时问这四个问题（FLOW-04）
 
 1. 有没有哪个步骤的「支撑功能子项」是空的？→ S01 是占位数据积累，本身不挂子项；S02/S03 各有 1 个 M05 I 级。
-2. 有没有功能子项从头到尾没出现在任何流程里？→ M05.F01.I01 + M05.F02.I01 已入表，无孤儿。
-3. 状态流转列里的状态名，和代码里的枚举一致吗？→ 本流程无状态机（只读），M05.F02 的 3 桶 enum 在 SummaryService 计算。
+2. 有没有功能子项从头到尾没出现在任何流程里？→ M05.F01.I01 + M05.F01.I06（ADR-0033 阶段二改挂，旧 F02 段已退役）已入表，无孤儿。
+3. 状态流转列里的状态名，和代码里的枚举一致吗？→ 本流程无状态机（只读），3 桶聚合在 SummaryService 计算（M05.F01.I06）。
 4. 退回路径都画了吗？→ 本流程无退回（只读视图）。
 
 ---

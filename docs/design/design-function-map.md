@@ -108,7 +108,7 @@
 > nextjs 仓 `src/app/api/test-records/route.ts` 已加 @entry M03.F03.I06/I08（API route 由
 > msw fixtures 切到本仓后端时复用此 entry 锚点）。
 | M05.F01.I01 | SummaryController#summaryGetReportSummary / SummaryService#getReportSummary | GET /api/summary?categoryCode=&dateFrom=&dateTo= | sample_receipts（按 commissionDate DESC + categoryCode 过滤） | M05.F01.I01 | - | 已上线 |
-| M05.F02.I01 | SummaryController#summaryGetDashboardStats / SummaryService#getDashboardStats | GET /api/summary/stats | sample_receipts / contracts / samples 计数 | M05.F02.I01 | - | 已上线 |
+| M05.F01.I06 | SummaryController#summaryGetDashboardStats / SummaryService#getDashboardStats | GET /api/summary/stats | sample_receipts / contracts / samples 计数 | M05.F01.I06 | - | 已上线 |
 | M06.F01.I01 | InspectionDictionaryController#inspectionDictionaryListSpecialties / InspectionDictionaryService#listSpecialties | GET /api/inspection/specialties?keyword= | inspection_specialties（V008，平台级） | M06.F01.I01 | - | 已上线 |
 | M06.F01.I02 | InspectionDictionaryController#inspectionDictionaryCreateSpecialty / InspectionDictionaryService#createSpecialty | POST /api/inspection/specialties | inspection_specialties | M06.F01.I02 | - | 已上线 |
 | M06.F01.I03 | InspectionDictionaryController#inspectionDictionaryUpdateSpecialty / InspectionDictionaryService#updateSpecialty | PUT /api/inspection/specialties/{code} | inspection_specialties | M06.F01.I03 | - | 已上线 |

@@ -13,7 +13,7 @@
 > - nextjs flow-pipeline: `output/lab-management-system-nextjs/src/features/flow-pipeline/FlowStagePage.tsx`（`@entry M03.F05-F08.I02/I03`）
 
 @entry M05.F01.I01
-@entry M05.F02.I01
+@entry M05.F01.I06
 @entry M03.F03.I06
 @entry M03.F03.I08
 @entry M03.F05.I02

@@ -95,10 +95,10 @@ class SummaryServiceTest {
     assertTrue(out.getSummaryName().contains("ALL"));
   }
 
-  // M05.F01.I02 dashboard stats
+  // M05.F01.I06 dashboard stats（ADR-0033 阶段二自 M05.F02.I01 改挂）
 
   @Test
-  @Fn({"M05.F02.I01"})
+  @Fn({"M05.F01.I06"})
   void getDashboardStats_aggregatesByStatus() {
     when(receiptRepo.summary(TENANT, "ALL", "", ""))
         .thenReturn(
@@ -130,7 +130,7 @@ class SummaryServiceTest {
   }
 
   @Test
-  @Fn({"M05.F02.I01"})
+  @Fn({"M05.F01.I06"})
   void getDashboardStats_empty_returnsZeros() {
     when(receiptRepo.summary(TENANT, "ALL", "", "")).thenReturn(List.of());
     when(contractRepo.filter(TENANT, "", null)).thenReturn(List.of());

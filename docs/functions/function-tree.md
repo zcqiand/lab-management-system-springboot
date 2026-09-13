@@ -248,20 +248,15 @@
 
 | 功能 ID | 功能名称 | 说明 | 状态 |
 |---|---|---|---|
-| M05.F01 | 报告汇总 | 按报告类别输出试验报告汇总表 | 已上线 |
-| M05.F02 | 仪表盘统计 | 工作台仪表盘：合同/接样/样品计数 + 按 3 桶聚合的报告状态 + 任务计数 | 已上线 |
+| M05.F01 | 报告汇总 | 按报告类别输出试验报告汇总表 + 仪表盘统计 | 已上线 |
+| M05.F02 | 仪表盘统计 | 工作台仪表盘：合同/接样/样品计数 + 按 3 桶聚合的报告状态 + 任务计数。ADR-0033 阶段二子项并入 M05.F01.I06 | 已废弃 |
 
 ### M05.F01 报告汇总
 
 | 子项 ID | 名称 | 类型 | 交付 | 说明 | 状态 |
 |---|---|---|---|---|---|
 | M05.F01.I01 | 报告汇总 | 查询 | 前端+后端 | GET /api/summary?categoryCode=&dateFrom=&dateTo=：categoryCode=ALL 不过滤，否则按报告类别过滤当前租户接样单；输出 SummaryData{summaryName, columns(6), rows}；data-fn=nextjs/react/vue 仓 SummaryPage | 已上线 |
-
-### M05.F02 仪表盘统计
-
-| 子项 ID | 名称 | 类型 | 交付 | 说明 | 状态 |
-|---|---|---|---|---|---|
-| M05.F02.I01 | 仪表盘统计 | 查询 | 前端+后端 | GET /api/summary/stats：合同/接样/样品 计数 + 3 桶报告状态（draft=receiving+task_assignment+data_entry；reviewing=review+approval；issued=issuance+archived）+ pendingTaskCount（task_assignment+data_entry+review）；data-fn=nextjs/react/vue 仓 dashboard | 已上线 |
+| M05.F01.I06 | 仪表盘统计基础端点 | 查询 | 前端+后端 | GET /api/summary/stats 基础字段：contractCount/receiptCount/sampleCount + 报告状态 3 桶（draft=receiving+task+data_entry；reviewing=review+approval；issued=issuance+archived）+ pendingTaskCount。ADR-0033 阶段二自 M05.F02.I01 改挂 F01（BASE I06 下沉对齐） | 已上线 |
 
 ---
 
@@ -394,7 +389,7 @@
 > 3 张 jsonb 列走 @JdbcTypeCode(SqlTypes.JSON)：judgment_basis/testing_basis/test_parameters（标准码数组）+ flow_history（FlowHistoryEntry[]）。
 > 计算方法/技术要求/合同/接样的 8 个 PG enum 全部在 B2+V014 / V015 改为 TEXT + AttributeConverter 写 DTO @JsonValue 同款字符串。
 
-> Batch B4（M05 报告汇总 + 仪表盘，M05.F01 + M05.F02 仪表盘新增 — 2 端点，对应 SummaryApi 全集）。
+> Batch B4（M05 报告汇总 + 仪表盘 — 2 端点，对应 SummaryApi 全集；M05.F02.I01 仪表盘统计 ADR-0033 阶段二改挂 M05.F01.I06）。
 > SummaryData 是「列定义 + 行数据」动态表（rows: List<Map<String,String>>），列固定 6 列（委托编号/报告类别/工程名称/流程状态/结论/报告编号），行按 commissionDate DESC。
 > 仪表盘统计：合同/接样/样品 3 总数 + 按 flowStatus 聚合的 draft/reviewing/issued 三桶 + 任务计数（task_assignment + data_entry + review）。
 
