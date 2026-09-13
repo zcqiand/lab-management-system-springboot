@@ -1,20 +1,19 @@
 {
   "schema": 1,
   "project": "lab-management-system-springboot",
-  "current_task": "env 契约补 7 SSO key + 禁兜底部署(v0.1.27 GREEN)",
-  "last_session_at": "2026-08-29",
-  "last_session_summary": "DIVERGED_VERSIONS 缩到 V014 单点 + cmp abort 防护覆盖其余迁移；V014 经 emit-schema 实测不可收敛（演化版 ALTER methods 表 vs fresh replay 链 ALTER rules 表,语义互补各自不可替换），定格永久结构性分叉并写入脚本注释。lab_dev flyway V014 checksum 已 repair (-1860597146,等价 flyway repair)。/handoff 二次门禁 --all exit 0",
+  "current_task": "ADR-0033 阶段二：M05.F02.I01 改挂 M05.F01.I06",
   "done": [
-    "契约三份补 LAB_SSO_*/LAB_SAAS_* 7 key(yml 必读,曾靠占位默认静默兜底)",
-    "deploy 脚本 JWT 三件套/DATABASE_NAME 显式写+服务账号 fail-fast",
-    "v0.1.27-20260829 部署 GREEN"
+    "function-tree: F01 desc 并入仪表盘统计；F02 行标已废弃；M05.F01.I06 已上线",
+    "SummaryServiceTest @Fn 改挂 I06；frontend-bind.md @entry I06；FLOW-04/孤儿清单清理",
+    "gen-shared 重生成（shared BASE I06 传播，159 文件）；spotless apply 修 CRLF 归一；commit 76fdcde"
   ],
   "next": [
-    "验收 SSO 链路(saas-base 走 saas-springboot 同栈)"
+    "阶段三 e2e 接入（E2E_*_URL fail-fast）"
   ],
   "open_questions": [],
-  "dont": [],
-  "last_gate_passed_at": "2026-08-26T17:30+08:00",
+  "dont": [
+    "python 文本模式重写 .java 会 CRLF→LF 破坏 spotless——改后必跑 mvn spotless:apply"
+  ],
   "active_branch": "master",
-  "ahead_of_origin": "0"
+  "last_session_at": "2026-09-13"
 }
