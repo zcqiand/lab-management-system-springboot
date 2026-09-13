@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# scripts/scaffold-entities.sh — JDBC 反向工程从真库生成 entity 镜像（DB-First, ADR-0025/ADR-0033）
+#
+# 设计（镜像 saas-identity-platform-springboot/scripts/scaffold-entities.sh）：
+# - 实际实现：scripts/scaffold-entities.mjs（借 lab-nextjs 的 pg driver 直读 information_schema）
+# - 输出：src/main/java/io/xr/lab/platform/entity/Generated/<Table>.java（纯 POJO 镜像，入 git）
+# - 与 saas 的差异：lab 仓手写 entity/ 层保留（@Convert 业务枚举 + ddl-auto=validate），
+#   Generated/ 是镜像产物——漂移防线 = 本脚本 git diff 检测 + validate 双层
+#
+# 用法：
+#   bash scripts/scaffold-entities.sh                       # 需 DATABASE_URL（lab_dev）
+#   DATABASE_URL=postgresql://... bash scripts/scaffold-entities.sh
+#
+# 退出码：
+#   0 — scaffold OK
+#   1 — DB 不通 / 生成失败 / drift
+
+set -euo pipefail
+
+# 不要用 `git rev-parse --show-toplevel` —— 本仓是 submodule，
+# 该命令返回外层 xr-code-suite 根而不是本仓根，让 Generated/ 路径算错。
+# 用脚本自身所在目录的父目录锚定到仓根。
+cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.."
+
+echo "[scaffold-entities] step 1/4 — node scripts/scaffold-entities.mjs"
+node scripts/scaffold-entities.mjs
+
+# step 2/4: scaffold 产出的 Generated/*.java 是裸 Java（jdbc 反推），不过 google-java-format。
+# 直接跑 mvn spotless:apply 重排版，否则后续 gate L1 格式门会因 scaffold 触发的 spotless cache 失败。
+# clear spotless-index 防止上次缓存命中导致 apply 跳过。
+echo "[scaffold-entities] step 2/4 — mvn spotless:apply（消除 scaffold 触发的 L1 格式漂移）"
+rm -f target/spotless-index && mvn spotless:apply -q
+
+echo "[scaffold-entities] step 3/4 — git diff entity/Generated/"
+if ! git diff --exit-code --quiet src/main/java/io/xr/lab/platform/entity/Generated/ 2>/dev/null; then
+  echo "[scaffold-entities] FATAL: scaffold 产物与 git HEAD 不一致" >&2
+  echo "[scaffold-entities]        处理：确认 DB 是最新（shared 已 db:migrate），" >&2
+  echo "[scaffold-entities]        然后 git add src/main/java/io/xr/lab/platform/entity/Generated/ && git commit" >&2
+  exit 1
+fi
+
+echo "[scaffold-entities] step 4/4 — OK"
+echo "[scaffold-entities]    entity 镜像已与 DB 同步；DB-First sync 绿"
+
+# ADR-0026 §2: 写 last-gen-shared.json marker（DB 类别），失败不阻塞 scaffold。
+ROOT="$(pwd)"
+SHARED_DIR="$(cd "${ROOT}/../lab-management-system-shared" && pwd)"
+SHARED_SHA=$(cd "$SHARED_DIR" && git rev-parse HEAD)
+MARKER="$ROOT/.state/last-gen-shared.json"
+mkdir -p "$ROOT/.state"
+
+if python3 - "$MARKER" "$SHARED_SHA" "$(basename "$0")" "$(basename "$ROOT")" <<'PYEOF'
+import datetime, json, sys
+
+marker_path, shared_sha, cmd, repo = sys.argv[1:5]
+try:
+    with open(marker_path, encoding="utf-8") as f:
+        marker = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError):
+    marker = {}
+
+now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+if cmd.startswith("gen-shared"):
+    marker["api_synced_sha"] = shared_sha
+    marker["api_synced_at"] = now
+    marker["api_synced_cmd"] = cmd
+elif cmd.startswith("scaffold"):
+    marker["db_synced_sha"] = shared_sha
+    marker["db_synced_at"] = now
+    marker["db_synced_cmd"] = cmd
+
+shas = [s for s in (marker.get("api_synced_sha"), marker.get("db_synced_sha")) if s]
+marker["shared_sha"] = max(shas) if shas else shared_sha
+marker["consumer_repo"] = repo
+
+with open(marker_path, "w", encoding="utf-8") as f:
+    json.dump(marker, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PYEOF
+then
+  echo "[scaffold-entities]    ADR-0026 marker 已落盘: $MARKER (shared HEAD ${SHARED_SHA:0:7})"
+else
+  echo "[scaffold-entities]    WARN: marker 写失败（python3 缺失？）—— staleness 将报 UNKNOWN" >&2
+fi

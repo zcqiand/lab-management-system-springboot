@@ -8,15 +8,16 @@
 
 ```bash
 mvn verify                    # 全量测试（含 Spotless / SpotBugs）
-bash scripts/gen-shared.sh    # 改了 shared 仓后同步 codegen 产物
+bash scripts/gen-shared.sh    # 改了 shared API 契约后同步 codegen 产物
+bash scripts/scaffold-entities.sh  # 改了 shared DB schema（已 db:migrate）后同步 entity 镜像
 mvn spring-boot:run           # 本地起服务
 ```
 
 ## 功能特性
 
 - Controller 与 DTO 由 shared 仓 TypeSpec codegen 全覆盖（openapi-generator）
-- 手写 Service 与 Repository；Flyway 迁移真源在 shared 仓 `sql/migrations/`
-- OAuth2 resource server（JWT）；dev 路径 DevJwtDecoder（dev-only）
+- 手写 Service 与 Repository；DB-First（ADR-0025/0033）：schema 真源 = shared `src/db/schema.ts`，entity 镜像 = `bash scripts/scaffold-entities.sh`
+- OAuth2 resource server（JWT）；HS256 真签名（ADR-0008）
 
 ## 技术栈
 
@@ -24,7 +25,6 @@ mvn spring-boot:run           # 本地起服务
 | :--- | :--- |
 | Java | 21 |
 | Spring Boot | 3.4.1 |
-| Flyway | 随 spring-boot-starter-parent |
 | PostgreSQL driver | 随 spring-boot-starter-parent |
 | JUnit 5 | 随 starter-test |
 | Maven | 3.9+ |

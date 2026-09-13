@@ -1,6 +1,6 @@
 # lab-management-system-springboot Architecture
 
-> lab-management-system 7 仓家族的后端 B（端口 8080）。本文档聚焦「这一个 Spring Boot 仓」的结构、流程、与契约仓的同步协议、以及 V014 永久分叉管理。家族级议题（multi-repo-family 拓扑 / suite 级 ADR / 跨仓同步）见 [父仓 docs/ARCHITECTURE.md](../../../docs/ARCHITECTURE.md)。
+> lab-management-system 7 仓家族的后端 B（端口 5205）。本文档聚焦「这一个 Spring Boot 仓」的结构、流程、与契约仓的同步协议、以及 DB-First schema 消费协议（ADR-0025/0033）。家族级议题（multi-repo-family 拓扑 / suite 级 ADR / 跨仓同步）见 [父仓 docs/ARCHITECTURE.md](../../../docs/ARCHITECTURE.md)。
 
 > **范围**：本文档只描述 *架构*（结构 / 边界 / 数据流 / 决策）。编码细则见 [docs/conventions/](conventions/)，单个决策的 ADR 见 [docs/adr/](adr/)，产品需求见 [docs/requirements/](requirements/)，F/I 级功能清单见 [docs/functions/function-tree.md](functions/function-tree.md)。
 
@@ -11,9 +11,10 @@
 | 你是… | 直接看 |
 |---|---|
 | 新人，30 分钟搞懂这仓 | §1 → §2.1 → §4（启动链） |
-| 改 shared 契约后来同步 | §4.1 → §5（V014 永久分叉管理） |
-| 排 prod 502 / 部署不通 | §5 → §4.2 → memory/springboot-env-drift-502-trap.md |
-| 加新接口 / 加新表 | §3 → [docs/adr/0003-function-tree-requires-human-approval.md](../../../docs/adr/0003-function-tree-requires-human-approval.md) |
+| 改 shared API 契约后来同步 | §4.1（gen-shared.sh 两步 + marker） |
+| 改 shared DB schema 后来同步 | §5（DB-First schema 消费协议 → scaffold-entities.sh） |
+| 排 prod 502 / 部署不通 | §4.2 → memory/springboot-env-drift-502-trap.md |
+| 加新接口 / 加新表 | §3 → §5 → [docs/adr/0003-function-tree-requires-human-approval.md](../../../docs/adr/0003-function-tree-requires-human-approval.md) |
 | 调试 JWT / SSO / OAuth | §3.1 → [adr/0008](adr/0008-real-backend-oauth-jwt.md) |
 | 调试菜单 | §3.1 → [adr/0009](adr/0009-menus-via-lab-backend.md) |
 | 想问「为什么这样设计」 | §7（决策索引）→ 对应 ADR |
@@ -22,24 +23,28 @@
 
 ## 1. 角色与定位
 
-**lab-management-system-springboot** 是 lab 7 仓家族的**后端 B 实现**——Java 17（JDK 21 编译）+ Spring Boot 3.4 + JPA + Flyway，端口 8080。
+**lab-management-system-springboot** 是 lab 7 仓家族的**后端 B 实现**——Java 21 + Spring Boot 3.4 + JPA，端口 5205。DB 侧是 **DB-First 消费层**（ADR-0025/0033）：schema 真源 = shared `src/db/schema.ts`，本仓**不拥有迁移**（Flyway 已随 ADR-0033 退役），entity 镜像由 `scaffold-entities.sh` 从真库反向工程产出、入 git 做漂移检测。
 
 ```
                 ┌─────────────────────────────────────────────┐
                 │         契约仓 (lab-shared)                  │
-                │  TypeSpec (API)  +  sql/migrations (DB)     │
-                │  emit: openapi.yaml / V001-V018.sql         │
+                │  TypeSpec (API)   src/db/schema.ts (DB)     │
+                │  emit: openapi.yaml / drizzle → pg          │
                 └──────┬──────────────────┬──────────────────┘
+          gen-shared.sh│                  │scaffold-entities.sh
+       (openapi-generator)                (JDBC 反向工程)
                        ▼                  ▼
-            lab-msw (:5200)         6 frontend (react/vue/nextjs)
-                       └──── fetch ────────┘
-                                  ▼
+           api/*Api + shared/dto/*     entity/Generated/*.java（镜像 POJO）
+                       └────┬────────────┘
+                            ▼
               ┌────────────────────────────────────────┐
               │   lab-management-springboot (:5205)    │
-              │   Java 17 + Spring Boot 3.4 + JPA +     │
-              │   Flyway-on + HS256 JWT 真签名 +        │
-              │   真 saas OAuth 2.0 直连                │
+              │   Java 21 + Spring Boot 3.4 + JPA      │
+              │   ddl-auto=validate + HS256 JWT 真签名 │
+              │   + 真 saas OAuth 2.0 直连             │
               └────────────────────────────────────────┘
+                            ▼
+              lab_dev / lab_prod PostgreSQL（schema 由 shared 管，本仓只读）
 ```
 
 **与 saas-springboot 的关键差异**：
@@ -47,15 +52,15 @@
 | 维度 | saas-springboot | lab-springboot（本仓） |
 |---|---|---|
 | 产品域 | 多租户 OAuth IdP | 建筑工程实验室管理系统（合同/接样/样品/报告） |
-| **Flyway** | `enabled: false` | **`enabled: true`** + V014 永久分叉 |
-| `baseline-on-migrate` | — | `true` / `baseline-version: "13"` |
+| **DB schema** | 真源 shared `src/db/schema.ts`；entities 只在 `entity/Generated/`（即运行时实体），`ddl-auto: none` | 真源同左；**手写 entity 层保留**（@Convert 业务枚举）+ `entity/Generated/` 纯 POJO 镜像，`ddl-auto: validate` |
+| **Flyway** | 已退役（pom 依赖删、yml 残留 `enabled: false`） | **已退役**（pom 依赖删、yml 块删、`db/migration/` 目录 git rm） |
 | 业务表 | shared OAuth 表 | lab 业务表（contracts/receipts/samples/methods …） |
-| JWT 鉴权 | dev `alg=none`（`@Profile("dev")`） | **HS256 真签名**（ADR-0008，no-sso profile 兜底） |
+| JWT 鉴权 | HS256 真验签 | **HS256 真签名**（ADR-0008，no-sso profile 兜底） |
 | SSO 链路 | — | **真 OAuth 2.0 直连 saas**（SaasAuthClient + SaasMeClient） |
 | 菜单数据源 | — | **走 lab 后端 `/api/auth/menus`**（ADR-0009，saas 快照 + 30min 缓存 + demo 兜底） |
-| DB migration 编号 | 与 shared 一一对应 | 与 shared **错位**（V008 = shared V008；V009 = shared V008 init_report_names；V014 永久分叉 + V017 rename） |
+| DB schema 演进 | shared 改 `schema.ts` → `db:migrate` → 仓内 scaffold | 同左（§5） |
 
-**家族定位总结**：lab-springboot 是与 saas-springboot **同构的「真后端」**——同样吃契约仓的 `openapi.yaml` + `sql/migrations/*.sql`，但**启用 Flyway** 做 managed migrations、保留**永久分叉 V014**、走**真 OAuth + 真签名 JWT**。
+**家族定位总结**：lab-springboot 与 saas-springboot 同构——API 侧吃契约仓 `openapi.yaml` 本地 codegen，DB 侧消费 shared `src/db/schema.ts` 的 migrate 产物。差异只在 DB 消费的**形态**：saas 用 Generated 实体整体替换手写层；lab 因 91 文件引用手写 entity（@Convert 业务枚举 + 8 junction @IdClass），采用「手写 entity 照旧运行 + Generated/ 纯 POJO 镜像做漂移防线」的双层方案（§5.1）。
 
 ---
 
@@ -74,17 +79,17 @@ lab-management-system-springboot/
 │   ├── conventions/            ← 编码细则
 │   └── requirements/
 ├── src/
-│   ├── main/java/io/xr/lab/platform/   ← 业务代码 + codegen 产物
-│   ├── main/resources/
-│   │   ├── application.yml     ← 默认 profile=${LAB_PROFILE:no-sso}
-│   │   └── db/migration/       ← V001-V017.sql（含 V014 永久分叉）
+│   ├── main/java/io/xr/lab/platform/   ← 业务代码 + codegen 产物 + entity 镜像
+│   ├── main/resources/application.yml   ← 默认 profile=${LAB_PROFILE:sso} + datasource
 │   └── test/java/io/xr/harness/junit/  ← fn-Test harness
-├── scripts/gen-shared.sh       ← 三步同步脚本
-├── pom.xml                     ← Spring Boot 3.4 + Spotless + SpotBugs
+├── scripts/gen-shared.sh       ← API 契约同步（两步 + ADR-0026 marker）
+├── scripts/scaffold-entities.sh ← DB schema 同步（四步 + drift 检测 + marker）
+├── scripts/scaffold-entities.mjs ← JDBC 反向工程实现（借 lab-nextjs 的 pg driver）
+├── pom.xml                     ← Spring Boot 3.4 + Spotless + SpotBugs（无 Flyway）
 ├── openapitools.json           ← openapi-generator-cli 版本锁
 ├── spotbugs-exclude.xml        ← L2 已知误报排除
 ├── Dockerfile                  ← multi-stage builder + runner
-└── .state/                     ← session.json / gate.json / trace.json
+└── .state/                     ← session.json / gate.json / trace.json / last-gen-shared.json
 ```
 
 ### 2.2 Java 包结构（`src/main/java/io/xr/lab/platform/`）
@@ -109,10 +114,13 @@ io.xr.lab.platform/
 │                                    Summary
 ├── repository/                    ← Spring Data JPA
 │   └── *Repository.java          ← 26 CRUD + 8 junction link/unlink repository
-├── entity/                        ← JPA entity（@Entity + @Table），反射镜像 shared SQL
+├── entity/                        ← 手写 JPA entity（@Entity + @Table，运行时实体）
 │   ├── *Entity.java              ← 26 entity（合约/接样/样品/检测/计算方法/技术要求/字典/码表）
-│   └── enums/                    ← AttributeConverter 集中地（10 个 converter +
-│                                    8 junction 复合主键 @IdClass）
+│   ├── enums/                    ← AttributeConverter 集中地（10 个 converter +
+│   │                                8 junction 复合主键 @IdClass）
+│   └── Generated/                ← ★ scaffold-entities.sh 产物：25 纯 POJO 镜像 +
+│                                    12 复合主键 Id 镜像（无 @Entity，不参与运行时
+│                                    扫描；入 git，git diff = DB 漂移检测，§5）
 ├── mapper/                        ← Entity ↔ DTO 映射（手写；无 MapStruct）
 │   └── *Mapper.java              ← 11 mapper（手写映射）
 ├── directory/                     ← UserDirectory 接口 + ConfigUserDirectory 实现
@@ -141,33 +149,18 @@ io.xr.lab.platform/
 
 ```
 src/main/resources/
-├── application.yml                ← 默认 profile=no-sso + flyway.enabled=true + DB/LAB/CORS 配置
-└── db/migration/                  ← Flyway replay（gen-shared.sh step 3 拷入）
-    ├── README.md                  ← shared 同步说明（附带 cp 进来）
-    ├── V001__init_contracts.sql
-    ├── V002__init_sample_receipts_samples.sql
-    ├── V003__init_test_records.sql
-    ├── V004__init_inspection_catalog.sql
-    ├── V005__init_technical_requirements.sql
-    ├── V006__init_audit_events.sql
-    ├── V007__indexes.sql
-    ├── V008__init_inspection_dictionary.sql      ← shared V008 = init_inspection_dictionary
-    ├── V009__init_report_names.sql               ← shared V008 = init_report_names（编号错位）
-    ├── V010__init_param_interfaces.sql
-    ├── V011__backwire_inspection_fks.sql
-    ├── V012__add_tenant_isolation.sql
-    ├── V013__rename_param_interface_tables.sql
-    ├── V014__enums_to_text.sql                   ← ★ 永久分叉（详见 §5）
-    ├── V015__smoke_seed_dict.sql
-    └── V017__rename_calculation_rules_to_methods.sql
+└── application.yml                ← 默认 profile=${LAB_PROFILE:sso} + datasource + JPA(ddl-auto=validate)
 ```
+
+（原 `db/migration/` Flyway replay 目录已随 ADR-0033 退役 `git rm`——schema 真源 = shared `src/db/schema.ts`，迁移由 shared 仓 `db:migrate` 负责，本仓只读不写。）
 
 ### 2.4 仓根构件
 
 | 构件 | 路径 | 作用 |
 |---|---|---|
-| `pom.xml` | 仓根 | Spring Boot 3.4.1 + JDK 21（Java 17 源）+ JPA + Flyway + Security + actuator；构建期接 `spotless-maven-plugin`（L1）+ `spotbugs-maven-plugin`（L2） |
-| `scripts/gen-shared.sh` | scripts/ | 三步同步脚本（详见 §4.1） |
+| `pom.xml` | 仓根 | Spring Boot 3.4.1 + JDK 21（Java 17 源）+ JPA + Security + actuator；构建期接 `spotless-maven-plugin`（L1）+ `spotbugs-maven-plugin`（L2）。**无 Flyway**（原 flyway-core + flyway-database-postgresql 已删） |
+| `scripts/gen-shared.sh` | scripts/ | API 契约同步两步脚本（详见 §4.1） |
+| `scripts/scaffold-entities.sh` + `.mjs` | scripts/ | DB schema 同步四步脚本（详见 §5） |
 | `spotbugs-exclude.xml` | 仓根 | 排除 Spring DI singleton 的 `EI_EXPOSE_REP2` 已知误报 |
 | `Dockerfile` | 仓根 | `eclipse-temurin:17-jre` builder + runner；`HEALTHCHECK` 打 `/actuator/health` |
 | `.harness/stack.json` | .harness/ | 项目自描述（见 §6 L1-L4 门） |
@@ -197,7 +190,7 @@ HTTP request
 |---|---|---|
 | JWT 算法 | **HS256 真签名**（`LAB_JWT_SECRET` ≥32B） | ADR-0008；saas B1 `alg=none` + dev-placeholder sig 已废弃 |
 | 公开端点白名单 | `/api/auth/login` + `/api/auth/refresh` + `/api/auth/sso/**` + **`/actuator/**`** | 教训（saas-springboot v0.1.7）：漏 `/actuator/**` 让 Docker HEALTHCHECK + deploy 脚本 401，看起来像「wait 太短」，根因在 SecurityConfig |
-| SSO 客户端切换 | `SsoBeansConfig` 按 `@Profile` 切真 `SaasAuthClient`（`RestClient`）/ `NoopSaasAuthClient`（in-memory 假数据） | `application.yml` `spring.profiles.default: ${LAB_PROFILE:no-sso}` 默认 no-sso；CI 切 `default` 走真链 |
+| SSO 客户端切换 | `SsoBeansConfig` 按 `@Profile` 切真 `SaasAuthClient`（`RestClient`）/ `NoopSaasAuthClient`（in-memory 假数据） | `application.yml` `spring.profiles.default: ${LAB_PROFILE:sso}`；离线 dev 显式 `LAB_PROFILE=no-sso` |
 | 菜单数据源 | `SaasMeClient.listMyMenus` 在 SSO callback 瞬时拉 saas → `MenuSnapshotCache` 30min 缓存 → `AuthService.menus(claims)` 缓存优先 → miss 回退 `FALLBACK_MENUS` → 端点**永不 5xx** | ADR-0009「方案 B：saas 快照缓存 + demo 兜底」 |
 | CORS | `allowCredentials=true` + `LAB_CORS_ALLOWED_ORIGINS` 解析 CSV | react(5173) + vue(5174/5173) + nextjs(3000) 三前端覆盖 |
 | Session | `STATELESS`（无服务端 session；JWT 自带 claims） | 不依赖 Redis/Session |
@@ -281,7 +274,7 @@ org.hibernate.Session → JDBC → Postgres driver → lab_dev / lab_prod
 
 ### 3.5 Model 层（`entity/` + `entity/enums/`）
 
-`io.xr.lab.platform.entity.*Entity` 是 **JPA entity 反射镜像 shared SQL**。Hibernate 不建表（`ddl-auto: validate`）——只校验 entity 与 Flyway 表 schema 一致。
+`io.xr.lab.platform.entity.*Entity` 是**运行时 JPA entity**（手写，26 个）。Hibernate 不建表（`ddl-auto: validate`）——只校验 entity 与真库 schema（shared `schema.ts` 的 migrate 产物）一致。
 
 | 模式 | 用途 | 示例 |
 |---|---|---|
@@ -289,34 +282,36 @@ org.hibernate.Session → JDBC → Postgres driver → lab_dev / lab_prod
 | 复合主键 `@IdClass` | 计算方法 / 技术要求 / junction 表 | `CalculationMethodEntity {inspectionObjectCode, inspectionParameterCode}` + `CalculationMethodKey implements Serializable` |
 | `String` + `JsonNullable` | optional / 可空值 | `@JsonNullable<String> remark` |
 | `@JdbcTypeCode(SqlTypes.JSON)` | PG `jsonb` 列 | `SampleReceiptEntity.testingBasis` (List<String>) / `flowHistory` (List<FlowHistoryEntry>) |
-| `@Convert(converter = XxxConverter.class)` | PG `TEXT` 写枚举（小写 string） | `FlowStatus` (M03 7 阶段) / `ContractStatus` (ACTIVE/CLOSED) / `CalculationAlgorithmType` 等 8 个 |
-| `@Enumerated(STRING)` role 字段 | role-based junction（role 字段直接存 PG enum 大写字面） | `ObjectStandardKey.role` (TESTING/JUDGMENT) — 无需 converter |
+| `@Convert(converter = XxxConverter.class)` | PG 列 ↔ Java enum | `FlowStatus` (M03 7 阶段) / `ContractStatus` (ACTIVE/CLOSED) 等 8 个。新 SSOT 拓扑下仅 `audit_action` 还是 PG enum，其余 status 列已全为 `text`——converter 的 enum↔String 双向转换对 `text` 列照常工作 |
+| `@Enumerated(STRING)` role 字段 | role-based junction（role 字段直接存大写字面） | `ObjectStandardKey.role` (TESTING/JUDGMENT) — 无需 converter |
 
-**enum converter 集中地**：10 个 `AttributeConverter` 注册到 `EnumConvertersConfig.java`——PG `TEXT` 列 ↔ Java enum，DTO 端走 `@JsonValue` 落到前端 enum 同款字符串。
+**enum converter 集中地**：10 个 `AttributeConverter` 注册到 `EnumConvertersConfig.java`——PG 列 ↔ Java enum，DTO 端走 `@JsonValue` 落到前端 enum 同款字符串。
 
-### 3.6 DB Migration 层（`db/migration/V001-V017.sql`）
+**`entity/Generated/`（scaffold 镜像，非运行时）**：`scaffold-entities.sh` 从真库反向工程出的 25 张表纯 POJO（无 `@Entity`，Hibernate 扫描不到）+ 12 个复合主键 Id 镜像。它们**不参与运行时**，角色是 DB-First 漂移防线（§5）——DB 没改时与 git HEAD 逐字节一致，DB 真演进时 `git diff` 显形。
 
-`src/main/resources/db/migration/` 是 Flyway replay 目录，由 `scripts/gen-shared.sh step 3` 拷入。
+### 3.6 DB schema 消费层（`entity/Generated/` + `scripts/scaffold-entities.*`）
+
+本仓**不拥有迁移**。DB 侧协议（ADR-0025 DB-First + ADR-0033 lab 对齐）：
 
 | 维度 | 行为 |
 |---|---|
-| Flyway enable | **`flyway.enabled: true`**（与 saas-springboot `false` 相反） |
-| `baseline-on-migrate` | `true`，`baseline-version: "13"`（lab_dev 已由 nextjs sync 到 V013 等效状态时 baseline + skip） |
-| 空库行为 | V001-V013 全量 replay → V014 永久分叉（白名单跳过 codegen cp，但 replay 走本地版本）→ V015 smoke seed → V017 rename |
-| 单测 / CT | `lab_test` 库全量 replay 走空库路径（baseline 不触发） |
-| prod | `lab_prod` flyway history 记录 V001-V017 checksum；改任一文件都触发「checksum mismatch」-app 启动失败 |
-| `ddl-auto` | `validate`（Hibernate 只校验 entity 与 schema 一致，不 DDL） |
-
-**V014 永久分叉管理**详见 §5。
+| schema 真源 | shared `src/db/schema.ts`（手写 Drizzle SSOT） |
+| 物化 | shared 仓 `npm run db:generate` → `drizzle/0000_target_ddl.sql`；`db:migrate` 应用到 lab_dev/lab_prod |
+| 本仓镜像 | `scripts/scaffold-entities.sh` → `entity/Generated/*.java`（入 git） |
+| 漂移检测 | 脚本内 `git diff --exit-code entity/Generated/`：DB 没改 → 与 HEAD 一致（PASS）；DB 真演进 → diff = **标准工作流**，确认后 commit |
+| 运行时校验 | `ddl-auto: validate`：26 手写 entity ↔ 真库 schema 每次启动校验 |
+| 单测 / CT | `RepositoryPgTest`（`@Tag("pg")`）连 `lab_test`（结构 = shared schema 已 migrate），ddl-auto=validate |
 
 ---
 
 ## 4. 核心流程
 
-### 4.1 与契约仓同步：`scripts/gen-shared.sh` 三步
+### 4.1 与契约仓同步
+
+**API 侧：`scripts/gen-shared.sh` 两步**
 
 ```
-1. [shared] 改 tsp/main.tsp 或 sql/migrations/V00N+1__*.sql + git push
+1. [shared] 改 tsp/main.tsp + git push
 
 2. [shared] npm run build        ← emit:openapi + tsc --noEmit
    gate: python scripts/gate.py -p <shared>   ↓ exit 0
@@ -332,45 +327,38 @@ org.hibernate.Session → JDBC → Postgres driver → lab_dev / lab_prod
    │     ← 14 Api 接口 + ~80 DTO 进 src/main/java/
    │     ← sed 删除 AuthState.getKind() 的协变 bug
    │     ← mvn -q spotless:apply 让 codegen 产物过 L1
-   └─ step 3: DB — foreach shared/sql/migrations/V*.sql
-        ├─ ver 在 DIVERGED_VERSIONS="V014" → SKIP（本地为准）
-        ├─ target 不存在 → cp
-        ├─ target 存在 && cmp -s 一致 → noop
-        └─ target 存在 && cmp 不一致 → FATAL abort（exit 1，不覆盖）
-   ↓ exit 0
+   └─ 末尾: ADR-0026 marker 写 .state/last-gen-shared.json（api_synced_sha）
 
-4. mvn compile + mvn spotless:apply
+4. [shared] 改 src/db/schema.ts + npm run db:migrate 后：
+   [本仓] bash scripts/scaffold-entities.sh              ← §5 四步
 
-5. mvn spring-boot:run -Dspring-boot.run.profiles=no-sso
-   ├─ Spring Boot 启动（端口 8080）
-   ├─ flyway.replay V001-V017（baseline if lab_dev 已 V013+）
-   ├─ SecurityConfig 建 JwtDecoder bean（HS256 真签名）
-   ├─ SsoBeansConfig 注入 NoopSaasAuthClient（no-sso profile）
-   └─ Tomcat 监听 8080 + /actuator/health 200 OK
+5. mvn compile + mvn spotless:apply
 
-6. python scripts/gate.py -p lab-management-system-springboot   ← suite 根跑
+6. mvn spring-boot:run（§4.2 启动链）
+
+7. python scripts/gate.py -p lab-management-system-springboot   ← suite 根跑
    ↓ exit 0 = 全绿；1 = 按修复提示回代码；2 = 停下问人
 
-7. git commit + git tag v<X>-<YYYYMMDD>
+8. git commit + git tag v<X>-<YYYYMMDD>
 
-8. [父仓] chore(submodule): 推进 lab-springboot 指针
+9. [父仓] chore(submodule): 推进 lab-springboot 指针
 ```
 
-**关键防护**（`gen-shared.sh` 内置）：
+**API 侧关键防护**（`gen-shared.sh` 内置）：
 
-| 风险 | 防护 | 触发 |
+| 风险 | 防护 | 位置 |
 |---|---|---|
-| codegen 把 DTO 写到错路径 | `mkdir -p` + `rm -rf` 先清空 | step 2 末尾 |
+| codegen 把 DTO 写到错路径 | `mkdir -p` + `rm -rf` 先清空，目录与包名一致 | step 2 末尾 |
 | codegen 排版不过 L1（spotless） | 末尾 `mvn -q spotless:apply` | step 2 末尾 |
 | AuthState `String getKind()` 协变不兼容 | `sed -i '/    public String getKind();$/d'` | step 2 末尾 |
-| 目标 V*.sql 已存在且内容不同 → 静默覆盖 → flyway checksum 起崩 | `cmp -s` + FATAL abort | step 3 foreach |
-| V014 永久分叉被 shared 新版覆盖 → lab_prod checksum mismatch | `DIVERGED_VERSIONS="V014"` 白名单 | step 3 foreach |
+| 同步信号丢失（suite staleness 报 UNKNOWN） | ADR-0026 marker（失败仅 WARN 不阻塞） | 末尾 |
 
-### 4.2 启动链（`mvn spring-boot:run -Dspring-boot.run.profiles=no-sso`）
+### 4.2 启动链（`mvn spring-boot:run`）
 
 ```
 Maven → SpringApplication.run(App.class, args)
-  ├─ Profile 解析：LAB_PROFILE=${LAB_PROFILE:no-sso} → 没设 env 默认 no-sso
+  ├─ Profile 解析：LAB_PROFILE=${LAB_PROFILE:sso} → 真链默认；
+  │     离线 dev 显式 LAB_PROFILE=no-sso
   ├─ SsoBeansConfig @Profile 判断:
   │     ├─ no-sso → 注册 NoopSaasAuthClient + NoopSaasMeClient
   │     └─ sso   → 注册 SaasAuthClient (RestClient) + SaasMeClient
@@ -379,15 +367,13 @@ Maven → SpringApplication.run(App.class, args)
   │     ├─ SecurityFilterChain（permitAll /api/auth/{login,refresh,sso/**} + /actuator/**）
   │     ├─ JwtDecoder（Nimbus HS256 真签，由 LabJwtSigner 给密钥）
   │     └─ CorsConfigurationSource（解析 lab.cors.allowed-origins CSV）
-  ├─ Flyway replay（flyway.enabled: true）:
-  │     ├─ lab_dev 已 V013 等效 → baseline-on-migrate @ V13，skip <=13
-  │     ├─ 空库 → V001-V013 全量 replay
-  │     ├─ V014 永久分叉 → 走 DIVERGED_VERSIONS 白名单，不动本地版本
-  │     └─ V015 / V017 与 shared 同步（cmp 通过后 cp 进 db/migration）
+  ├─ Datasource: DATABASE_URL（JDBC_URL 兜底兼容 db-env.sh，ADR-0019 缺失 throw）
   ├─ Hibernate EntityManager init（ddl-auto=validate）:
-  │     ├─ 26 entity 与 DB schema 一致性校验
+  │     ├─ 26 手写 entity 与 DB schema 一致性校验
+  │     │    （schema = shared src/db/schema.ts 的 migrate 产物，本仓只读）
   │     └─ 10 个 AttributeConverter 注册
-  ├─ Tomcat 启动 @ 8080
+  │     └─ entity/Generated/ 纯 POJO 无 @Entity，不参与扫描
+  ├─ Tomcat 启动 @ 5205（SERVER_PORT，缺省 throw）
   └─ /actuator/health → 200 OK
        Docker HEALTHCHECK + deploy 脚本 wget 探针
 ```
@@ -433,67 +419,57 @@ SSO callback / Refresh 路径：`SaasAuthClient` 用瞬时 saas-access 调 `Saas
 
 ---
 
-## 5. V014 永久分叉管理
+## 5. DB-First schema 消费协议（ADR-0025 / ADR-0033）
 
-### 5.1 现象
+### 5.1 双层防线：手写 entity 运行 + Generated 镜像
 
-`db/migration/V014__enums_to_text.sql` 在**两份**不同代码库里：
+lab 与 saas 的 DB 消费形态不同，根因在**存量手写 entity 的规模**：
 
-| 来源 | 内容 | 用途 |
-|---|---|---|
-| **本仓**（演化版） | `ALTER TABLE inspection_calculation_methods ...` 把 PG enum 列转 TEXT + AttributeConverter | lab_prod 已应用，**flyway checksum 锁死 `(-1860597146)`** |
-| **shared 仓**（fresh replay 版） | `ALTER TABLE inspection_calculation_rules ...` 同款语义但表名不同 | fresh replay 链（emit-schema / sql.replay.test / sync-db）必需 |
+| 方案 | 为什么不选 / 为什么选 |
+|---|---|
+| saas 式：Generated 实体即运行时实体，删手写层 | 91 文件 import `platform.entity`、48 文件用业务 enum、24 repository、23 测试文件要跟着翻——风险与收益不成比例 |
+| 「继承 overlay」：Generated 带注解，手写 entity 继承补 @Convert | **不可行**——JPA `@Convert` 锚定在字段声明上，子类无法给继承字段补注解 |
+| **本仓方案（已采纳）**：手写 entity 照旧运行（@Convert 业务枚举 + junction @IdClass + validate），`entity/Generated/` 出**纯 POJO 镜像**（无 @Entity）做漂移防线 | 防线等价于 saas：scaffold 出 diff = DB 演进显形；`ddl-auto=validate` 再兜一层运行时校验。**对计划的字面偏差（overlay→mirror）已在 ADR-0033 执行记录中说明** |
 
-两版语义互补，**任何一边都不能替换另一边**：
+### 5.2 scaffold 链四步（`scripts/scaffold-entities.sh`）
 
-- 把本仓 V014 改回 shared 版 → lab_prod 启动 fail（`Detected applied migration not resolved locally`）；
-- 把 shared V014 同步到本仓 → lab_prod 上的 `inspection_calculation_rules` 表不存在（已被 V017 rename 为 `inspection_calculation_methods`）。
-
-### 5.2 防护机制（`gen-shared.sh` 内置）
-
-```bash
-# scripts/gen-shared.sh step 3
-DIVERGED_VERSIONS="V014"     # ★ 单一豁免点
-
-for f in shared/sql/migrations/V*.sql; do
-  ver=$(basename "$f" | cut -d_ -f1)
-  if echo "$DIVERGED_VERSIONS" | grep -qw "$ver"; then
-    echo "[gen-shared] SKIP diverged migration: $(basename "$f") (local version is authoritative)"
-    continue
-  fi
-  target="src/main/resources/db/migration/$(basename "$f")"
-  if [ -e "$target" ] && ! cmp -s "$f" "$target"; then
-    echo "[gen-shared] FATAL: migration diverged..." >&2
-    exit 1
-  fi
-  cp "$f" "$target"
-done
 ```
+1. node scripts/scaffold-entities.mjs
+   ├─ DATABASE_URL fail-fast（缺 → exit 2）
+   ├─ 借 lab-nextjs 的 pg devDep 直连真库（本仓无 node_modules）
+   ├─ information_schema + pg_catalog 反向工程 25 张表
+   └─ 产 entity/Generated/<Table>.java（纯 POJO，字段尾注释标 PK/NOT NULL/enum）
+      + 复合 PK 的 <Table>Id.java（implements Serializable）
 
-| 版本 | 白名单? | 原因 |
-|---|---|---|
-| V001-V013 | 否 | 本仓与 shared 严格同步（cmp 一致 cp） |
-| **V014** | **是** | **永久分叉，本地版本权威**——任何在 shared 改 V014 的尝试都会被本仓脚本的 SKIP 保护，shared 改动不影响本仓 `/db/migration/V014` 文件 |
-| V015 | 否 | smoke seed（shared 已逐字节收敛） |
-| V016 | 否 | （不存在，跳号保留） |
-| V017 | 否 | rename calculation_rules → methods，shared 与本仓条件式同款 |
+2. rm -f target/spotless-index && mvn spotless:apply
+   （JDBC 反推产物是裸 Java，必须重排版否则 L1 拦）
+
+3. git diff --exit-code entity/Generated/
+   ├─ 无 diff → DB-First sync 绿（DB 没改，产物与 HEAD 一致 = 预期）
+   └─ 有 diff → FATAL exit 1：确认 shared 已 db:migrate 后
+      git add entity/Generated/ && git commit（= DB 演进落仓）
+
+4. ADR-0026 marker → .state/last-gen-shared.json（db_synced_sha/db_synced_cmd）
+```
 
 ### 5.3 演化路径（未来）
 
 | 工单 | 行为 |
 |---|---|
-| shared V015 改名 / V016 新增 | 本仓 `gen-shared.sh` 自动 cp；改名让 cmp 不一致则 FATAL，由人解决 |
-| 共享侧想弃用 V014 旧语义 | shared 写 V018 把 fresh replay 路径上的 `inspection_calculation_rules` → `inspection_calculation_methods`（与本仓 V017 合并），新 fresh 库从 V001 走完也能到 V017 终态；本仓 V014 仍保留以兼容 `lab_prod` checksum |
-| lab_prod 想升级 V014 之外的 migration | 只能新增 V018+，不能动 V001-V017 任何文件 |
-| 弃用 V014 本仓版本 | blue-green deploy：建新库 + V001-V017（删 V014 本地版，shared 的 fresh 版接管）+ 数据迁移；架构级重构，需要 suite 评审 + ADR |
+| shared `schema.ts` 加列 / 加表 | shared `db:generate` + `db:migrate` → 本仓 scaffold → Generated/ diff → commit + 手写 entity 补字段（validate 会强制） |
+| shared `schema.ts` 改列类型 | 同上；手写 entity 类型不同则启动 validate fail，跟改 |
+| 删列 / 删表 | 先查本仓 repository/entity 引用，`/tree-change` 评估功能面，再跟 shared 演进 |
+| 历史包袱（V014 永久分叉 / DIVERGED_VERSIONS / baseline-on-migrate） | **已随 Flyway 退役整体消亡**——迁移编号错位问题不复存在，DB 演进只发生在 shared `schema.ts` 一个真源上 |
 
-**白名单管理**：当未来出现 V018+ 永久分叉时，往 `DIVERGED_VERSIONS` 字符串里追加（`DIVERGED_VERSIONS="V014 V018"`），并在 [`docs/conventions/`](conventions/) 写明每个 whitelist entry 的「本地版本号 vs shared 语义」备忘。
+### 5.4 真源纪律（ADR-0029 / ADR-0033）
+
+本仓对 DB schema **只读不写**：发现「本仓需要 ≠ shared schema」必须列候选方案（改 shared / 改本仓 / 双边协商）停下问人；ADR-0033 是本仓与 shared 之间获批准的双边改造通道，不构成日常单方面改 shared 的许可。
 
 ---
 
-## 6. 与契约仓同步——`scripts/gen-shared.sh` 详细说明
+## 6. 与契约仓同步——脚本详解
 
-### 6.1 三步详解
+### 6.1 gen-shared.sh（API 侧）两步详解
 
 **Step 1: shared emit**
 
@@ -530,40 +506,15 @@ npx --yes @openapitools/openapi-generator-cli generate \
 
 **codegen 修补**：`sed -i '/^    public String getKind();$/d'` 删除 AuthState 协变不兼容方法 + `mvn -q spotless:apply` 让生成器产物过 L1。
 
-**Step 3: DB SQL cp（含 cmp abort 防护 + DIVERGED_VERSIONS 白名单）**
-
-```bash
-SHARED_SQL="$SHARED_DIR/sql/migrations"
-mkdir -p "$ROOT/src/main/resources/db/migration"
-for f in "$SHARED_SQL"/V*.sql; do
-  [ -e "$f" ] || continue
-  ver=$(basename "$f" | cut -d_ -f1)
-  if echo "$DIVERGED_VERSIONS" | grep -qw "$ver"; then
-    echo "[gen-shared] SKIP diverged migration: $(basename "$f") (local version is authoritative)"
-    continue
-  fi
-  target="$ROOT/src/main/resources/db/migration/$(basename "$f")"
-  if [ -e "$target" ] && ! cmp -s "$f" "$target"; then
-    echo "[gen-shared] FATAL: migration diverged: $(basename "$f") differs between shared and this repo." >&2
-    exit 1
-  fi
-  cp "$f" "$target"
-done
-```
-
-**关键防护点**（按 8/26 lab prod 502 40 分钟事故的根因订正）：
-
-1. **`DIVERGED_VERSIONS` 白名单**：本仓 V014 永久分叉走 SKIP，shared 改 V014 不覆盖本仓；
-2. **`cmp -s` 防护**：V001-V013 / V015 / V017 已有本地版本，shared 改文件必须先在本地**手动合并**（保留本地分叉或下游期望），未合并直接跑触发 FATAL abort；
-3. **`[ -e "$f" ] || continue`**：保护 shared 仓目录可能临时缺某 V*.sql；
-4. **`baseline-version="13"`**：lab_dev 不要求 V001-V013 已存在；首跑 missing migration 不会 crash。
+**末尾：ADR-0026 marker**（python3 heredoc）写 `.state/last-gen-shared.json` 的 `api_synced_sha` / `api_synced_at` / `api_synced_cmd`，供 suite 跨仓 staleness check 使用。失败仅 WARN（staleness 是 warning 不是 build blocker，失败时 suite 报 UNKNOWN 让 reviewer 看到）。
 
 ### 6.2 不可信的同步模式（已废弃）
 
 | ❌ 模式 | 后果 |
 |---|---|
-| 手动 `cp shared/sql/migrations/*.sql` 到本仓 `/db/migration/` | 易忘 cmp 防覆盖 |
-| `sed -i 's/contracts-id/contracts_uuid/g'` 直接改 codegen 产物 | L1 排版错 + SpotBugs 警告；下次 gen-shared 重写 |
+| 手动 `cp shared/sql/migrations/*.sql` 到本仓 | Flyway 已退役，`db/migration/` 目录已删——此模式整体消亡 |
+| `sed -i` 直接改 codegen 产物（api/*Api / shared/dto/*） | L1 排版错 + SpotBugs 警告；下次 gen-shared 重写 |
+| 手改 `entity/Generated/*.java` | 下次 scaffold 静默重写；要改字段请走 shared `schema.ts`（§5.4 真源纪律） |
 | 改 `src/main/java/io/xr/lab/platform/api/*Api.java`（gitignored 产物的 git blame 漏检） | 下次 gen-shared 静默丢失手改 |
 | 通过 Maven 依赖 import shared 仓 Java client | 循环依赖；CI 跑不通 |
 
@@ -582,8 +533,11 @@ done
 
 | ADR | 主题 | 本仓落地 |
 |---|---|---|
-| [ADR-0007](../../../docs/adr/0007-shared-sql-ssot.md) | shared 仓扩到双 SSOT | `db/migration/` 读自 shared；ORM 只反射（`ddl-auto: validate`）；本仓 §3.5、§3.6 全部对齐 |
-| [ADR-0014](../../../docs/conventions/multi-repo-family.md#4-后端配置env-driven-单-urladr-0014) | env-driven 单 URL | `LAB_DATABASE_URL` / `LAB_JWT_SECRET` / `LAB_SAAS_*` env 切部署环境 |
+| [ADR-0007](../../../docs/adr/0007-shared-sql-ssot.md) | shared 仓扩到双 SSOT | 历史基础：DB schema 真源在 shared（原 SQL 迁移目录，现 `schema.ts`）；ORM 只反射（`ddl-auto: validate`） |
+| [ADR-0014](../../../docs/conventions/multi-repo-family.md#4-后端配置env-driven-单-urladr-0014) | env-driven 单 URL | `LAB_DATABASE_URL`（DATABASE_URL）/ `LAB_JWT_SECRET`（JWT_SIGNING_KEY）/ `LAB_SAAS_*` env 切部署环境 |
+| [ADR-0025](../../../docs/adr/0025-db-first-drizzle-schema-ssot.md) | DB-First：Drizzle schema.ts 为 DB SSOT | 本仓退役 Flyway；`scaffold-entities.sh` 镜像链（§5） |
+| [ADR-0026](../../../docs/adr/0026-last-gen-shared-staleness-marker.md) | last-gen-shared.json staleness marker | gen-shared.sh（api 类别）+ scaffold-entities.sh（db 类别）双 marker |
+| [ADR-0033](../../../docs/adr/0033-lab-align-saas-transformation.md) | lab 家族对齐 saas 改造方案 | 本次改造的获批双边通道：db-first 消费 + 白名单清零 + e2e 仓 |
 
 ### 7.3 隐性 ADR（本仓 §3.1 / §4.4 落地）
 
@@ -591,9 +545,9 @@ done
 |---|---|---|
 | (implicit) HS256 真签名覆盖 alg=none | JWT 算法不可降级 | `NimbusLabJwtDecoderFactory` 强制 HMAC 验证 + iss + exp；原 B1 dev `SecurityConfig.DevJwtDecoder (@Profile("dev"))` 已删除 |
 | (implicit) 安全端点白名单含 `/actuator/**` | 健康探针匿名 | 教训（saas-springboot v0.1.7）：漏这行探针 401，deploy 120 次 wget 全失败 |
-| (implicit) DIVERGED_VERSIONS 单点白名单 | V014 永久分叉保护 | `gen-shared.sh` line 65 唯一豁免点，文档化在 §5 |
-| (implicit) cmp abort 防护 | 防止飞地式迁移覆盖 | `scripts/gen-shared.sh` line 77-82 FATAL abort；8/26 prod 502 40 分钟事故的根因订正 |
-| (implicit) baseline-on-migrate | lab_dev 与 fresh 库双轨启动 | `application.yml` line 30-31 让本仓同时支持「lab_dev 已 sync 到 V013」与「空库全量 replay」 |
+| (implicit) Generated 镜像无 @Entity | 镜像不参与运行时 | scaffold 产物是纯 POJO——`@EntityScan` 扫不到，运行时实体仍是手写 26 个（§5.1） |
+| (implicit) scaffold drift exit 1 | DB 演进必须显形落仓 | `scaffold-entities.sh` step 3：diff 非空即 FATAL，防 DB 演进被静默吞掉（§5.2） |
+| (implicit) env fail-fast | DATABASE_URL / SERVER_PORT / JWT_SIGNING_KEY 缺失 throw | ADR-0019；无字面默认值兜底 |
 
 ---
 
@@ -601,21 +555,22 @@ done
 
 | 术语 | 含义 | 在本仓的位置 |
 |---|---|---|
-| **SSOT** | Single Source of Truth | shared 仓承担双 SSOT（API + DB）；本仓 ORM 只反射（§3.5, §3.6） |
-| **DIVERGED_VERSIONS** | 永久分叉白名单变量 | `gen-shared.sh` line 65 → §5 V014 |
-| **永久分叉** | 本仓与 shared 在某 migration 上语义不同、互不可替换 | §5 V014 `(-1860597146)` 锁死 lab_prod |
-| **baseline-on-migrate** | 已有 schema 但无 flyway history 时的自动 baseline | `application.yml` line 30-31 |
+| **SSOT** | Single Source of Truth | shared 仓承担双 SSOT（API = TypeSpec，DB = `src/db/schema.ts`）；本仓 ORM 只校验（§3.5, §3.6） |
+| **DB-First pull/scaffold 链** | 消费仓从真库反向工程镜像产物的同步链 | `scripts/scaffold-entities.sh` → `entity/Generated/`（§5.2） |
+| **ADR-0026 marker** | `.state/last-gen-shared.json` 跨仓 staleness 标记 | gen-shared 写 api 字段；scaffold-entities 写 db 字段 |
+| **entity/Generated/** | scaffold 镜像 POJO（无 @Entity，不入运行时） | §3.5 / §5.1；入 git，diff = DB 漂移检测 |
+| **ddl-auto=validate** | Hibernate 只校验不建表 | `application.yml`；校验对象 = 手写 26 entity ↔ shared migrate 产物 |
 | **fnTest（spring 形态）** | JUnit5 `@Tag("Mxx.Fyy.Izz")` + `Fn` 注解 + `HarnessTraceListener` 自动落 `trace.json` | `src/test/java/io/xr/harness/junit/` |
 | **codegen 产物** | openapi-generator 生成的 `io.xr.lab.platform.api.*Api` + `io.xr.lab.shared.dto.*` | §3.2；git ignored，每次 gen-shared 重建 |
 | **手写 Controller** | `implements *Api` 接口 + 构造器注入 Service | §3.2-3.3 |
-| **AttrConv 集中地** | `io.xr.lab.platform.entity.enums.*Converter` | §3.5；10 个 converter 把 PG TEXT ↔ Java enum |
+| **AttrConv 集中地** | `io.xr.lab.platform.entity.enums.*Converter` | §3.5；10 个 converter 做 PG 列 ↔ Java enum |
 | **trace.json** | 测试命中 fn-ID 的清单 | `trace_cmd` 产，禁止手写 |
 | **stack.json** | 项目自描述（栈 + 门配置） | `.harness/stack.json`，本仓声明 L1-L4 |
 | **TenantGuard** | tenant 隔离检查（无独立类） | 各 Controller 顶部 `claims.tenantId` 注入到 repository 查询条件 |
 | **JWT 真签名** | HS256 + 强密钥，取代 B1 dev `alg=none` | ADR-0008；§3.1 |
-| **dev 降级 profile** | `no-sso` profile → NoopSaasAuthClient | `application.yml` line 12-13 默认值 |
+| **dev 降级 profile** | `no-sso` profile → NoopSaasAuthClient | `LAB_PROFILE=no-sso` 显式切换（默认 sso 真链） |
 | **saas 快照缓存** | `MenuSnapshotCache` process 内 30min TTL | ADR-0009；§4.4 |
-| **cmp abort** | `gen-shared.sh` FATAL 防护：`cmp -s` 不一致即 exit 1 | `gen-shared.sh` line 77-82 |
+| **lab_test / lab_dev / lab_prod** | 三库分工：pg 切片测试 / 开发 / 生产 | 结构统一由 shared `schema.ts` migrate；本仓只读 |
 
 ---
 
@@ -628,11 +583,11 @@ done
 | 多仓家族 14 个仓的角色矩阵 | 父仓 §2 |
 | 5 种角色（契约/Mock/前端/后端/suite）的禁止事项 | 父仓 §2.1 |
 | 跨仓端到端流程图（改契约→三端同步） | 父仓 §5 |
-| OAuth 2.0 + JWT（HS256）契约 + DevJwtDecoder 兜底 | 父仓 §3.4 |
+| OAuth 2.0 + JWT（HS256）契约 | 父仓 §3.4 |
 | 端口 / CORS / env 全景 | 父仓 §6 |
 | suite 门禁链（L0..L5） | 父仓 §5.4 |
 
-**本仓独有**：本仓的 §3、§4、§5、§6（具体业务层 + Flyway V014 永久分叉管理 + cmp abort 防事故线）。
+**本仓独有**：本仓的 §3、§4、§5、§6（具体业务层 + DB-First schema 消费协议 + 双层漂移防线）。
 
 ---
 
@@ -641,18 +596,18 @@ done
 | 维度 | saas-springboot | lab-springboot（本仓） |
 |---|---|---|
 | **产品域** | 多租户 OAuth IdP（authorize/callback/refresh/menus） | 建筑工程实验室管理系统（合同/接样/样品/检测/报告） |
-| **Flyway** | `enabled: false`（schema 由 shared SQL + sync-db 全量灌入 + JPA validate） | **`enabled: true`**（V001-V017 replay，含 V014 永久分叉管理） |
-| **DB migration 编号** | 与 shared 一一对应 | 与 shared **错位**（V008 = shared V008；V009 = shared V008 init_report_names；V014 永久分叉 + V017 rename） |
-| **JWT 算法** | (历史：dev `alg=none` `DevJwtDecoder @Profile("dev")`)；Phase 2A 后 saas 也删 DevJwtDecoder，4 仓现在统一 HS256 真验签 | **HS256 真签名**（LabJwtSigner + Nimbus）；未走 dev `alg=none` 兼容 |
+| **DB 真源** | shared `src/db/schema.ts`（ADR-0025） | 同左（ADR-0033 对齐） |
+| **DB 消费形态** | `entity/Generated/` 即运行时实体（无手写层），`ddl-auto: none` | 手写 entity 运行（validate）+ `entity/Generated/` 纯 POJO 镜像（§5.1） |
+| **Flyway** | 已退役（pom 依赖删；yml `enabled: false` 残留） | 已退役（pom 依赖删、yml 块删、`db/migration/` git rm——清得更彻底） |
+| **JWT 算法** | HS256 真验签（Phase 2A 后统一） | **HS256 真签名**（LabJwtSigner + Nimbus）；未走过 dev `alg=none` |
 | **SSO 链路** | — | **真 OAuth 2.0 直连 saas**（SaasAuthClient + SaasMeClient） |
 | **菜单数据源** | — | **经 lab 后端 /api/auth/menus**（快照缓存 + demo 兜底） |
 | **业务表** | shared OAuth 表（tenants/users/apps/menus） | lab 业务表（13 张主表 + 8 junction） |
 | **Codegen 模式** | 同款 `openapi-generator -g spring interfaceOnly` | 同款，参数镜像 saas v0.2.0 |
-| **DB dialect** | postgres | postgres（lab-shared SQL 即 postgres 方言） |
-| **默认 profile** | dev | `no-sso`（NoopSaasAuthClient 兜底；CI 切 `default` 走真 saas） |
-| **env 漂移 502 风险** | 已知（memory/springboot-env-drift-502-trap.md） | 同款；default=no-sso 缓解 |
+| **ADR-0026 marker** | gen-shared.sh + scaffold-entities.sh | 同款（python3 heredoc 逐字对齐） |
+| **默认 profile** | dev | `sso`（真链；离线 dev 显式 `LAB_PROFILE=no-sso`） |
+| **env 漂移 502 风险** | 已知（memory/springboot-env-drift-502-trap.md） | 同款；ADR-0019 fail-fast 缓解 |
 | **deploy 脚本读 fat jar** | `platform-<version>.jar` | 同款，本仓 artifactId=`lab-management-system-springboot` |
-| **DevJwtDecoder 兼容性** | (历史) dev-only bean；Phase 2A 已删 | 本仓自始 HS256 真签，未用过 dev 降级 |
 | **SecurityConfig `/actuator/**`** | permitAll（教训 v0.1.7） | 同款 |
 | **持久化** | 无 OAuth refresh token 存储（state-cookie 含短时 nonce） | 无 OAuth refresh token 存储（saas_refresh_token 嵌进 lab refresh token JWT claim） |
 
@@ -664,8 +619,13 @@ done
 |---|---|---|
 | `SecurityConfig` 漏 `/actuator/**` | 加 `permitAll` | memory/springboot-actuator-401-deploy-loop-trap.md |
 | env 漂移 → CF 502 → CORS 误诊 | 先查 VPS env-file 缺失项；改 env 必须重建容器 | memory/springboot-env-drift-502-trap.md |
-| `DevJwtDecoder` 是 dev-only（saas 历史教训） | Phase 2A 已删；现在统一 `NimbusJwtDecoder.withSecretKey` HS256 真验签；env-file 别写 `JWT_SIGNING_KEY` | memory/springboot-dev-jwt-decoder-gap.md |
 | 不知道 fat jar 名 | deploy 按 artifactId 找 jar：本仓 `lab-management-system-springboot-<version>.jar` | memory/springboot-fat-jar-name.md |
-| 8/26 lab prod 502 40 分钟事故 | `gen-shared.sh` cmp abort 防护（§6.1）；DIVERGED_VERSIONS V014（§5） | session.json 2026-08-26 root-cause |
+| 手改 `entity/Generated/` 被下次 scaffold 静默重写 | 改字段走 shared `schema.ts`（§5.4 真源纪律）；`/tree-change` 评估功能面 | ADR-0025/0029 |
+| scaffold 出 diff 就慌 | DB 没改 → 无 diff 是预期；有 diff = DB 真演进 = 标准工作流，确认 shared 已 migrate 后 commit | memory/db-first-drift-is-feature.md |
+| codegen 目录错位（包名 ≠ 目录） | 目录必须与包名一致（`io.xr.lab.shared.api` → `shared/api/`）；全量编译能过但 spring-boot:run 增量编译炸 | memory/springboot-gen-shared-dir-mismatch.md |
 | codegraph 工具不解析 .tsp | 看本仓 `docs/functions/function-tree.md` 就够 | memory/codegraph-typespec-mismatch.md |
 | JDK HttpClient h2c 打挂 msw | RestClient 调本地明文服务 EOF 时，强制 HTTP/1.1 | memory/jdk-httpclient-h2c-breaks-msw.md |
+
+---
+
+> **历史注记（2026-09-13 ADR-0033 阶段一）**：本文档原 §5「V014 永久分叉管理」、§3.6「DB Migration 层」及全文 Flyway/V014/DIVERGED_VERSIONS/baseline-on-migrate 相关内容已随 Flyway 退役删除。历史细节见 git log（`db/migration/` 的最后版本与 `gen-shared.sh` 旧 step 3 cmp-abort 防护随本仓 DB-First 改造 commit 入档）。

@@ -3,14 +3,15 @@
 #
 # 架构（对齐 saas-identity-platform-springboot v0.2.0 模式）：shared 仓是纯契约源
 # （TypeSpec → OpenAPI.yaml only），语言产物在各消费仓本地生成。
-# 本脚本两步走：先触发 shared emit，再跑 openapi-generator 产 spring interfaceOnly 骨架。
+# 本脚本：先触发 shared emit，再跑 openapi-generator 产 spring interfaceOnly 骨架
+# （DB schema 同步已拆到 scripts/scaffold-entities.sh——ADR-0025/0033 DB-First）。
 set -euo pipefail
 
 SHARED_DIR="$(cd "$(dirname "$0")/../../lab-management-system-shared" && pwd)"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DEST="$ROOT/src/main/java"
 
-echo "[gen-shared] step 1/3 — shared: emit OpenAPI.yaml..."
+echo "[gen-shared] step 1/2 — shared: emit OpenAPI.yaml..."
 (cd "$SHARED_DIR" && npm run emit:openapi)
 
 OPENAPI="$SHARED_DIR/generated/openapi/openapi.yaml"
@@ -19,7 +20,7 @@ if [ ! -f "$OPENAPI" ]; then
   exit 1
 fi
 
-echo "[gen-shared] step 2/3 — springboot: openapi-generator → src/main/java/..."
+echo "[gen-shared] step 2/2 — springboot: openapi-generator → src/main/java/..."
 
 # npx 解析 @openapitools/openapi-generator-cli（与 shared 仓同一工具链）。
 # 参数镜像 saas-identity-platform-springboot 的 gen-shared.sh（v0.2.0 定案）：
@@ -55,40 +56,50 @@ sed -i '/^    public String getKind();$/d' "$DEST/io/xr/lab/shared/dto/AuthState
 # codegen 末端统一 apply，保证产物落地即 gate-ready（saas 仓是手动补的，这里进脚本）。
 mvn -q spotless:apply
 
-# DB - lab-shared SQL SSOT 落地：Flyway replay V001-V013
-echo "[gen-shared] step 3/3 - DB: copy shared/sql/migrations/* -> src/main/resources/db/migration/"
-# 分叉保护（2026-08-26 prod 502 事故复盘 + 2026-08-26 收敛）：
-#   * V014 是永久结构性分叉--本仓演化版直接 ALTER inspection_calculation_methods
-#     （VPS flyway history 记录其 checksum，改文件=起崩）；shared 旧版 ALTER
-#     inspection_calculation_rules 是 fresh replay 链（emit-schema / sql.replay.test /
-#     sync-db 全量重建）的必需环节--两版语义互补，各自不可替换，本地为准、不覆盖。
-#   * V015/V017 已逐字节收敛（shared V015=smoke seed、V017=条件式 rename 与本仓相同），
-#     豁免清单从 "V014 V015" 缩到 "V014"。
-#   * 其余文件：目标已存在且内容不同 = 新分叉 = 直接 abort（防 lab 事故重演，
-#     shared 侧改动必须先过「fresh replay 可执行 + flyway checksum 兼容」再进来）。
-DIVERGED_VERSIONS="V014"
-SHARED_SQL="$SHARED_DIR/sql/migrations"
-if [ -d "$SHARED_SQL" ]; then
-  mkdir -p "$ROOT/src/main/resources/db/migration"
-  for f in "$SHARED_SQL"/V*.sql; do
-    [ -e "$f" ] || continue
-    ver=$(basename "$f" | cut -d_ -f1)
-    if echo "$DIVERGED_VERSIONS" | grep -qw "$ver"; then
-      echo "[gen-shared] SKIP diverged migration: $(basename "$f") (local version is authoritative)"
-      continue
-    fi
-    target="$ROOT/src/main/resources/db/migration/$(basename "$f")"
-    if [ -e "$target" ] && ! cmp -s "$f" "$target"; then
-      echo "[gen-shared] FATAL: migration diverged: $(basename "$f") differs between shared and this repo." >&2
-      echo "[gen-shared]          refusing to overwrite (flyway checksum on applied DBs is locked)." >&2
-      echo "[gen-shared]          resolve: converge byte-for-byte or add to DIVERGED_VERSIONS with justification." >&2
-      exit 1
-    fi
-    cp "$f" "$target"
-  done
-  [ -f "$SHARED_SQL/README.md" ] && cp "$SHARED_SQL/README.md" "$ROOT/src/main/resources/db/migration/README.md"
-else
-  echo "[gen-shared] WARN: $SHARED_SQL not found; DB layer skipped"
-fi
-
+# DB - schema 同步随 ADR-0033 退役（原 step 3/3：拷 shared/sql/migrations/* 进
+# src/main/resources/db/migration/ 供 Flyway replay，含 DIVERGED_VERSIONS="V014"
+# 分叉保护）。DB-First（ADR-0025/0033）下本仓不拥有迁移：真源 = shared
+# src/db/schema.ts，镜像 = bash scripts/scaffold-entities.sh → entity/Generated/。
 echo "[gen-shared] OK"
+echo "[gen-shared]    DB schema 同步请跑: bash scripts/scaffold-entities.sh（shared 已 db:migrate 之后）"
+
+# ADR-0026 §2: 写 last-gen-shared.json marker（API 类别），供 suite 跨仓 staleness check 使用。
+# 失败不阻塞 gen-shared.sh —— staleness 是 warning（V1 档）不是 build blocker。
+# 失败时 suite 会报 UNKNOWN 让 reviewer 看到，而不是悄悄丢失同步信号。
+SHARED_SHA=$(cd "$SHARED_DIR" && git rev-parse HEAD)
+MARKER="$ROOT/.state/last-gen-shared.json"
+mkdir -p "$ROOT/.state"
+
+if python3 - "$MARKER" "$SHARED_SHA" "$(basename "$0")" "$(basename "$ROOT")" <<'PYEOF'
+import datetime, json, sys
+
+marker_path, shared_sha, cmd, repo = sys.argv[1:5]
+try:
+    with open(marker_path, encoding="utf-8") as f:
+        marker = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError):
+    marker = {}
+
+now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+if cmd.startswith("gen-shared"):
+    marker["api_synced_sha"] = shared_sha
+    marker["api_synced_at"] = now
+    marker["api_synced_cmd"] = cmd
+elif cmd.startswith("scaffold"):
+    marker["db_synced_sha"] = shared_sha
+    marker["db_synced_at"] = now
+    marker["db_synced_cmd"] = cmd
+
+shas = [s for s in (marker.get("api_synced_sha"), marker.get("db_synced_sha")) if s]
+marker["shared_sha"] = max(shas) if shas else shared_sha
+marker["consumer_repo"] = repo
+
+with open(marker_path, "w", encoding="utf-8") as f:
+    json.dump(marker, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PYEOF
+then
+  echo "[gen-shared]    ADR-0026 marker 已落盘: $MARKER (shared HEAD ${SHARED_SHA:0:7})"
+else
+  echo "[gen-shared]    WARN: marker 写失败（python3 缺失？）—— staleness 将报 UNKNOWN" >&2
+fi

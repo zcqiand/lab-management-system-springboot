@@ -76,19 +76,13 @@
             <artifactId>jackson-databind-nullable</artifactId>
             <version>0.2.6</version>
         </dependency>
-        <!-- DB 迁移：Flyway replay shared 仓 sql/migrations V001-V013（gen-shared step3 拷入）。 -->
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-        </dependency>
+        <!-- DB-First（ADR-0025/ADR-0033）：schema 真源 = shared src/db/schema.ts，
+             本仓不拥有迁移（Flyway 随 ADR-0033 退役，原 flyway-core + flyway-database-postgresql
+             已删）；镜像产物 = scripts/scaffold-entities.sh → entity/Generated/。 -->
         <!-- SpotBugs @SuppressFBWarnings 注解。L2 把 Spring DI singleton 的 EI_EXPOSE_REP2 标为已知误报。 -->
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
         <!-- 数据库驱动：postgres 直连。 -->
         <dependency>

@@ -12,9 +12,10 @@ spring:
   profiles:
     default: ${LAB_PROFILE:sso}
 
-  # postgres 直连（ADR 决议 2026-08-18）：lab-shared SQL 本就是 postgres 方言 V001-V013，
-  # Flyway 直接 replay，不搞 sqlite 双栈。
-  # 与 nextjs 共用一个库。DATABASE_URL 可切走（如空库 replay 演练 / 未来独立实例）；
+  # postgres 直连（ADR-0025/ADR-0033 DB-First）：schema 真源 = shared src/db/schema.ts
+  # （db:generate → migrate-db 物化/应用），本仓只读不写；镜像产物 =
+  # scripts/scaffold-entities.sh → entity/Generated/（入 git，git diff 漂移检测）。
+  # 与 nextjs 共用一个库。DATABASE_URL 可切走（如独立实例）；
   # JDBC_URL 兜底兼容 db-env.sh 工作流（与 saas-springboot 同款双层占位符）。
   #
   # ADR-0019：DATABASE_URL 缺失 throw；JDBC_URL 兜底（dev 兼容）保留但要求显式声明。
@@ -23,17 +24,9 @@ spring:
     username: ${DATABASE_USER:}
     password: ${DATABASE_PASSWORD:}
     driver-class-name: org.postgresql.Driver
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
-    # lab_dev 已由 nextjs 侧（shared schema 同步）建到 V013 等效状态，且无
-    # flyway_schema_history：baseline-on-migrate 在其上打 baseline 并跳过 <=13；
-    # 空库则不触发 baseline、V001-V013 全量 replay。prod 慎用。
-    baseline-on-migrate: true
-    baseline-version: "13"
   jpa:
     hibernate:
-      # schema 由 Flyway 管（SSOT = shared 仓 sql/migrations），Hibernate 只校验。
+      # schema 由 shared 仓管（SSOT = shared src/db/schema.ts），Hibernate 只校验。
       ddl-auto: validate
     open-in-view: false
 

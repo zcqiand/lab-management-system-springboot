@@ -3,6 +3,7 @@ package io.xr.lab.platform.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.xr.lab.platform.entity.ContractEntity;
+import io.xr.lab.platform.entity.InspectionReportNameEntity;
 import io.xr.lab.platform.entity.SampleReceiptEntity;
 import io.xr.lab.shared.dto.ContractStatus;
 import io.xr.lab.shared.dto.FlowStatus;
@@ -48,9 +49,8 @@ import org.springframework.transaction.annotation.Transactional;
       "spring.datasource.url=${LAB_TEST_DATABASE_URL:jdbc:postgresql://100.79.128.25:5432/lab_test}",
       "spring.datasource.username=${LAB_TEST_DATABASE_USER:postgres}",
       "spring.datasource.password=${LAB_TEST_DATABASE_PASSWORD:qiand68+++}",
-      // lab_test 表结构 = shared SQL SSOT 已建（无 flyway_schema_history），
-      // baseline-on-migrate 会 INSERT baseline 行污染库 → 关闭；ddl-auto=validate 保持校验
-      "spring.flyway.enabled=false",
+      // lab_test 表结构 = shared src/db/schema.ts 已 migrate（ADR-0025/0033 DB-First），
+      // 本仓不拥有迁移（Flyway 已退役）；ddl-auto=validate 保持校验
       "spring.jpa.hibernate.ddl-auto=validate",
     })
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -68,9 +68,28 @@ class RepositoryPgTest {
 
   @Autowired ContractRepository contracts;
   @Autowired SampleReceiptRepository receipts;
+  @Autowired InspectionReportNameRepository reportNames;
 
-  /** receipts_category_fk：category_code → inspection_report_names.code（lab_test 种子行）。 */
+  /**
+   * receipts_category_fk：category_code → inspection_report_names.code。DB-First（ADR-0025/0033）后
+   * lab_test 结构 = shared schema.ts 的 migrate 产物，不带旧 V015 smoke seed —— 测试自种 FK fixture，
+   * 类级 @Transactional 让它随测试回滚，不污染库、也不依赖外部种子状态。
+   */
   private static final String Category = "CAT-SMK-001";
+
+  @org.junit.jupiter.api.BeforeEach
+  void seedCategoryFixture() {
+    if (reportNames.existsById(Category)) {
+      return;
+    }
+    InspectionReportNameEntity rn = new InspectionReportNameEntity();
+    rn.setCode(Category);
+    rn.setName("冒烟报告类别（RepositoryPgTest 自种）");
+    rn.setSortOrder(9999);
+    rn.setCreatedAt("2026-09-13T00:00:00Z");
+    rn.setUpdatedAt("2026-09-13T00:00:00Z");
+    reportNames.saveAndFlush(rn);
+  }
 
   private ContractEntity contract(String code) {
     ContractEntity c = new ContractEntity();

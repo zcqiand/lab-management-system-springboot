@@ -6,7 +6,8 @@
 ## 1. 项目定位
 
 实验室管理系统的 Java 后端。Controller 与 DTO 由 shared 仓 TypeSpec codegen 全覆盖；手写 Service 与 Repository。
-真实后端之一（与 aspnetcore 对称），对接 lab_prod PostgreSQL（Flyway 迁移真源在 shared 仓）。
+真实后端之一（与 aspnetcore 对称），DB-First 消费层（ADR-0025/0033）：schema 真源 = shared `src/db/schema.ts`，
+本仓不拥有迁移（Flyway 已退役），entity 镜像 = `bash scripts/scaffold-entities.sh` → `entity/Generated/`。
 
 ## 2. 铁律
 
@@ -28,12 +29,12 @@ Java 21 + Spring Boot 3.4 + Maven + JUnit5 + Spotless + SpotBugs。明细见 `ve
 ## 4. 验收
 
 - suite 根目录跑 `python scripts/gate.py -p lab-management-system-springboot`
-- 改了 shared → `bash scripts/gen-shared.sh` 再跑门禁
+- 改了 shared API 契约 → `bash scripts/gen-shared.sh`；改了 shared DB schema（已 db:migrate）→ `bash scripts/scaffold-entities.sh`；然后跑门禁
 
 ## 5. 指向别处
 
 - 契约真源 → `../lab-management-system-shared`
-- DDL 真源 → `../lab-management-system-shared/sql/migrations/`
+- DDL 真源 → `../lab-management-system-shared/src/db/schema.ts`（DB-First, ADR-0025）
 - 决策 → `docs/adr/`；细则 → `docs/conventions/`；待办 → `PLAN.md`；版本 → `CHANGELOG.md`
 
 ## 6. 工作循环

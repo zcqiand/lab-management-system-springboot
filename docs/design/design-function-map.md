@@ -1,5 +1,9 @@
 # 设计与功能对齐 — 建筑工程实验室管理系统SpringBoot后端
 
+> **DB-First 注记（2026-09-13 ADR-0033）**：本文「数据表」列的 V00N 编号是各表的历史出身
+> （旧 Flyway 迁移时代哪条迁移建的表），保留作溯源标签；DB 现真源 = shared `src/db/schema.ts`
+> （ADR-0025），本仓 Flyway 已退役，镜像链 = `scripts/scaffold-entities.sh` → `entity/Generated/`。
+>
 > 人填、人评审。机器只检查功能 ID 存在性。
 > 回答一个问题：**这个功能子项，落到哪段代码、哪张表、哪个权限码上？**
 > 答不上来的行，说明设计没做完，别开工。
@@ -97,7 +101,7 @@
 | M03.F03.I11 | TestRecordController#testRecordsSetVerdict / TestRecordService#setVerdict | PUT /api/test-records/{id}/verdict | test_records.verdict（人工改判，M03.F05/F06 报告流程可触发） | M03.F03.I11 | - | 已上线 |
 
 > B9.3 说明：M03.F03 数据录入子项从 5（Sample CRUD）扩到 11（Sample + TestRecord CRUD + setVerdict）。
-> TestRecord 表 V003（test_records 实体表）+ V012（tenant_id 加列）已就绪，本仓直读 Flyway baseline。
+> TestRecord 表 V003（test_records 实体表）+ V012（tenant_id 加列）已就绪（历史出身，见顶部 DB-First 注记），本仓经 ddl-auto=validate 校验消费。
 > 6 端点 tenant 收口走 JWT claim + dev fallback TENANT-001（与 ContractController 模式一致）。
 > sampleId/parameterCode/standardCode/requirementCode 是逻辑 FK 到 M06 字典 + M04 技术要求
 > （V011 已加真实 FK 约束，本仓端用参数名直接存），不强制。
@@ -158,7 +162,7 @@
 > reviewing=review+approval；issued=issuance+archived）+ pendingTask（task_assignment+data_entry+review）。
 
 > B6 说明：M06.F02 objects 4 CRUD + 8 个 junction link/unlink 端点（4 字典 junction + 3 报告名 junction + 1 参数界面 link）= 20 端点 / 20 I。
-> 8 张 junction 表都已在 V008/V009/V010 落地，本仓直读 Flyway baseline：
+> 8 张 junction 表都已在 V008/V009/V010 落地，本仓经 ddl-auto=validate 校验消费（见顶部 DB-First 注记）：
 > - inspection_specialty_objects（specialty↔object）— PK 复合 SpecialtyObjectKey
 > - inspection_object_parameters（object↔parameter）— PK 复合 ObjectParameterKey，qualification_level PG enum 用 @Enumerated(STRING) 写大写
 > - inspection_object_standards（object↔standard with role）— PK 复合 ObjectStandardKey（3 字段含 role）
@@ -183,9 +187,9 @@
 
 > B1 说明：lab_dev 无身份表（shared SQL SSOT 不含 users/tenants），认证域用户/租户走
 > `io.xr.lab.platform.directory.ConfigUserDirectory`（配置式，镜像 lab-msw seeds）。
-> 「数据表」列的 `-（配置式目录）` 即指此处；V014 identity 表落地后回填。
+> 「数据表」列的 `-（配置式目录）` 即指此处。
 
-> B2 说明：码表 4 表 + 计算方法 + 技术要求共 6 表都已在 shared 仓 sql/migrations V004/V005/V009 + V012 落地，本仓直接读 Flyway baseline。PK 设计：码表 4 表 = (tenant_id, code) 复合主键（V012 约束对齐）；计算方法 = (object, parameter) 复合主键；技术要求 PK = 业务三键 (object, parameter, standard)，tenant_id 走 WHERE 过滤。
+> B2 说明：码表 4 表 + 计算方法 + 技术要求共 6 表都已在 shared 仓 sql/migrations V004/V005/V009 + V012 落地（历史出身，见顶部 DB-First 注记），本仓经 `ddl-auto=validate` 校验消费。PK 设计：码表 4 表 = (tenant_id, code) 复合主键（V012 约束对齐）；计算方法 = (object, parameter) 复合主键；技术要求 PK = 业务三键 (object, parameter, standard)，tenant_id 走 WHERE 过滤。
 
 > B3 说明：合同 V001（PK = id text）+ V012 加 tenant_id；接样单 V002 PK = id text、FK 到 contracts（RESTRICT）+ samples（CASCADE）+ 3 个 jsonb 列（judgment_basis/testing_basis/test_parameters/FlowHistoryEntry[]）走 @JdbcTypeCode(SqlTypes.JSON) 映射；8 个 PG enum（contract_status/flow_status/receipt_result/calculation_algorithm_type/4 requirement_*）经 V014+V015 改为 TEXT + AttributeConverter。
 

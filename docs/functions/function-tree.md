@@ -23,12 +23,12 @@
 
 ## 本仓角色
 
-**后端仓（Spring Boot）**。lab-management-system 7 仓家族的后端 B（端口 8080）。
+**后端仓（Spring Boot）**。lab-management-system 7 仓家族的后端 B（端口 5205）。
 
 - M00..M06 是 shared BASE 镜像：26 个 BASE F 级原样照抄（check_align 强制 F 集合跨仓一致）
 - 本仓在 F 级别向下加 I 级子项（后端 I = 端点），随实现逐波 tree-change 推进
 - 契约消费：`scripts/gen-shared.sh` 两步 codegen（shared emit openapi.yaml → openapi-generator spring interfaceOnly）
-- DB：postgres 直连，Flyway replay `../lab-management-system-shared/sql/migrations` V001-V013
+- DB：postgres 直连，DB-First 消费（ADR-0025/0033）：schema 真源 = shared `src/db/schema.ts`，entity 镜像 = `scripts/scaffold-entities.sh` → `entity/Generated/`（Flyway 已退役）
 
 ---
 
