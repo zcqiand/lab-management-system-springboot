@@ -142,7 +142,13 @@ public class SaasMeClient {
     @JsonProperty("code")
     private String code;
 
-    @JsonProperty("name")
+    /**
+     * saas 实际下发字段是 title（2026-09-14 实测 /me/menus payload：
+     * id/clientId/parentId/title/type/path/icon/sortOrder/children）。 原绑 "name" 恒为 null → mapper 兜底
+     * label=code，菜单显示英文码 （与 lab-nextjs menu-snapshot / lab-aspnetcore SaasMenuNode 同一轮 2026-09-08
+     * /apps 重命名漂移）。
+     */
+    @JsonProperty("title")
     private String name;
 
     @JsonProperty("path")

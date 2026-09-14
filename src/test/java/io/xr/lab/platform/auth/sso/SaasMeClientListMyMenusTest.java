@@ -23,15 +23,17 @@ class SaasMeClientListMyMenusTest {
 
   @Test
   void parsesMapWithAppCodeAndPicksLabManagement() throws Exception {
+    // 名称字段是 title（2026-09-14 实测 saas payload；name 从未存在 ——
+    // 与 lab-nextjs / lab-aspnetcore 同一轮 /apps 重命名漂移，@JsonProperty("title") 修复）。
     String json =
         "{\"lab-management\":["
             + "{\"id\":\"g\",\"appId\":\"a\",\"parentId\":null,\"code\":\"m-overview\","
-            + "\"name\":\"总览\",\"path\":null,\"icon\":null,\"type\":\"group\",\"sortOrder\":1,"
+            + "\"title\":\"总览\",\"path\":null,\"icon\":null,\"type\":\"group\",\"sortOrder\":1,"
             + "\"children\":[{\"id\":\"p\",\"appId\":\"a\",\"parentId\":\"g\",\"code\":\"m-dashboard\","
-            + "\"name\":\"仪表盘\",\"path\":\"/dashboard\",\"icon\":null,\"type\":\"page\",\"sortOrder\":1,"
+            + "\"title\":\"仪表盘\",\"path\":\"/dashboard\",\"icon\":null,\"type\":\"page\",\"sortOrder\":1,"
             + "\"children\":[]}]},"
             + "{\"id\":\"g2\",\"appId\":\"a\",\"parentId\":null,\"code\":\"m-basedata\","
-            + "\"name\":\"基础数据\",\"path\":null,\"icon\":null,\"type\":\"group\",\"sortOrder\":2,"
+            + "\"title\":\"基础数据\",\"path\":null,\"icon\":null,\"type\":\"group\",\"sortOrder\":2,"
             + "\"children\":[]}"
             + "]}";
     Map<String, List<SaasMenuNode>> map =
@@ -39,8 +41,10 @@ class SaasMeClientListMyMenusTest {
     List<SaasMenuNode> labTree = map.get("lab-management");
     assertEquals(2, labTree.size());
     assertEquals("m-overview", labTree.get(0).getCode());
+    assertEquals("总览", labTree.get(0).getName());
     assertEquals(1, labTree.get(0).getChildren().size());
     assertEquals("m-dashboard", labTree.get(0).getChildren().get(0).getCode());
+    assertEquals("仪表盘", labTree.get(0).getChildren().get(0).getName());
   }
 
   @Test
