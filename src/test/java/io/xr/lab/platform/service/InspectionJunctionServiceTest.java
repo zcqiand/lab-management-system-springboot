@@ -376,9 +376,12 @@ class InspectionJunctionServiceTest {
 
   @Test
   @Fn({"M06.F03.I07"})
-  void unlinkParamInterface_missing_throws404() {
+  void unlinkParamInterface_missing_idempotent204() {
+    // REQ-2026-001：unlink 幂等 204（契约 unlink = void，未命中不抛；
+    // 原 NSEE→404 断言随 unlinkParamInterface 语义变更同 commit 移除）
     when(paramInterfaceLinkRepo.existsById(any())).thenReturn(false);
-    assertThrows(NoSuchElementException.class, () -> service.unlinkParamInterface("P-1", "PI-1"));
+    service.unlinkParamInterface("P-1", "PI-1");
+    verify(paramInterfaceLinkRepo, never()).deleteById(new ParamInterfaceLinkKey("P-1", "PI-1"));
   }
 
   // === helpers ===

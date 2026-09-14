@@ -461,11 +461,11 @@ public class InspectionJunctionService {
   public void unlinkParamInterface(String inspectionParameterCode, String paramInterfaceCode) {
     ParamInterfaceLinkKey key =
         new ParamInterfaceLinkKey(inspectionParameterCode, paramInterfaceCode);
-    if (!paramInterfaceLinkRepo.existsById(key)) {
-      throw new NoSuchElementException(
-          "ParamInterface link not found: " + inspectionParameterCode + "/" + paramInterfaceCode);
+    // 幂等 204（REQ-2026-001 四方一致：msw/nextjs/aspnetcore 未命中也 204，
+    // 契约 unlink = void；NSEE→404 是「资源不存在」语义，不适用于幂等 unlink）
+    if (paramInterfaceLinkRepo.existsById(key)) {
+      paramInterfaceLinkRepo.deleteById(key);
     }
-    paramInterfaceLinkRepo.deleteById(key);
   }
 
   public List<ParamInterfaceLink> listParamInterfaceLinks(
