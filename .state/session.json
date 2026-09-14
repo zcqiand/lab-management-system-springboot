@@ -1,19 +1,19 @@
 {
   "schema": 1,
   "project": "lab-management-system-springboot",
-  "current_task": "ADR-0033 阶段二：M05.F02.I01 改挂 M05.F01.I06",
+  "current_task": "REQ-2026-001：unlink 幂等 204——已上线",
   "done": [
-    "function-tree: F01 desc 并入仪表盘统计；F02 行标已废弃；M05.F01.I06 已上线",
-    "SummaryServiceTest @Fn 改挂 I06；frontend-bind.md @entry I06；FLOW-04/孤儿清单清理",
-    "gen-shared 重生成（shared BASE I06 传播，159 文件）；spotless apply 修 CRLF 归一；commit 76fdcde"
+    "unlinkParamInterface NSEE→404 改幂等（契约 void 语义）",
+    "单测 unlinkParamInterface_missing_idempotent204 同 commit 对齐；commit fc8a5bc"
   ],
   "next": [
-    "阶段三 e2e 接入（E2E_*_URL fail-fast）"
+    "其余 6 组 junction unlink 幂等化候选"
   ],
   "open_questions": [],
   "dont": [
-    "python 文本模式重写 .java 会 CRLF→LF 破坏 spotless——改后必跑 mvn spotless:apply"
+    "python 文本模式重写 .java 会 CRLF→LF 破坏 spotless——改后必跑 mvn spotless:apply",
+    "资源不存在抛 NSEE→404 约定已被本 REQ 局部修改（仅 param-interface link）——推广前先对齐契约语义"
   ],
   "active_branch": "master",
-  "last_session_at": "2026-09-13"
+  "last_session_at": "2026-09-14"
 }
