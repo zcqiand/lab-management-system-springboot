@@ -57,7 +57,7 @@ if [ ! -f "$BASE/springboot.env" ]; then
       # CORS 白名单：lab 前端两仓 + 本地 dev。运维可在 setup-vps 之后手工追加 origin。
       printf 'LAB_CORS_ALLOWED_ORIGINS=https://lab-react.xiangru.uk,https://lab-vue.xiangru.uk,http://localhost:5201,http://localhost:5202,http://localhost:5203\n'
       # SSO 跳板：v0.1.x 接 saas-springboot v0.2.0 真 OAuth IdP（同栈匹配）。
-      # ClientId 用固定 UUID 11111111-... 不是字符串 'lab-mgmt'，原因同 lab-aspnetcore
+      # ClientId 用固定 UUID 11111111-... 不是字符串 'lab-management'，原因同 lab-aspnetcore
       # v0.1.9 — shared/openapi.yaml TypeSpec @format("uuid") 让 springboot UUID 接 Guid,
       # 与 3 个 saas 后端 V014/V009 seed client_id 同源。
       # saas-base 的 key 是 LAB_SAAS_BASE_URL（yml 占位符名；曾误写 LAB_SAAS_BASE
@@ -210,7 +210,7 @@ fi
 # v0.1.16 起: LAB_SAAS_* 系列 append-only 补齐 + SECRET fail-fast。
 # 事故（2026-08-26 prod SSO 502）: 早期 env 只有一行 LAB_SAAS_BASE，CLIENT_ID/
 # CLIENT_SECRET/DEFAULT_TENANT_ID/CALLBACK_REDIRECT 全缺 → app 静默回落
-# application.yml 默认 client-id='lab-mgmt'（字符串）→ saas 400 INVALID_CLIENT
+# application.yml 默认 client-id='lab-management'（字符串）→ saas 400 INVALID_CLIENT
 # → 502 被 Cloudflare 换皮丢 CORS 头，浏览器误报 CORS。缺失项必须补，补不了的报错。
 if ! grep -q '^LAB_SAAS_BASE_URL=' "$BASE/springboot.env"; then
   echo "→ append LAB_SAAS_BASE_URL to existing $BASE/springboot.env"
@@ -233,7 +233,7 @@ if ! grep -q '^LAB_SAAS_DEFAULT_TENANT_ID=' "$BASE/springboot.env"; then
   printf 'LAB_SAAS_DEFAULT_TENANT_ID=%s\n' "${LAB_SAAS_DEFAULT_TENANT_ID:-00000000-0000-0000-0000-000000000001}" >> "$BASE/springboot.env"
 fi
 # CLIENT_SECRET 无默认值: 优先 append SSH env 转发过来的（ci.yml envs 段）,
-# 两处都没有 → fail-fast。静默回落 yml 占位值 'lab-mgmt-secret' 在 prod 必 401。
+# 两处都没有 → fail-fast。静默回落 yml 占位值 'lab-management-secret' 在 prod 必 401。
 if ! grep -q '^LAB_SAAS_CLIENT_SECRET=' "$BASE/springboot.env"; then
   if [ -n "${LAB_SAAS_CLIENT_SECRET:-}" ]; then
     echo "→ append LAB_SAAS_CLIENT_SECRET (from SSH env) to existing $BASE/springboot.env"
