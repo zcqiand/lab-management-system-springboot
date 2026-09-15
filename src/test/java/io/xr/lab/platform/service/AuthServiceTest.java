@@ -319,4 +319,79 @@ class AuthServiceTest {
     String tenantClaim = decoder.decode(res.getToken()).getClaim("tenant_id");
     assertNotNull(tenantClaim, "ssoCallback access token must carry tenant_id claim");
   }
+
+  // === 2026-09-15 租户显示名（lab-nextjs sso/callback 同款修复推广）===
+  // memberships 契约只有 tenantId：SSO/refresh 瞬时持 accessToken 时拉 saas
+  // GET /api/v1/admin/tenants 建 tenantId→{name, tenantKey} 映射，填进登录响应
+  // tenants 与 membership 快照（me() 同源读取，切换器数据源）。
+  // 拉取失败只 warn 不阻塞登录（name 降级 tenantId，与菜单快照同款 best-effort）。
+
+  @Test
+  @Fn({"M01.F05.I03"})
+  void ssoCallback_tenantsCarryRealNames_notTenantId() {
+    io.xr.lab.shared.dto.SsoCallbackRequest body =
+        new io.xr.lab.shared.dto.SsoCallbackRequest()
+            .grantType(io.xr.lab.shared.dto.OAuthGrantType.AUTHORIZATION_CODE)
+            .code("dev-code")
+            .redirectUri("http://localhost:5202/api/auth/sso/callback")
+            .state("st-tenant-name-1");
+    LoginResponse resp = service.ssoCallback(body);
+
+    assertEquals("00000000-0000-0000-0000-000000000001", resp.getTenants().get(0).getTenantId());
+    assertEquals("ACME Corp", resp.getTenants().get(0).getName());
+    assertEquals("acme", resp.getTenants().get(0).getCode());
+  }
+
+  @Test
+  @Fn({"M00.F01.I01"})
+  void me_ssoUser_snapshotCarriesRealNames() {
+    io.xr.lab.shared.dto.SsoCallbackRequest body =
+        new io.xr.lab.shared.dto.SsoCallbackRequest()
+            .grantType(io.xr.lab.shared.dto.OAuthGrantType.AUTHORIZATION_CODE)
+            .code("dev-code")
+            .redirectUri("http://localhost:5202/api/auth/sso/callback")
+            .state("st-tenant-name-2");
+    service.ssoCallback(body);
+
+    CurrentUserSession me = service.me(Map.of("sub", "00000000-0000-0000-0000-b00000000001"));
+
+    assertEquals("ACME Corp", me.getTenants().get(0).getName());
+    assertEquals("acme", me.getTenants().get(0).getCode());
+  }
+
+  @Test
+  @Fn({"M01.F05.I03"})
+  void ssoCallback_tenantListUnavailable_degradesToTenantId() {
+    // saas /admin/tenants 5xx：登录不阻塞，name/code 降级回 tenantId
+    io.xr.lab.platform.auth.sso.SaasMeClient failing =
+        new SsoBeansConfig.NoopSaasMeClient() {
+          @Override
+          public java.util.List<io.xr.lab.platform.auth.sso.SaasMeClient.SaasPlatformTenant>
+              listPlatformTenants(String saasAccessToken) {
+            throw new io.xr.lab.platform.auth.sso.SaasAuthException.UpstreamUnavailable(
+                "saas /admin/tenants 5xx");
+          }
+        };
+    AuthService degraded =
+        new AuthService(
+            new ConfigUserDirectory("dev123456"),
+            jwt,
+            saasAuth,
+            failing,
+            labConfig,
+            new MenuSnapshotCache(),
+            new SaasMenuMapper());
+    io.xr.lab.shared.dto.SsoCallbackRequest body =
+        new io.xr.lab.shared.dto.SsoCallbackRequest()
+            .grantType(io.xr.lab.shared.dto.OAuthGrantType.AUTHORIZATION_CODE)
+            .code("dev-code")
+            .redirectUri("http://localhost:5202/api/auth/sso/callback")
+            .state("st-tenant-name-3");
+
+    LoginResponse resp = degraded.ssoCallback(body);
+
+    assertEquals(1, resp.getTenants().size());
+    assertEquals("00000000-0000-0000-0000-000000000001", resp.getTenants().get(0).getName());
+    assertEquals("00000000-0000-0000-0000-000000000001", resp.getTenants().get(0).getCode());
+  }
 }

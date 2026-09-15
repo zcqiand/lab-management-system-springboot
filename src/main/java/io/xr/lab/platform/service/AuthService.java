@@ -174,8 +174,12 @@ public class AuthService {
     directory.setSaasRefreshToken(labUser.getId(), t.getRefreshToken());
     // 菜单快照刷新（同 ssoCallback：refresh 时也瞬时持有 accessToken）
     cacheMenus(labUser.getId(), t.getAccessToken());
-    membershipCache.put(labUser.getId(), tenantsFrom(memberships));
-    return session(labUser, tenantId, tenantsFrom(memberships), t.getRefreshToken());
+    // 2026-09-15 租户显示名：同 ssoCallback，瞬时持 token 拉平台租户列表注入真名
+    Map<String, SaasMeClient.SaasPlatformTenant> tenantNameById =
+        fetchTenantNames(labUser.getId(), t.getAccessToken());
+    membershipCache.put(labUser.getId(), tenantsFrom(memberships, tenantNameById));
+    return session(
+        labUser, tenantId, tenantsFrom(memberships, tenantNameById), t.getRefreshToken());
   }
 
   // === M01.F05.I05 登出（无状态 JWT，服务端无 session store） ===
@@ -380,10 +384,20 @@ public class AuthService {
     // 2026-09-03 租户体系对齐：存 per-user saas refresh token（me()/menus 的 reload 用）
     // + memberships 快照（me() 返回 saas 租户体系）。
     directory.setSaasRefreshToken(labUser.getId(), t.getRefreshToken());
-    membershipCache.put(labUser.getId(), tenantsFrom(memberships));
+    // 2026-09-15 租户显示名：memberships 契约只有 tenantId 不带名字，趁同一
+    // 瞬时窗口拉 saas 平台租户列表（GET /api/v1/admin/tenants，guard 只验 JWT）
+    // 建 tenantId→{name, tenantKey} 映射填真名（lab-nextjs sso/callback 同款）。
+    // 快照与登录响应 tenants 同源 —— me() 读出的也是真名。失败只 warn 降级
+    // name=tenantId（与菜单快照同款 best-effort，不阻塞登录）。
+    Map<String, SaasMeClient.SaasPlatformTenant> tenantNameById =
+        fetchTenantNames(labUser.getId(), t.getAccessToken());
+    membershipCache.put(labUser.getId(), tenantsFrom(memberships, tenantNameById));
     // token 带 tenant_id claim（whoami currentTenantId）—— me() 不再落 demo 默认租户
     return session(
-        labUser, saasUser.getCurrentTenantId(), tenantsFrom(memberships), t.getRefreshToken());
+        labUser,
+        saasUser.getCurrentTenantId(),
+        tenantsFrom(memberships, tenantNameById),
+        t.getRefreshToken());
   }
 
   // === token 签发 ===
@@ -407,18 +421,51 @@ public class AuthService {
         .tenants(useTenants);
   }
 
+  /**
+   * 2026-09-15 租户显示名：拉 saas 平台租户列表建 tenantId→{name, tenantKey} 映射。 失败（saas 5xx/网络/4xx）只 warn 返空
+   * Map——名字降级 tenantId，不阻塞登录（与 {@link #cacheMenus} 同款 best-effort）。
+   */
+  private Map<String, SaasMeClient.SaasPlatformTenant> fetchTenantNames(
+      String userId, String saasAccessToken) {
+    if (userId == null || saasAccessToken == null) {
+      return Map.of();
+    }
+    try {
+      return saasMe.listPlatformTenants(saasAccessToken).stream()
+          .filter(t -> t.getId() != null && !t.getId().isEmpty())
+          .collect(
+              java.util.stream.Collectors.toMap(
+                  SaasMeClient.SaasPlatformTenant::getId, t -> t, (a, b) -> a));
+    } catch (RuntimeException e) {
+      log.warn("tenant name lookup failed for user {}: {}", userId, e.getMessage());
+      return Map.of();
+    }
+  }
+
   private List<MyTenant> tenantsFrom(List<SaasMeClient.SaasTenantMembership> memberships) {
+    return tenantsFrom(memberships, Map.of());
+  }
+
+  /**
+   * memberships → MyTenant。nameById 命中时 code=tenantKey、name=name； miss（列表拉取失败 / 租户未在平台注册）降级
+   * code=name=tenantId —— 切换器最差显示 UUID，不空。
+   */
+  private List<MyTenant> tenantsFrom(
+      List<SaasMeClient.SaasTenantMembership> memberships,
+      Map<String, SaasMeClient.SaasPlatformTenant> nameById) {
     if (memberships == null) {
       return List.of();
     }
     return memberships.stream()
         .map(
-            m ->
-                new MyTenant()
-                    .tenantId(m.getTenantId())
-                    .code(m.getTenantId())
-                    .name(m.getTenantId())
-                    .roleIds(m.getRoleIds() == null ? List.of() : m.getRoleIds()))
+            m -> {
+              SaasMeClient.SaasPlatformTenant t = nameById.get(m.getTenantId());
+              return new MyTenant()
+                  .tenantId(m.getTenantId())
+                  .code(t != null && t.getTenantKey() != null ? t.getTenantKey() : m.getTenantId())
+                  .name(t != null && t.getName() != null ? t.getName() : m.getTenantId())
+                  .roleIds(m.getRoleIds() == null ? List.of() : m.getRoleIds());
+            })
         .toList();
   }
 

@@ -119,6 +119,36 @@ public class SaasMeClient {
     }
   }
 
+  /**
+   * 拉平台租户列表（saas GET /api/v1/admin/tenants，guard 只验 JWT——任何登录用户可读）。
+   *
+   * <p>2026-09-15 租户显示名：memberships 契约（/me、/me/tenants）只有 tenantId 不带名字， lab 侧租户切换器曾显示一串
+   * UUID。SSO/refresh 瞬时持 accessToken 时调本方法建 tenantId→{name, tenantKey} 映射填真名（lab-nextjs
+   * sso/callback 同款修复）。
+   */
+  public List<SaasPlatformTenant> listPlatformTenants(String saasAccessToken) {
+    try {
+      SaasPlatformTenantPage page =
+          http.get()
+              .uri("/api/v1/admin/tenants?page=0&pageSize=100")
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + saasAccessToken)
+              .retrieve()
+              .body(SaasPlatformTenantPage.class);
+      return page == null || page.getItems() == null ? List.of() : page.getItems();
+    } catch (HttpClientErrorException e) {
+      throw new SaasAuthException.InvalidGrant(
+          "saas /admin/tenants "
+              + e.getStatusCode()
+              + " "
+              + truncate(e.getResponseBodyAsString(), 200));
+    } catch (HttpServerErrorException e) {
+      throw new SaasAuthException.UpstreamUnavailable(
+          "saas /admin/tenants 5xx: " + e.getStatusCode(), e);
+    } catch (ResourceAccessException e) {
+      throw new SaasAuthException.UpstreamUnavailable("saas /admin/tenants connect failed", e);
+    }
+  }
+
   private static String truncate(String s, int max) {
     if (s == null) return "";
     return s.length() <= max ? s : s.substring(0, max) + "...";
@@ -371,6 +401,72 @@ public class SaasMeClient {
 
     public void setJoinedAt(String joinedAt) {
       this.joinedAt = joinedAt;
+    }
+  }
+
+  /** saas GET /api/v1/admin/tenants 分页壳（与家族 list 端点约定同形：page=0/pageSize=20）。 */
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  public static class SaasPlatformTenantPage {
+    @JsonProperty("items")
+    private List<SaasPlatformTenant> items;
+
+    @JsonProperty("total")
+    private Long total;
+
+    public List<SaasPlatformTenant> getItems() {
+      return items;
+    }
+
+    public void setItems(List<SaasPlatformTenant> items) {
+      this.items = items;
+    }
+
+    public Long getTotal() {
+      return total;
+    }
+
+    public void setTotal(Long total) {
+      this.total = total;
+    }
+  }
+
+  /**
+   * saas 平台租户行（id/name/tenantKey）。name/tenantKey 用于 memberships 的
+   * tenantId→显示名映射（tenantKey→MyTenant.code，name→MyTenant.name）。
+   */
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  public static class SaasPlatformTenant {
+    @JsonProperty("id")
+    private String id;
+
+    @JsonProperty("name")
+    private String name;
+
+    @JsonProperty("tenantKey")
+    private String tenantKey;
+
+    public String getId() {
+      return id;
+    }
+
+    public void setId(String id) {
+      this.id = id;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public String getTenantKey() {
+      return tenantKey;
+    }
+
+    public void setTenantKey(String tenantKey) {
+      this.tenantKey = tenantKey;
     }
   }
 }

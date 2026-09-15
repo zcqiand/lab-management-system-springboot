@@ -151,6 +151,17 @@ public class SsoBeansConfig {
       return List.of();
     }
 
+    @Override
+    public List<SaasPlatformTenant> listPlatformTenants(String saasAccessToken) {
+      // 2026-09-15 租户显示名：与 saas_dev 种子同值（id -001 = ACME Corp / acme），
+      // 让 no-sso profile 也能演练 name/tenantKey 注入而非 UUID 充名。
+      SaasPlatformTenant t = new SaasPlatformTenant();
+      t.setId("00000000-0000-0000-0000-000000000001");
+      t.setName("ACME Corp");
+      t.setTenantKey("acme");
+      return List.of(t);
+    }
+
     private static List<SaasTenantMembership> tenants() {
       return List.of(membership("00000000-0000-0000-0000-000000000001", List.of("admin")));
     }
