@@ -28,7 +28,13 @@ public class SampleController implements SamplesApi {
       Integer page, Integer pageSize, String receiptId, String keyword) {
     String tenant = InspectionCatalogController.currentTenantIdOrDefaultStatic(directory);
     List<Sample> list = service.list(tenant, receiptId, keyword);
-    return ResponseEntity.ok(new SamplesListSamples200Response().items(list));
+    // 2026-09-16 T11 live 实证：list envelope 缺省 page=1 / pageSize=20 对齐 nextjs oracle。
+    return ResponseEntity.ok(
+        new SamplesListSamples200Response()
+            .items(list)
+            .page(page == null ? 1 : page)
+            .pageSize(pageSize == null ? 20 : pageSize)
+            .total((long) list.size()));
   }
 
   @Override

@@ -30,7 +30,14 @@ public class ReportFlowController implements ReportFlowApi {
     String tenant = InspectionCatalogController.currentTenantIdOrDefaultStatic(directory);
     int cap = (pageSize == null || pageSize <= 0) ? 50 : Math.min(pageSize, 200);
     List<SampleReceipt> items = service.flowQueue(tenant, stage).stream().limit(cap).toList();
-    return ResponseEntity.ok(new ReceiptsListReceipts200Response().items(items));
+    // 2026-09-16 T11 live 实证：envelope 缺省 page=1 / pageSize=20 对齐 nextjs oracle
+    //（cap 只影响 items 截断，pageSize 字段缺省仍是家族约定的 20）。
+    return ResponseEntity.ok(
+        new ReceiptsListReceipts200Response()
+            .items(items)
+            .page(page == null ? 1 : page)
+            .pageSize(pageSize == null ? 20 : pageSize)
+            .total((long) items.size()));
   }
 
   @Override

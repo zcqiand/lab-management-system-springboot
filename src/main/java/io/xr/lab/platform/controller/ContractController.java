@@ -29,7 +29,14 @@ public class ContractController implements ContractsApi {
       Integer page, Integer pageSize, String keyword, ContractStatus status) {
     String tenant = InspectionCatalogController.currentTenantIdOrDefaultStatic(directory);
     List<Contract> list = service.list(tenant, keyword, status);
-    return ResponseEntity.ok(new ContractsListContracts200Response().items(list));
+    // 2026-09-16 Phase 2 测试切真（T11 live 实证）：list envelope 缺省值对齐家族约定
+    // page=1 / pageSize=20（nextjs oracle pageOf 默认；此前不设 → null，normalize 视为缺失）。
+    return ResponseEntity.ok(
+        new ContractsListContracts200Response()
+            .items(list)
+            .page(page == null ? 1 : page)
+            .pageSize(pageSize == null ? 20 : pageSize)
+            .total((long) list.size()));
   }
 
   @Override

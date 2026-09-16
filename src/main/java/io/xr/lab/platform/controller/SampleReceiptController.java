@@ -31,7 +31,13 @@ public class SampleReceiptController implements ReceiptsApi {
       Integer page, Integer pageSize, String keyword, String contractId, FlowStatus flowStatus) {
     String tenant = InspectionCatalogController.currentTenantIdOrDefaultStatic(directory);
     List<SampleReceipt> list = service.list(tenant, contractId, flowStatus, keyword);
-    return ResponseEntity.ok(new ReceiptsListReceipts200Response().items(list));
+    // 2026-09-16 T11 live 实证：list envelope 缺省 page=1 / pageSize=20 对齐 nextjs oracle。
+    return ResponseEntity.ok(
+        new ReceiptsListReceipts200Response()
+            .items(list)
+            .page(page == null ? 1 : page)
+            .pageSize(pageSize == null ? 20 : pageSize)
+            .total((long) list.size()));
   }
 
   @Override
