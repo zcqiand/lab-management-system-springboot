@@ -12,7 +12,7 @@ import org.springframework.lang.Nullable;
 @Schema(name = "BackendFeatures", description = "已废弃 (ADR-0014);后端能力矩阵")
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-13T11:44:02.196388200+08:00[Asia/Shanghai]",
+    date = "2026-09-17T22:34:06.427129100+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public class BackendFeatures {
 
@@ -36,14 +36,14 @@ public class BackendFeatures {
   }
 
   /**
-   * 是否启用 SSO 跳转(msw=false / nextjs=true / springboot/aspnetcore 视实现)
+   * 是否启用 SSO 跳转(nextjs=true / springboot/aspnetcore 视实现)
    *
    * @return sso
    */
   @NotNull
   @Schema(
       name = "sso",
-      description = "是否启用 SSO 跳转(msw=false / nextjs=true / springboot/aspnetcore 视实现)",
+      description = "是否启用 SSO 跳转(nextjs=true / springboot/aspnetcore 视实现)",
       requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("sso")
   public Boolean getSso() {

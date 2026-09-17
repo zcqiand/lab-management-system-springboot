@@ -14,7 +14,7 @@ import org.springframework.lang.Nullable;
 /** AuthStateAuthenticated */
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-13T11:44:02.196388200+08:00[Asia/Shanghai]",
+    date = "2026-09-17T22:34:06.427129100+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public class AuthStateAuthenticated implements AuthState {
 

@@ -19,13 +19,13 @@ import org.junit.jupiter.api.Test;
 /**
  * M03 7 阶段全 act 模式单元测试。
  *
- * 历史背景：2026-09-17 M03 重整把早期 3 阶段 9 op (submit/return/withdraw) + 报告 4 阶段 4 act op
- * 合并为 7 act op (receiving/assigning/data-entry/review/approve/issuance/archived)。
- * 旧 service.flowQueue() / service.submitAction() 已删，本测试文件随之重写。
+ * <p>历史背景：2026-09-17 M03 重整把早期 3 阶段 9 op (submit/return/withdraw) + 报告 4 阶段 4 act op 合并为 7 act op
+ * (receiving/assigning/data-entry/review/approve/issuance/archived)。 旧 service.flowQueue() /
+ * service.submitAction() 已删，本测试文件随之重写。
  *
- * 旧测试方法 (flowQueue_delegatesToReceiptService / submitAction_advance_* / submitAction_return_*
- * / submitAction_missing_reportsFailure) 引用已删方法，2026-09-17 删除；新 7 act 方法的
- * 单元测试见各 service 方法的 @Fn 标注和后续 M03 重构任务补全。
+ * <p>旧测试方法 (flowQueue_delegatesToReceiptService / submitAction_advance_* / submitAction_return_* /
+ * submitAction_missing_reportsFailure) 引用已删方法，2026-09-17 删除；新 7 act 方法的 单元测试见各 service 方法的 @Fn
+ * 标注和后续 M03 重构任务补全。
  */
 class ReportFlowServiceTest {
 

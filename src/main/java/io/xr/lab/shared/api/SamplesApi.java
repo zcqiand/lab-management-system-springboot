@@ -16,6 +16,7 @@ import io.xr.lab.shared.dto.CreateSampleRequest;
 import io.xr.lab.shared.dto.ErrorResponse;
 import io.xr.lab.shared.dto.Sample;
 import io.xr.lab.shared.dto.SamplesListSamples200Response;
+import io.xr.lab.shared.dto.UpdateSampleExtRequest;
 import io.xr.lab.shared.dto.UpdateSampleRequest;
 import jakarta.annotation.Generated;
 import jakarta.validation.Valid;
@@ -27,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-13T11:44:02.196388200+08:00[Asia/Shanghai]",
+    date = "2026-09-17T22:34:06.427129100+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 @Validated
 @Tag(name = "samples", description = "the samples API")
@@ -251,4 +252,49 @@ public interface SamplesApi {
           @Valid
           @RequestBody
           UpdateSampleRequest updateSampleRequest);
+
+  String PATH_SAMPLES_UPDATE_SAMPLE_EXT = "/api/samples/{id}/ext";
+
+  /**
+   * PUT /api/samples/{id}/ext
+   *
+   * @param id (required)
+   * @param updateSampleExtRequest (required)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "samplesUpdateSampleExt",
+      tags = {"samples"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = Sample.class))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.PUT,
+      value = SamplesApi.PATH_SAMPLES_UPDATE_SAMPLE_EXT,
+      produces = {"application/json"},
+      consumes = {"application/json"})
+  ResponseEntity<Sample> samplesUpdateSampleExt(
+      @Parameter(name = "id", description = "", required = true, in = ParameterIn.PATH)
+          @PathVariable("id")
+          String id,
+      @Parameter(name = "UpdateSampleExtRequest", description = "", required = true)
+          @Valid
+          @RequestBody
+          UpdateSampleExtRequest updateSampleExtRequest);
 }

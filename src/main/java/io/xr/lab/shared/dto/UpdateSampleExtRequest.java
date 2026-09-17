@@ -1,53 +1,61 @@
 package io.xr.lab.shared.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Generated;
 import jakarta.validation.constraints.*;
 import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import org.springframework.lang.Nullable;
 
-/** AuthLogoutRequest */
-@JsonTypeName("Auth_logout_request")
+/** UpdateSampleExtRequest */
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
     date = "2026-09-17T22:34:06.427129100+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
-public class AuthLogoutRequest {
+public class UpdateSampleExtRequest {
 
-  private String token;
+  private Map<String, String> ext = new HashMap<>();
 
-  public AuthLogoutRequest() {
+  public UpdateSampleExtRequest() {
     super();
   }
 
   /** Constructor with only required parameters */
-  public AuthLogoutRequest(String token) {
-    this.token = token;
+  public UpdateSampleExtRequest(Map<String, String> ext) {
+    this.ext = ext;
   }
 
-  public AuthLogoutRequest token(String token) {
-    this.token = token;
+  public UpdateSampleExtRequest ext(Map<String, String> ext) {
+    this.ext = ext;
+    return this;
+  }
+
+  public UpdateSampleExtRequest putExtItem(String key, String extItem) {
+    if (this.ext == null) {
+      this.ext = new HashMap<>();
+    }
+    this.ext.put(key, extItem);
     return this;
   }
 
   /**
-   * Get token
+   * Get ext
    *
-   * @return token
+   * @return ext
    */
   @NotNull
-  @Schema(name = "token", requiredMode = Schema.RequiredMode.REQUIRED)
-  @JsonProperty("token")
-  public String getToken() {
-    return token;
+  @Schema(name = "ext", requiredMode = Schema.RequiredMode.REQUIRED)
+  @JsonProperty("ext")
+  public Map<String, String> getExt() {
+    return ext;
   }
 
-  @JsonProperty("token")
-  public void setToken(String token) {
-    this.token = token;
+  @JsonProperty("ext")
+  public void setExt(Map<String, String> ext) {
+    this.ext = ext;
   }
 
   @Override
@@ -58,20 +66,20 @@ public class AuthLogoutRequest {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    AuthLogoutRequest authLogoutRequest = (AuthLogoutRequest) o;
-    return Objects.equals(this.token, authLogoutRequest.token);
+    UpdateSampleExtRequest updateSampleExtRequest = (UpdateSampleExtRequest) o;
+    return Objects.equals(this.ext, updateSampleExtRequest.ext);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(token);
+    return Objects.hash(ext);
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("class AuthLogoutRequest {\n");
-    sb.append("    token: ").append(toIndentedString(token)).append("\n");
+    sb.append("class UpdateSampleExtRequest {\n");
+    sb.append("    ext: ").append(toIndentedString(ext)).append("\n");
     sb.append("}");
     return sb.toString();
   }

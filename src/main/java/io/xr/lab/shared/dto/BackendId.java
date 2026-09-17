@@ -6,14 +6,12 @@ import jakarta.annotation.Generated;
 import jakarta.validation.constraints.*;
 import java.util.*;
 
-/** 已废弃 (ADR-0014);4 个槽位,id 锁定避免拼写漂移 */
+/** 已废弃 (ADR-0014);3 个槽位,id 锁定避免拼写漂移。msw 成员 2026-09-17 随 msw 仓剔除删除 */
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-13T11:44:02.196388200+08:00[Asia/Shanghai]",
+    date = "2026-09-17T22:34:06.427129100+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public enum BackendId {
-  MSW("msw"),
-
   NEXTJS("nextjs"),
 
   SPRINGBOOT("springboot"),
