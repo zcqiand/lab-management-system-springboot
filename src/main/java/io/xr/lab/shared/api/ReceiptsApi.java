@@ -16,6 +16,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.xr.lab.shared.dto.AssignTaskRequest;
 import io.xr.lab.shared.dto.CreateSampleReceiptRequest;
 import io.xr.lab.shared.dto.ErrorResponse;
+import io.xr.lab.shared.dto.FlowActionRequest;
+import io.xr.lab.shared.dto.FlowActionResult;
 import io.xr.lab.shared.dto.FlowHistoryEntry;
 import io.xr.lab.shared.dto.FlowStatus;
 import io.xr.lab.shared.dto.ReceiptsListReceipts200Response;
@@ -32,11 +34,284 @@ import org.springframework.web.bind.annotation.*;
 
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-13T11:44:02.196388200+08:00[Asia/Shanghai]",
+    date = "2026-09-17T20:27:32.390778300+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 @Validated
 @Tag(name = "receipts", description = "the receipts API")
 public interface ReceiptsApi {
+
+  String PATH_RECEIPTS_ACT_FLOW_APPROVE = "/api/receipts/approve/act";
+
+  /**
+   * POST /api/receipts/approve/act
+   *
+   * @param flowActionRequest (required)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "receiptsActFlowApprove",
+      tags = {"receipts"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  array = @ArraySchema(schema = @Schema(implementation = FlowActionResult.class)))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.POST,
+      value = ReceiptsApi.PATH_RECEIPTS_ACT_FLOW_APPROVE,
+      produces = {"application/json"},
+      consumes = {"application/json"})
+  ResponseEntity<List<FlowActionResult>> receiptsActFlowApprove(
+      @Parameter(name = "FlowActionRequest", description = "", required = true) @Valid @RequestBody
+          FlowActionRequest flowActionRequest);
+
+  String PATH_RECEIPTS_ACT_FLOW_ARCHIVED = "/api/receipts/archived/act";
+
+  /**
+   * POST /api/receipts/archived/act
+   *
+   * @param flowActionRequest (required)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "receiptsActFlowArchived",
+      tags = {"receipts"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  array = @ArraySchema(schema = @Schema(implementation = FlowActionResult.class)))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.POST,
+      value = ReceiptsApi.PATH_RECEIPTS_ACT_FLOW_ARCHIVED,
+      produces = {"application/json"},
+      consumes = {"application/json"})
+  ResponseEntity<List<FlowActionResult>> receiptsActFlowArchived(
+      @Parameter(name = "FlowActionRequest", description = "", required = true) @Valid @RequestBody
+          FlowActionRequest flowActionRequest);
+
+  String PATH_RECEIPTS_ACT_FLOW_ASSIGNING = "/api/receipts/assigning/act";
+
+  /**
+   * POST /api/receipts/assigning/act
+   *
+   * @param flowActionRequest (required)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "receiptsActFlowAssigning",
+      tags = {"receipts"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  array = @ArraySchema(schema = @Schema(implementation = FlowActionResult.class)))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.POST,
+      value = ReceiptsApi.PATH_RECEIPTS_ACT_FLOW_ASSIGNING,
+      produces = {"application/json"},
+      consumes = {"application/json"})
+  ResponseEntity<List<FlowActionResult>> receiptsActFlowAssigning(
+      @Parameter(name = "FlowActionRequest", description = "", required = true) @Valid @RequestBody
+          FlowActionRequest flowActionRequest);
+
+  String PATH_RECEIPTS_ACT_FLOW_DATA_ENTRY = "/api/receipts/data-entry/act";
+
+  /**
+   * POST /api/receipts/data-entry/act
+   *
+   * @param flowActionRequest (required)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "receiptsActFlowDataEntry",
+      tags = {"receipts"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  array = @ArraySchema(schema = @Schema(implementation = FlowActionResult.class)))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.POST,
+      value = ReceiptsApi.PATH_RECEIPTS_ACT_FLOW_DATA_ENTRY,
+      produces = {"application/json"},
+      consumes = {"application/json"})
+  ResponseEntity<List<FlowActionResult>> receiptsActFlowDataEntry(
+      @Parameter(name = "FlowActionRequest", description = "", required = true) @Valid @RequestBody
+          FlowActionRequest flowActionRequest);
+
+  String PATH_RECEIPTS_ACT_FLOW_ISSUANCE = "/api/receipts/issuance/act";
+
+  /**
+   * POST /api/receipts/issuance/act
+   *
+   * @param flowActionRequest (required)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "receiptsActFlowIssuance",
+      tags = {"receipts"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  array = @ArraySchema(schema = @Schema(implementation = FlowActionResult.class)))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.POST,
+      value = ReceiptsApi.PATH_RECEIPTS_ACT_FLOW_ISSUANCE,
+      produces = {"application/json"},
+      consumes = {"application/json"})
+  ResponseEntity<List<FlowActionResult>> receiptsActFlowIssuance(
+      @Parameter(name = "FlowActionRequest", description = "", required = true) @Valid @RequestBody
+          FlowActionRequest flowActionRequest);
+
+  String PATH_RECEIPTS_ACT_FLOW_RECEIVING = "/api/receipts/receiving/act";
+
+  /**
+   * POST /api/receipts/receiving/act
+   *
+   * @param flowActionRequest (required)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "receiptsActFlowReceiving",
+      tags = {"receipts"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  array = @ArraySchema(schema = @Schema(implementation = FlowActionResult.class)))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.POST,
+      value = ReceiptsApi.PATH_RECEIPTS_ACT_FLOW_RECEIVING,
+      produces = {"application/json"},
+      consumes = {"application/json"})
+  ResponseEntity<List<FlowActionResult>> receiptsActFlowReceiving(
+      @Parameter(name = "FlowActionRequest", description = "", required = true) @Valid @RequestBody
+          FlowActionRequest flowActionRequest);
+
+  String PATH_RECEIPTS_ACT_FLOW_REVIEW = "/api/receipts/review/act";
+
+  /**
+   * POST /api/receipts/review/act
+   *
+   * @param flowActionRequest (required)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "receiptsActFlowReview",
+      tags = {"receipts"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  array = @ArraySchema(schema = @Schema(implementation = FlowActionResult.class)))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.POST,
+      value = ReceiptsApi.PATH_RECEIPTS_ACT_FLOW_REVIEW,
+      produces = {"application/json"},
+      consumes = {"application/json"})
+  ResponseEntity<List<FlowActionResult>> receiptsActFlowReview(
+      @Parameter(name = "FlowActionRequest", description = "", required = true) @Valid @RequestBody
+          FlowActionRequest flowActionRequest);
 
   String PATH_RECEIPTS_ASSIGN_TASK = "/api/receipts/{id}/task";
 

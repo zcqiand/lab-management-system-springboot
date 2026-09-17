@@ -1,10 +1,13 @@
 package io.xr.lab.platform.controller;
 
 import io.xr.lab.platform.directory.ConfigUserDirectory;
+import io.xr.lab.platform.service.ReportFlowService;
 import io.xr.lab.platform.service.SampleReceiptService;
 import io.xr.lab.shared.api.ReceiptsApi;
 import io.xr.lab.shared.dto.AssignTaskRequest;
 import io.xr.lab.shared.dto.CreateSampleReceiptRequest;
+import io.xr.lab.shared.dto.FlowActionRequest;
+import io.xr.lab.shared.dto.FlowActionResult;
 import io.xr.lab.shared.dto.FlowHistoryEntry;
 import io.xr.lab.shared.dto.FlowStatus;
 import io.xr.lab.shared.dto.ReceiptsListReceipts200Response;
@@ -14,15 +17,24 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
-/** M03.F01/F02/F05-M03.F09 接样单（B3，7 端点，task + history 拆出为 M03.F01.I06 + M03.F02.I01）。 */
+/**
+ * M03.F01/F02/F03/F05/F06/F07/F08 接样单（B3）。
+ *
+ * <p>2026-09-17 重整（lab-shared commit 13122e9）： 原 ReportFlowApi 21 op + 4 list*queue + 2 batch 全部收敛为
+ * 7 个 act op（POST /receipts/{stage}/act with body.action={SUBMIT|RETURN|WITHDRAW}），act op 在
+ * receipts namespace 下生成，故本 controller 一并实现。原 ReportFlowController 已删。
+ */
 @RestController
 public class SampleReceiptController implements ReceiptsApi {
 
   private final SampleReceiptService service;
+  private final ReportFlowService flowService;
   private final ConfigUserDirectory directory;
 
-  public SampleReceiptController(SampleReceiptService service, ConfigUserDirectory directory) {
+  public SampleReceiptController(
+      SampleReceiptService service, ReportFlowService flowService, ConfigUserDirectory directory) {
     this.service = service;
+    this.flowService = flowService;
     this.directory = directory;
   }
 
@@ -85,5 +97,65 @@ public class SampleReceiptController implements ReceiptsApi {
             InspectionCatalogController.currentTenantIdOrDefaultStatic(directory),
             id,
             assignTaskRequest));
+  }
+
+  // ============================================================
+  // 7 个 act 端点（M03.F01-F08 流程动作全 act 模式，2026-09-17 收敛）
+  // ============================================================
+
+  /** M03.F01.I08/I09/I10 接样阶段 act。 */
+  @Override
+  public ResponseEntity<List<FlowActionResult>> receiptsActFlowReceiving(
+      FlowActionRequest flowActionRequest) {
+    String tenant = InspectionCatalogController.currentTenantIdOrDefaultStatic(directory);
+    return ResponseEntity.ok(flowService.actReceiving(tenant, flowActionRequest));
+  }
+
+  /** M03.F02.I05/I06/I07 任务分配阶段 act。 */
+  @Override
+  public ResponseEntity<List<FlowActionResult>> receiptsActFlowAssigning(
+      FlowActionRequest flowActionRequest) {
+    String tenant = InspectionCatalogController.currentTenantIdOrDefaultStatic(directory);
+    return ResponseEntity.ok(flowService.actAssigning(tenant, flowActionRequest));
+  }
+
+  /** M03.F03.I12/I13/I14 数据录入阶段 act。 */
+  @Override
+  public ResponseEntity<List<FlowActionResult>> receiptsActFlowDataEntry(
+      FlowActionRequest flowActionRequest) {
+    String tenant = InspectionCatalogController.currentTenantIdOrDefaultStatic(directory);
+    return ResponseEntity.ok(flowService.actDataEntry(tenant, flowActionRequest));
+  }
+
+  /** M03.F05.I07/I08/I09 报告审核阶段 act。 */
+  @Override
+  public ResponseEntity<List<FlowActionResult>> receiptsActFlowReview(
+      FlowActionRequest flowActionRequest) {
+    String tenant = InspectionCatalogController.currentTenantIdOrDefaultStatic(directory);
+    return ResponseEntity.ok(flowService.actReview(tenant, flowActionRequest));
+  }
+
+  /** M03.F06.I05/I06/I07 报告批准阶段 act。 */
+  @Override
+  public ResponseEntity<List<FlowActionResult>> receiptsActFlowApprove(
+      FlowActionRequest flowActionRequest) {
+    String tenant = InspectionCatalogController.currentTenantIdOrDefaultStatic(directory);
+    return ResponseEntity.ok(flowService.actApprove(tenant, flowActionRequest));
+  }
+
+  /** M03.F07.I05/I06/I07 报告发放阶段 act。 */
+  @Override
+  public ResponseEntity<List<FlowActionResult>> receiptsActFlowIssuance(
+      FlowActionRequest flowActionRequest) {
+    String tenant = InspectionCatalogController.currentTenantIdOrDefaultStatic(directory);
+    return ResponseEntity.ok(flowService.actIssuance(tenant, flowActionRequest));
+  }
+
+  /** M03.F08.I05/I06/I07 报告归档阶段 act（仅 SUBMIT）。 */
+  @Override
+  public ResponseEntity<List<FlowActionResult>> receiptsActFlowArchived(
+      FlowActionRequest flowActionRequest) {
+    String tenant = InspectionCatalogController.currentTenantIdOrDefaultStatic(directory);
+    return ResponseEntity.ok(flowService.actArchived(tenant, flowActionRequest));
   }
 }

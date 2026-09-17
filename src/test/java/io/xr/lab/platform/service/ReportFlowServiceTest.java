@@ -2,8 +2,6 @@ package io.xr.lab.platform.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.xr.harness.junit.Fn;
@@ -18,7 +16,17 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/** M03.F05 队列 + M03.F06 推进 2 子项单测。 */
+/**
+ * M03 7 阶段全 act 模式单元测试。
+ *
+ * 历史背景：2026-09-17 M03 重整把早期 3 阶段 9 op (submit/return/withdraw) + 报告 4 阶段 4 act op
+ * 合并为 7 act op (receiving/assigning/data-entry/review/approve/issuance/archived)。
+ * 旧 service.flowQueue() / service.submitAction() 已删，本测试文件随之重写。
+ *
+ * 旧测试方法 (flowQueue_delegatesToReceiptService / submitAction_advance_* / submitAction_return_*
+ * / submitAction_missing_reportsFailure) 引用已删方法，2026-09-17 删除；新 7 act 方法的
+ * 单元测试见各 service 方法的 @Fn 标注和后续 M03 重构任务补全。
+ */
 class ReportFlowServiceTest {
 
   private static final String TENANT = "TENANT-001";
@@ -34,64 +42,12 @@ class ReportFlowServiceTest {
     service = new ReportFlowService(receiptService, repo);
   }
 
-  // M03.F05.I01 queue
-  // service.flowQueue(stage) 同一段同时支撑 F05/F07/F08 的 3 个阶段队列（共用 ReportFlowController#flowQueue）
-
+  // M03.F01.I08 receiving 阶段提交（receiving → task_assignment）
+  // 7 act 模式 smoke：actReceiving(SUBMIT) 应调 receiptService.transitionTo 并返 ok=true
   @Test
-  @Fn({"M03.F05.I01", "M03.F07.I01", "M03.F08.I01"})
-  void flowQueue_delegatesToReceiptService() {
-    var stub =
-        new io.xr.lab.shared.dto.SampleReceipt()
-            .id("R-001")
-            .commissionCode("CM-001")
-            .flowStatus(FlowStatus.REVIEW);
-    when(receiptService.flowQueue(TENANT, FlowStatus.REVIEW, 50)).thenReturn(List.of(stub));
-    var out = service.flowQueue(TENANT, FlowStatus.REVIEW);
-    assertEquals(1, out.size());
-    assertEquals("R-001", out.get(0).getId());
-  }
-
-  // M03.F06.I01 advance
-  // service.submitAction(stage, action) 同一段同时支撑 F05/F06/F07/F08 4 个阶段 I03 推进/退回
-  // 测试内部 transitionTo 的具体 stage-pair 是 REVIEW→APPROVAL（F05 推进），但底层 transitionTo 被 F05/F06/F07/F08
-  // 共同消费
-
-  @Test
-  @Fn({"M03.F05.I03", "M03.F06.I01", "M03.F06.I03", "M03.F07.I03", "M03.F08.I03"})
-  void submitAction_advance_reviewToApproval_success() {
-    SampleReceiptEntity existing = entity("R-001", FlowStatus.REVIEW);
-    when(repo.findByTenantIdAndId(TENANT, "R-001")).thenReturn(Optional.of(existing));
-    when(receiptService.transitionTo(
-            org.mockito.ArgumentMatchers.eq(TENANT),
-            org.mockito.ArgumentMatchers.eq("R-001"),
-            org.mockito.ArgumentMatchers.eq(FlowStatus.REVIEW),
-            org.mockito.ArgumentMatchers.eq(FlowStatus.APPROVAL),
-            org.mockito.ArgumentMatchers.anyString(),
-            org.mockito.ArgumentMatchers.isNull()))
-        .thenAnswer(inv -> invocationReturn(inv));
-    FlowActionRequest req =
-        new FlowActionRequest()
-            .ids(List.of("R-001"))
-            .action(FlowAction.SUBMIT)
-            .operator("reviewer");
-    List<FlowActionResult> results = service.submitAction(TENANT, req);
-    assertEquals(1, results.size());
-    assertTrue(results.get(0).getOk());
-    assertEquals(FlowStatus.APPROVAL, results.get(0).getFlowStatus());
-    verify(receiptService, times(1))
-        .transitionTo(
-            org.mockito.ArgumentMatchers.eq(TENANT),
-            org.mockito.ArgumentMatchers.eq("R-001"),
-            org.mockito.ArgumentMatchers.eq(FlowStatus.REVIEW),
-            org.mockito.ArgumentMatchers.eq(FlowStatus.APPROVAL),
-            org.mockito.ArgumentMatchers.anyString(),
-            org.mockito.ArgumentMatchers.any());
-  }
-
-  @Test
-  @Fn({"M03.F05.I03", "M03.F06.I01", "M03.F06.I03", "M03.F07.I03", "M03.F08.I03"})
-  void submitAction_return_approvalToReview() {
-    SampleReceiptEntity existing = entity("R-001", FlowStatus.APPROVAL);
+  @Fn({"M03.F01.I08"})
+  void actReceiving_submit_delegatesToReceiptService() {
+    SampleReceiptEntity existing = entity("R-001", FlowStatus.RECEIVING);
     when(repo.findByTenantIdAndId(TENANT, "R-001")).thenReturn(Optional.of(existing));
     when(receiptService.transitionTo(
             org.mockito.ArgumentMatchers.anyString(),
@@ -104,23 +60,11 @@ class ReportFlowServiceTest {
     FlowActionRequest req =
         new FlowActionRequest()
             .ids(List.of("R-001"))
-            .action(FlowAction.RETURN)
-            .operator("approver");
-    var results = service.submitAction(TENANT, req);
-    assertTrue(results.get(0).getOk());
-    assertEquals(FlowStatus.REVIEW, results.get(0).getFlowStatus());
-  }
-
-  @Test
-  @Fn({"M03.F05.I03", "M03.F06.I01", "M03.F06.I03", "M03.F07.I03", "M03.F08.I03"})
-  void submitAction_missing_reportsFailure() {
-    when(repo.findByTenantIdAndId(TENANT, "MISSING")).thenReturn(Optional.empty());
-    FlowActionRequest req =
-        new FlowActionRequest().ids(List.of("MISSING")).action(FlowAction.SUBMIT).operator("op");
-    var results = service.submitAction(TENANT, req);
+            .action(FlowAction.SUBMIT)
+            .operator("receiver");
+    List<FlowActionResult> results = service.actReceiving(TENANT, req);
     assertEquals(1, results.size());
-    assertEquals(Boolean.FALSE, results.get(0).getOk());
-    assertTrue(results.get(0).getMessage().contains("Receipt not found"));
+    assertTrue(results.get(0).getOk());
   }
 
   private static SampleReceiptEntity entity(String id, FlowStatus stage) {
