@@ -13,7 +13,7 @@ import org.springframework.lang.Nullable;
 /** Contract */
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-17T22:34:06.427129100+08:00[Asia/Shanghai]",
+    date = "2026-09-18T22:23:36.149543100+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public class Contract {
 

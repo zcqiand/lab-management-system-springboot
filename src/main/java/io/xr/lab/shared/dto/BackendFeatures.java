@@ -12,7 +12,7 @@ import org.springframework.lang.Nullable;
 @Schema(name = "BackendFeatures", description = "已废弃 (ADR-0014);后端能力矩阵")
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-17T22:34:06.427129100+08:00[Asia/Shanghai]",
+    date = "2026-09-18T22:23:36.149543100+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public class BackendFeatures {
 
