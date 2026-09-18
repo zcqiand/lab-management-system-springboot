@@ -89,16 +89,11 @@ public class SsoBeansConfig {
 
   // === noop 实现 ===
 
-  /** dev 离线模式：authorize 返回 mock code,token/whoami/tenants 返回 admin + 3 租户种子。 */
+  /**
+   * dev 离线模式：token/whoami/tenants 返回 admin + 3 租户种子（2026-09-19 删 authorize mock——跳板语义下服务端不再预拿
+   * code）。
+   */
   public static class NoopSaasAuthClient extends SaasAuthClient {
-    @Override
-    public AuthorizeCodeResponse authorize(String redirectUri, String scope, String state) {
-      AuthorizeCodeResponse resp = new AuthorizeCodeResponse();
-      resp.setCode("dev-code");
-      resp.setState(state);
-      return resp;
-    }
-
     @Override
     public TokenResponse token(
         String grantType, String code, String refreshToken, String redirectUri) {

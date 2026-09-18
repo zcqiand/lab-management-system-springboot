@@ -20,13 +20,14 @@ import org.junit.jupiter.api.Test;
  * <p>覆盖：
  *
  * <ul>
- *   <li>authorize 成功 → 200 + {code, state}
  *   <li>token 成功 → 200 + {accessToken, refreshToken, ...}
- *   <li>authorize 400 → InvalidGrant
  *   <li>token 401 → UnauthorizedClient
  *   <li>token 5xx → UpstreamUnavailable
  *   <li>连接失败 → UpstreamUnavailable
  * </ul>
+ *
+ * <p>2026-09-19：authorize()（服务端 code 预拿）随跳板语义收敛删除，其两条单测一并移除（裁定 1.3）；error 映射路径仍由 token 401/5xx 用例 +
+ * GlobalExceptionHandlerTest 覆盖。
  */
 class SaasAuthClientTest {
 
@@ -48,29 +49,6 @@ class SaasAuthClientTest {
   @AfterEach
   void stop() throws IOException {
     server.shutdown();
-  }
-
-  @Test
-  @Fn({"M01.F05.I02"})
-  void authorize_returnsCodeAndState() throws Exception {
-    server.enqueue(
-        new MockResponse()
-            .setBody("{\"code\":\"auth-code-xyz\",\"state\":\"client-state-123\"}")
-            .addHeader("Content-Type", "application/json"));
-
-    SaasAuthClient.AuthorizeCodeResponse resp =
-        client.authorize("http://localhost:5202/callback", "openid profile", "client-state-123");
-
-    assertEquals("auth-code-xyz", resp.getCode());
-    assertEquals("client-state-123", resp.getState());
-
-    RecordedRequest sent = server.takeRequest();
-    assertEquals("POST", sent.getMethod());
-    assertEquals("/api/v1/oauth/authorize", sent.getPath());
-    String body = sent.getBody().readUtf8();
-    assertTrue(body.contains("\"clientId\":\"lab-client-id\""));
-    assertTrue(body.contains("\"responseType\":\"code\""));
-    assertTrue(body.contains("\"tenantId\":\"00000000-0000-0000-0000-000000000001\""));
   }
 
   @Test
@@ -116,17 +94,6 @@ class SaasAuthClientTest {
     assertTrue(body.contains("\"grantType\":\"refresh_token\""));
     assertTrue(body.contains("\"refreshToken\":\"saas-rt\""));
     assertTrue(!body.contains("\"code\""), "code 字段不应出现");
-  }
-
-  @Test
-  @Fn({"M01.F05.I03"})
-  void authorize_400_mapsToInvalidGrant() {
-    server.enqueue(
-        new MockResponse().setResponseCode(400).setBody("{\"error\":\"invalid_grant\"}"));
-
-    assertThrows(
-        SaasAuthException.InvalidGrant.class,
-        () -> client.authorize("http://localhost/cb", "openid", "state"));
   }
 
   @Test

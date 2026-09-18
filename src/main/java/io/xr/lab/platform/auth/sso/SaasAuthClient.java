@@ -3,7 +3,6 @@ package io.xr.lab.platform.auth.sso;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.HttpClientErrorException;
@@ -14,7 +13,7 @@ import org.springframework.web.client.RestClient;
 /**
  * SaasAuthClient — 真对接 saas-identity-platform 的 OAuth 2.0 端点。
  *
- * <p>覆盖 RFC 6749 §4.1.1 (authorize) + §4.1.3 / §6 (token)。失败映射到 {@link SaasAuthException}：
+ * <p>覆盖 RFC 6749 §4.1.3 / §6 (token) + saas 服务账号密码登录。失败映射到 {@link SaasAuthException}：
  *
  * <ul>
  *   <li>400 → {@link SaasAuthException.InvalidGrant}（invalid_grant / invalid_request）
@@ -91,31 +90,10 @@ public class SaasAuthClient {
     }
   }
 
-  /** OAuth 2.0 §4.1.1 — 申请一次性 authorization code。 */
-  public AuthorizeCodeResponse authorize(String redirectUri, String scope, String state) {
-    Map<String, String> form =
-        Map.of(
-            "clientId", clientId,
-            "redirectUri", redirectUri,
-            "responseType", "code",
-            "scope", scope,
-            "state", state,
-            "tenantId", defaultTenantId);
-    try {
-      return http.post()
-          .uri("/api/v1/oauth/authorize")
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(form)
-          .retrieve()
-          .body(AuthorizeCodeResponse.class);
-    } catch (HttpClientErrorException e) {
-      throw mapClientError(e);
-    } catch (HttpServerErrorException e) {
-      throw new SaasAuthException.UpstreamUnavailable("saas upstream 5xx: " + e.getStatusCode(), e);
-    } catch (ResourceAccessException e) {
-      throw new SaasAuthException.UpstreamUnavailable("saas connect failed", e);
-    }
-  }
+  // 2026-09-19 删 authorize()（OAuth §4.1.1 服务端 code 预拿）：2026-09-15 全家族收敛为
+  // 「200 JSON 跳板」语义（返回 {authorizeUrl, state}，前端顶层导航到 saas 登录页），
+  // 服务端不再预拿 code → 本方法零生产调用方（grep 全家族确认），死代码删除（裁定 1.3）。
+  // code 换 token 的 §4.1.3 仍走 token()。
 
   /** OAuth 2.0 §4.1.3 / §6 — 拿 code 换 access token，或用 refresh_token 续。 */
   public TokenResponse token(
@@ -157,31 +135,6 @@ public class SaasAuthClient {
   private static String truncate(String s, int max) {
     if (s == null) return "";
     return s.length() <= max ? s : s.substring(0, max) + "...";
-  }
-
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  public static class AuthorizeCodeResponse {
-    @JsonProperty("code")
-    private String code;
-
-    @JsonProperty("state")
-    private String state;
-
-    public String getCode() {
-      return code;
-    }
-
-    public void setCode(String code) {
-      this.code = code;
-    }
-
-    public String getState() {
-      return state;
-    }
-
-    public void setState(String state) {
-      this.state = state;
-    }
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
