@@ -15,6 +15,7 @@ import io.xr.lab.platform.entity.SampleReceiptEntity;
 import io.xr.lab.platform.repository.SampleReceiptRepository;
 import io.xr.lab.platform.repository.SampleRepository;
 import io.xr.lab.shared.dto.CreateSampleRequest;
+import io.xr.lab.shared.dto.UpdateSampleExtRequest;
 import io.xr.lab.shared.dto.UpdateSampleRequest;
 import java.util.HashMap;
 import java.util.List;
@@ -116,6 +117,33 @@ class SampleServiceTest {
     when(repo.findByTenantIdAndId(TENANT, "S-001")).thenReturn(Optional.of(existing));
     service.delete(TENANT, "S-001");
     verify(repo, times(1)).delete(existing);
+  }
+
+  // M03.F01.I07 ext 字段补录（PUT /api/samples/{id}/ext，整体替换语义——
+  // react ReportPreviewModal 客户端合并后整体提交 {ext: merged}）
+
+  @Test
+  @Fn({"M03.F01.I07"})
+  void updateExt_replacesExtWhole() {
+    SampleEntity existing = entity("S-001");
+    existing.getExt().put("oldKey", "v1");
+    when(repo.findByTenantIdAndId(TENANT, "S-001")).thenReturn(Optional.of(existing));
+    when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+    var out =
+        service.updateExt(
+            TENANT, "S-001", new UpdateSampleExtRequest().ext(java.util.Map.of("newKey", "v2")));
+    assertEquals(java.util.Map.of("newKey", "v2"), out.getExt(), "ext 应整体替换而非合并");
+  }
+
+  @Test
+  @Fn({"M03.F01.I07"})
+  void updateExt_missing_throws404() {
+    when(repo.findByTenantIdAndId(TENANT, "MISSING")).thenReturn(Optional.empty());
+    assertThrows(
+        NoSuchElementException.class,
+        () ->
+            service.updateExt(
+                TENANT, "MISSING", new UpdateSampleExtRequest().ext(new HashMap<>())));
   }
 
   private static SampleEntity entity(String id) {

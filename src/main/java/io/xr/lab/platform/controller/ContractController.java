@@ -34,8 +34,8 @@ public class ContractController implements ContractsApi {
     return ResponseEntity.ok(
         new ContractsListContracts200Response()
             .items(list)
-            .page(page == null ? 1 : page)
-            .pageSize(pageSize == null ? 20 : pageSize)
+            .page(page == null ? Integer.valueOf(1) : page)
+            .pageSize(pageSize == null ? Integer.valueOf(20) : pageSize)
             .total((long) list.size()));
   }
 

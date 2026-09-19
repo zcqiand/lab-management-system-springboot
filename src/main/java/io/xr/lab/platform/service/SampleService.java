@@ -5,6 +5,7 @@ import io.xr.lab.platform.repository.SampleReceiptRepository;
 import io.xr.lab.platform.repository.SampleRepository;
 import io.xr.lab.shared.dto.CreateSampleRequest;
 import io.xr.lab.shared.dto.Sample;
+import io.xr.lab.shared.dto.UpdateSampleExtRequest;
 import io.xr.lab.shared.dto.UpdateSampleRequest;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -48,6 +49,16 @@ public class SampleService {
         repo.findByTenantIdAndId(tenantId, id)
             .orElseThrow(() -> new NoSuchElementException("Sample not found: " + id));
     SampleMapper.applyUpdate(entity, req, nowIso());
+    return SampleMapper.toDto(repo.save(entity));
+  }
+
+  /** M03.F01.I07 ext 补录：整体替换 ext（合并是前端职责，react ReportPreviewModal 提交前已合并）。 */
+  public Sample updateExt(String tenantId, String id, UpdateSampleExtRequest req) {
+    var entity =
+        repo.findByTenantIdAndId(tenantId, id)
+            .orElseThrow(() -> new NoSuchElementException("Sample not found: " + id));
+    entity.setExt(new java.util.HashMap<>(req.getExt()));
+    entity.setUpdatedAt(nowIso());
     return SampleMapper.toDto(repo.save(entity));
   }
 

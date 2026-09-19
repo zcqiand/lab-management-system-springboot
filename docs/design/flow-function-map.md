@@ -75,7 +75,7 @@ flowchart LR
 
 ---
 
-## FLOW-03 试验流程（M03.B3 主流程，对应 ReceiptsApi + SamplesApi + ReportFlowApi）
+## FLOW-03 试验流程（M03.B3 主流程，对应 ReceiptsApi + SamplesApi；原 ReportFlowApi 2026-09-17 并入 ReceiptsApi）
 
 > 「接样 → 任务分配 → 数据录入（写样品） → 提交阶段推进 → 审核 → 批准 → 发放 → 归档」整链主流程。
 > 合同（M02.F01）作为接样 FK 父前置节点单列步骤 S00。
@@ -103,9 +103,9 @@ flowchart LR
 | S05 | 新增样品数据 | 检测员 | receiptId + sampleCode + spec | Sample | — | M03.F03.I03 |
 | S06a | 列样品 | 检测员 | receiptId | Sample[] | — | M03.F03.I01 |
 | S06b | 改删样品 | 检测员 | sampleId PATCH | 更新后 Sample | — | M03.F03.I04, M03.F03.I05, M03.F03.I02 |
-| S07a | 审核列队 | 审核员 | stage | SampleReceipt[] | — | M03.F05.I01 |
-| S07b | 阶段推进 | 审核/批准/发放员 | FlowActionRequest (ids + action) | FlowActionResult[] | task_assignment→data_entry→review→approval→issuance→archived | M03.F06.I01 |
-| S08 | 完结归档 | 系统 | — | flow_status=archived/completed | archived (WITHDRAW 退回 receiving) | M03.F06.I01（再次提交） |
+| S07a | 审核列队 | 审核员 | flowStatus 筛选（队列端点已删，前端列表筛选） | SampleReceipt[] | — | M03.F01.I01 |
+| S07b | 阶段推进 | 审核/批准/发放员 | FlowActionRequest (ids + action) | FlowActionResult[] | task_assignment→data_entry→review→approval→issuance→archived | M03.F02.I05, M03.F03.I12, M03.F05.I07, M03.F06.I05, M03.F07.I05, M03.F08.I05 |
+| S08 | 完结归档 | 系统 | — | flow_status=archived/completed | archived (WITHDRAW 退回 receiving) | M03.F08.I05（再次提交） |
 | S09 | 删除测试数据 | 主管 | id | 204（CASCADE → samples） | — | M03.F01.I05 |
 
 ### 评审时问这四个问题（FLOW-03）

@@ -80,6 +80,8 @@
 |---|---|---|---|---|---|
 | M01.F04.I01 | 动态菜单 | 接口 | 前端+后端 | GET /api/auth/menus：按角色下发导航树（5 根节点，镜像 lab-msw） | 已上线 |
 | M01.F04.I02 | 权限集 | 接口 | 前端+后端 | GET /api/auth/permissions：RBAC 权限串列表（admin 全量 11 项） | 已上线 |
+| M01.F04.I03 | 路由守卫（未登录/无权限拦截） | 标签页 | 前端+后端 | 前端路由守卫 useRequireAuth 钩子（react/vue 仓实现）；本仓 BASE 登记仓内未挂 entry，react/vue 仓 useRequireAuth 5+ 处引用作为产品线 anchor | 开发中 |
+| M01.F04.I04 | 动态菜单（lab 侧边栏） | 标签页 | 前端+后端 | 前端 useSidebarContainer 钩子锚点（nextjs 仓 `<aside>` 实现），无后端端点对应 | 开发中 |
 
 ### M01.F05 认证管理
 
@@ -134,12 +136,21 @@
 | M03.F01.I04 | 更新接样单 | 接口 | 前端+后端 | PUT /api/receipts/{id}：PATCH 语义 | 已上线 |
 | M03.F01.I05 | 删除接样单 | 接口 | 前端+后端 | DELETE /api/receipts/{id}：CASCADE 删除下属 samples | 已上线 |
 | M03.F01.I06 | 接样单流程历史 | 接口 | 前端+后端 | GET /api/receipts/{id}/history：返回 FlowHistoryEntry[]（jsonb 展开为 List） | 已上线 |
+| M03.F01.I07 | 接样单 ext 字段补录 | 接口 | 前端+后端 | PUT /api/samples/{id}/ext：UpdateSampleExtRequest{ext} 按当前类别 extFields 补录持久化到 Sample.ext | 已上线 |
+| M03.F01.I08 | 接样-提交 | 接口 | 前端+后端 | POST /api/receipts/receiving/act，body.action={SUBMIT、RETURN、WITHDRAW} 三动作统一（2026-09-18：I09 退回/I10 撤回语义并入本行；RETURN 前置阶段退回无前置则 422、WITHDRAW 提交人撤回回到原阶段；7 阶段全 act 模式） | 已上线 |
+| M03.F01.I09 | 接样-退回 | 接口 | 前端+后端 | 2026-09-18 标记 已废弃：语义并入 M03.F01.I08（act 端点以 body.action=RETURN 区分，无独立端点） | 已废弃 |
+| M03.F01.I10 | 接样-撤回 | 接口 | 前端+后端 | 2026-09-18 标记 已废弃：语义并入 M03.F01.I08（act 端点以 body.action=WITHDRAW 区分，无独立端点） | 已废弃 |
 
 ### M03.F02 任务分配
 
 | 子项 ID | 名称 | 类型 | 交付 | 说明 | 状态 |
 |---|---|---|---|---|---|
 | M03.F02.I01 | 任务分配 | 接口 | 前端+后端 | PUT /api/receipts/{id}/task：AssignTaskRequest 设 assigneeId/Name/plannedTestDate；非 receiving 阶段不自动 advance | 已上线 |
+| M03.F02.I02 | 任务编辑（客户端视角 anchor） | 按钮 | 前端+后端 | 安排弹窗维护 assigneeName/assigneeId/plannedTestDate（前端弹窗 UI 动作，调 PUT /api/receipts/{id}/task 共 I01 端点；保留 ID 作为客户端视角 anchor，react/vue/nextjs 三仓 data-fn=I01）。**2026-09-17 标记 已废弃**（无独立 .tsp 端点、无 entry/tests 挂载；前端按钮 anchor 仍可用但不挂在 I02 ID 上） | 已废弃 |
+| M03.F02.I03 | 任务取消（清空分配） | 按钮 | 前端+后端 | 清空 assignee/assigneeId/plannedTestDate（调 PUT /api/receipts/{id}/task 共 I01 端点），前端按钮仅 UI 层。**2026-09-17 标记 已废弃**（同 I02：无独立 .tsp 端点、无 entry/tests 挂载） | 已废弃 |
+| M03.F02.I05 | 任务分配-提交 | 接口 | 前端+后端 | POST /api/receipts/assigning/act，body.action={SUBMIT、RETURN、WITHDRAW} 三动作统一（2026-09-18：I06 退回/I07 撤回语义并入本行；RETURN 退回到 receiving；7 阶段全 act 模式） | 已上线 |
+| M03.F02.I06 | 任务分配-退回 | 接口 | 前端+后端 | 2026-09-18 标记 已废弃：语义并入 M03.F02.I05（act 端点以 body.action=RETURN 区分，无独立端点） | 已废弃 |
+| M03.F02.I07 | 任务分配-撤回 | 接口 | 前端+后端 | 2026-09-18 标记 已废弃：语义并入 M03.F02.I05（act 端点以 body.action=WITHDRAW 区分，无独立端点） | 已废弃 |
 
 ### M03.F03 数据录入
 
@@ -156,38 +167,55 @@
 | M03.F03.I09 | 更新检测记录 | 接口 | 前端+后端 | PUT /api/test-records/{id}：PATCH 语义，未传字段保留 | 已上线 |
 | M03.F03.I10 | 删除检测记录 | 接口 | 前端+后端 | DELETE /api/test-records/{id}：204 if exists | 已上线 |
 | M03.F03.I11 | 检测记录改判 | 接口 | 前端+后端 | PUT /api/test-records/{id}/verdict：人工改判（M03.F05/F06 报告流程可触发） | 已上线 |
+| M03.F03.I12 | 数据录入-提交 | 接口 | 前端+后端 | POST /api/receipts/data-entry/act，body.action={SUBMIT、RETURN、WITHDRAW} 三动作统一（2026-09-18：I13 退回/I14 撤回语义并入本行；RETURN 退回到 assigning；7 阶段全 act 模式） | 已上线 |
+| M03.F03.I13 | 数据录入-退回 | 接口 | 前端+后端 | 2026-09-18 标记 已废弃：语义并入 M03.F03.I12（act 端点以 body.action=RETURN 区分，无独立端点） | 已废弃 |
+| M03.F03.I14 | 数据录入-撤回 | 接口 | 前端+后端 | 2026-09-18 标记 已废弃：语义并入 M03.F03.I12（act 端点以 body.action=WITHDRAW 区分，无独立端点） | 已废弃 |
 
 ### M03.F05 报告审核
 
 | 子项 ID | 名称 | 类型 | 交付 | 说明 | 状态 |
 |---|---|---|---|---|---|
-| M03.F05.I01 | 审核队列 | 接口 | 前端+后端 | GET /api/receipts/flow/queue?stage=：按 stage 过滤+按 tenant 收口，返回 ReceiptsListReceipts200Response（pageSize 默认 50，cap 200） | 已上线 |
+| M03.F05.I01 | 审核队列 | 接口 | 前端+后端 | GET /api/receipts/flow/queue?stage=：按 stage 过滤+按 tenant 收口，返回 ReceiptsListReceipts200Response（pageSize 默认 50，cap 200）。2026-09-17 共享端点删除（ReportFlowController 随 codegen 退役），队列走前端列表筛选（镜像 shared） | 已废弃 |
 | M03.F05.I02 | 报告审核-查看详情 | 接口 | 前端+后端 | GET /api/receipts/{id}：返回 SampleReceipt（含 flow_history）走 review 视角 | 已上线 |
-| M03.F05.I03 | 报告审核-通过/退回 | 接口 | 前端+后端 | POST /api/receipts/flow：FlowActionRequest{ids, action, operator, reason}；review 视角下 action=SUBMIT 推进到 approval / RETURN 退回 data_entry | 已上线 |
+| M03.F05.I03 | 报告审核-通过/退回 | 接口 | 前端+后端 | POST /api/receipts/flow：FlowActionRequest{ids, action, operator, reason}；review 视角下 action=SUBMIT 推进到 approval / RETURN 退回 data_entry。2026-09-17 标记 已废弃（/flow 端点删除）；2026-09-18 端点锚定收敛至 M03.F05.I07（POST /api/receipts/review/act），本行无独立端点 | 已废弃 |
+| M03.F05.I05 | 报告审核-批量提交 | 接口 | 仅后端 | POST /api/receipts/review/batch-submit：FlowActionRequest{ids[], action=SUBMIT} 批量推进 review→approval。2026-09-17 标记 已废弃，删 op（未实现） | 已废弃 |
+| M03.F05.I06 | 报告审核-批量退回 | 接口 | 仅后端 | POST /api/receipts/review/batch-return：FlowActionRequest{ids[], action=RETURN} 批量退回 approval→review。2026-09-17 标记 已废弃，删 op（未实现） | 已废弃 |
+| M03.F05.I07 | 报告审核-提交 | 接口 | 前端+后端 | POST /api/receipts/review/act，body.action={SUBMIT、RETURN、WITHDRAW} 三动作统一（2026-09-18：I08 退回/I09 撤回语义并入本行；4 阶段全 act 合并方案 B） | 已上线 |
+| M03.F05.I08 | 报告审核-退回 | 接口 | 前端+后端 | 2026-09-18 标记 已废弃：语义并入 M03.F05.I07（act 端点以 body.action=RETURN 区分，无独立端点） | 已废弃 |
+| M03.F05.I09 | 报告审核-撤回 | 接口 | 前端+后端 | 2026-09-18 标记 已废弃：语义并入 M03.F05.I07（act 端点以 body.action=WITHDRAW 区分，无独立端点） | 已废弃 |
 
 ### M03.F06 报告批准
 
 | 子项 ID | 名称 | 类型 | 交付 | 说明 | 状态 |
 |---|---|---|---|---|---|
-| M03.F06.I01 | 报告阶段审批推进 | 接口 | 前端+后端 | POST /api/receipts/flow：FlowActionRequest{ids, action, operator, reason}；action=SUBMIT/RETURN/WITHDRAW；FAIL 单条结果进 FlowActionResult{ok, message} | 已上线 |
+| M03.F06.I01 | 报告阶段审批推进 | 接口 | 前端+后端 | POST /api/receipts/flow：FlowActionRequest{ids, action, operator, reason}；action=SUBMIT/RETURN/WITHDRAW；FAIL 单条结果进 FlowActionResult{ok, message}。2026-09-17 共享端点删除（/flow 退役，ReportFlowController 随 codegen 退役），阶段推进改走各阶段 act 端点（镜像 shared） | 已废弃 |
 | M03.F06.I02 | 报告批准-查看详情 | 接口 | 前端+后端 | GET /api/receipts/{id}：返回 SampleReceipt（含 flow_history）走 approval 视角 | 已上线 |
-| M03.F06.I03 | 报告批准-批准/退回 | 接口 | 前端+后端 | POST /api/receipts/flow：approval 视角下 action=SUBMIT 推进到 issuance / RETURN 退回 review | 已上线 |
+| M03.F06.I03 | 报告批准-批准/退回 | 接口 | 前端+后端 | POST /api/receipts/flow：approval 视角下 action=SUBMIT 推进到 issuance / RETURN 退回 review。2026-09-17 标记 已废弃（/flow 端点删除）；2026-09-18 端点锚定收敛至 M03.F06.I05（POST /api/receipts/approve/act），本行无独立端点 | 已废弃 |
+| M03.F06.I05 | 报告批准-提交 | 接口 | 前端+后端 | POST /api/receipts/approve/act，body.action={SUBMIT、RETURN、WITHDRAW} 三动作统一（2026-09-18：I06 退回/I07 撤回语义并入本行；4 阶段全 act 合并方案 B） | 已上线 |
+| M03.F06.I06 | 报告批准-退回 | 接口 | 前端+后端 | 2026-09-18 标记 已废弃：语义并入 M03.F06.I05（act 端点以 body.action=RETURN 区分，无独立端点） | 已废弃 |
+| M03.F06.I07 | 报告批准-撤回 | 接口 | 前端+后端 | 2026-09-18 标记 已废弃：语义并入 M03.F06.I05（act 端点以 body.action=WITHDRAW 区分，无独立端点） | 已废弃 |
 
 ### M03.F07 报告发放
 
 | 子项 ID | 名称 | 类型 | 交付 | 说明 | 状态 |
 |---|---|---|---|---|---|
-| M03.F07.I01 | 报告发放队列 | 接口 | 前端+后端 | GET /api/receipts/flow/queue?stage=issuance：按 stage=issuance 过滤当前租户 receipt 列表 | 已上线 |
+| M03.F07.I01 | 报告发放队列 | 接口 | 前端+后端 | GET /api/receipts/flow/queue?stage=issuance：按 stage=issuance 过滤当前租户 receipt 列表。2026-09-17 共享端点删除（ReportFlowController 随 codegen 退役），队列走前端列表筛选（镜像 shared） | 已废弃 |
 | M03.F07.I02 | 报告发放-查看详情 | 接口 | 前端+后端 | GET /api/receipts/{id}：返回 SampleReceipt（含 flow_history + issued_at）走 issuance 视角 | 已上线 |
-| M03.F07.I03 | 报告发放-发放/退回 | 接口 | 前端+后端 | POST /api/receipts/flow：issuance 视角下 action=SUBMIT 推进到 archived / RETURN 退回 approval | 已上线 |
+| M03.F07.I03 | 报告发放-发放/退回 | 接口 | 前端+后端 | POST /api/receipts/flow：issuance 视角下 action=SUBMIT 推进到 archived / RETURN 退回 approval。2026-09-17 标记 已废弃（/flow 端点删除）；2026-09-18 端点锚定收敛至 M03.F07.I05（POST /api/receipts/issuance/act），本行无独立端点 | 已废弃 |
+| M03.F07.I05 | 报告发放-提交 | 接口 | 前端+后端 | POST /api/receipts/issuance/act，body.action={SUBMIT、RETURN、WITHDRAW} 三动作统一（2026-09-18：I06 退回/I07 撤回语义并入本行；4 阶段全 act 合并方案 B） | 已上线 |
+| M03.F07.I06 | 报告发放-退回 | 接口 | 前端+后端 | 2026-09-18 标记 已废弃：语义并入 M03.F07.I05（act 端点以 body.action=RETURN 区分，无独立端点） | 已废弃 |
+| M03.F07.I07 | 报告发放-撤回 | 接口 | 前端+后端 | 2026-09-18 标记 已废弃：语义并入 M03.F07.I05（act 端点以 body.action=WITHDRAW 区分，无独立端点） | 已废弃 |
 
 ### M03.F08 报告归档
 
 | 子项 ID | 名称 | 类型 | 交付 | 说明 | 状态 |
 |---|---|---|---|---|---|
-| M03.F08.I01 | 报告归档队列 | 接口 | 前端+后端 | GET /api/receipts/flow/queue?stage=archived：按 stage=archived 过滤当前租户 receipt 列表 | 已上线 |
+| M03.F08.I01 | 报告归档队列 | 接口 | 前端+后端 | GET /api/receipts/flow/queue?stage=archived：按 stage=archived 过滤当前租户 receipt 列表。2026-09-17 共享端点删除（ReportFlowController 随 codegen 退役），队列走前端列表筛选（镜像 shared） | 已废弃 |
 | M03.F08.I02 | 报告归档-查看详情 | 接口 | 前端+后端 | GET /api/receipts/{id}：返回 SampleReceipt（含 flow_history）走 archived 视角 | 已上线 |
-| M03.F08.I03 | 报告归档-归档/退回 | 接口 | 前端+后端 | POST /api/receipts/flow：archived 视角下 action=SUBMIT 推进终态 / RETURN 退回 issuance | 已上线 |
+| M03.F08.I03 | 报告归档-归档/退回 | 接口 | 前端+后端 | POST /api/receipts/flow：archived 视角下 action=SUBMIT 推进终态 / RETURN 退回 issuance。2026-09-17 标记 已废弃（/flow 端点删除）；2026-09-18 端点锚定收敛至 M03.F08.I05（POST /api/receipts/archived/act），本行无独立端点 | 已废弃 |
+| M03.F08.I05 | 报告归档-提交 | 接口 | 前端+后端 | POST /api/receipts/archived/act，body.action={SUBMIT、RETURN、WITHDRAW} 三动作统一（2026-09-18：I06 退回/I07 撤回语义并入本行；4 阶段全 act 合并方案 B） | 已上线 |
+| M03.F08.I06 | 报告归档-退回 | 接口 | 前端+后端 | 2026-09-18 标记 已废弃：语义并入 M03.F08.I05（act 端点以 body.action=RETURN 区分，无独立端点） | 已废弃 |
+| M03.F08.I07 | 报告归档-撤回 | 接口 | 前端+后端 | 2026-09-18 标记 已废弃：语义并入 M03.F08.I05（act 端点以 body.action=WITHDRAW 区分，无独立端点） | 已废弃 |
 
 ### M03.F09 接样单详情
 
@@ -257,6 +285,9 @@
 |---|---|---|---|---|---|
 | M05.F01.I01 | 报告汇总 | 查询 | 前端+后端 | GET /api/summary?categoryCode=&dateFrom=&dateTo=：categoryCode=ALL 不过滤，否则按报告类别过滤当前租户接样单；输出 SummaryData{summaryName, columns(6), rows}；data-fn=nextjs/react/vue 仓 SummaryPage | 已上线 |
 | M05.F01.I06 | 仪表盘统计基础端点 | 查询 | 前端+后端 | GET /api/summary/stats 基础字段：contractCount/receiptCount/sampleCount + 报告状态 3 桶（draft=receiving+task+data_entry；reviewing=review+approval；issued=issuance+archived）+ pendingTaskCount。ADR-0033 阶段二自 M05.F02.I01 改挂 F01（BASE I06 下沉对齐） | 已上线 |
+| M05.F01.I03 | 核心指标卡 | 查询 | 前端+后端 | 今日试验总数 + 检测合格率（按材料类型 concrete/rebar/sand）+ 报告产出量（已生成/已签发/待审核）；GET /api/summary/stats 扩展 todayTestCount/qualifiedRateByMaterial/reportOutputByStatus | 规划 |
+| M05.F01.I04 | 任务状态漏斗 | 报表 | 前端+后端 | 6 段实时计数：待取样→已收样→试验中→报告编制→待审核→已签发；GET /api/summary/stats 扩展 funnelByStage:{pending_collect, received, testing, reporting, reviewing, issued} | 规划 |
+| M05.F01.I05 | 见证取样跟踪 | 报表 | 前端+后端 | 见证率（合同需见证的接样单中已完成见证的比例）+ 见证到位情况明细；GET /api/summary/stats 扩展 witnessStats:{requireWitness, witnessed, witnessRate, details[]} | 规划 |
 
 ---
 

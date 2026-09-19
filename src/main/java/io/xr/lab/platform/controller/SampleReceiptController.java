@@ -47,8 +47,8 @@ public class SampleReceiptController implements ReceiptsApi {
     return ResponseEntity.ok(
         new ReceiptsListReceipts200Response()
             .items(list)
-            .page(page == null ? 1 : page)
-            .pageSize(pageSize == null ? 20 : pageSize)
+            .page(page == null ? Integer.valueOf(1) : page)
+            .pageSize(pageSize == null ? Integer.valueOf(20) : pageSize)
             .total((long) list.size()));
   }
 

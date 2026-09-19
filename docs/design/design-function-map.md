@@ -64,18 +64,18 @@
 | M03.F03.I03 | SampleController#samplesCreateSample / SampleService#create | POST /api/samples | samples（receipt_id FK 必存在；ext 默认 {}） | M03.F03.I03 | - | 已上线 |
 | M03.F03.I04 | SampleController#samplesUpdateSample / SampleService#update | PUT /api/samples/{id} | samples | M03.F03.I04 | - | 已上线 |
 | M03.F03.I05 | SampleController#samplesDeleteSample / SampleService#delete | DELETE /api/samples/{id} | samples | M03.F03.I05 | - | 已上线 |
-| M03.F05.I01 | ReportFlowController#reportFlowListFlowQueue / ReportFlowService#flowQueue | GET /api/receipts/flow/queue?stage= | sample_receipts（按 flow_status 过滤 + tenant 收口，cap 默认 50） | M03.F05.I01 | - | 已上线 |
-| M03.F06.I01 | ReportFlowController#reportFlowSubmitFlowAction / ReportFlowService#submitAction | POST /api/receipts/flow | sample_receipts.flow_status + flow_history | M03.F06.I01 | - | 已上线 |
+| M03.F05.I01 | 无（端点 2026-09-17 删，ReportFlowController 随 codegen 退役；队列走前端列表筛选） | （已删） | — | M03.F05.I01 | - | 已废弃 |
+| M03.F06.I01 | 无（/flow 端点 2026-09-17 删，ReportFlowController 随 codegen 退役；阶段推进改走各阶段 act 端点） | （已删） | — | M03.F06.I01 | - | 已废弃 |
 | M03.F05.I02 | SampleReceiptController#receiptsGetReceipt / SampleReceiptService#get | GET /api/receipts/{id} | sample_receipts（review 视角，含 flow_history） | M03.F05.I02 | - | 已上线 |
-| M03.F05.I03 | ReportFlowController#reportFlowSubmitFlowAction / ReportFlowService#submitAction | POST /api/receipts/flow | sample_receipts.flow_status（review → approval/退回 data_entry） | M03.F05.I03 | - | 已上线 |
+| M03.F05.I03 | 无（并入 M03.F05.I07 act 端点，ReportFlowService#actFlowReview） | POST /api/receipts/review/act（挂 M03.F05.I07） | — | M03.F05.I03 | - | 已废弃 |
 | M03.F06.I02 | SampleReceiptController#receiptsGetReceipt / SampleReceiptService#get | GET /api/receipts/{id} | sample_receipts（approval 视角） | M03.F06.I02 | - | 已上线 |
-| M03.F06.I03 | ReportFlowController#reportFlowSubmitFlowAction / ReportFlowService#submitAction | POST /api/receipts/flow | sample_receipts.flow_status（approval → issuance/退回 review） | M03.F06.I03 | - | 已上线 |
-| M03.F07.I01 | ReportFlowController#reportFlowListFlowQueue / ReportFlowService#flowQueue | GET /api/receipts/flow/queue?stage=issuance | sample_receipts（按 stage=issuance 过滤） | M03.F07.I01 | - | 已上线 |
+| M03.F06.I03 | 无（并入 M03.F06.I05 act 端点，ReportFlowService#actFlowApprove） | POST /api/receipts/approve/act（挂 M03.F06.I05） | — | M03.F06.I03 | - | 已废弃 |
+| M03.F07.I01 | 无（端点 2026-09-17 删，ReportFlowController 随 codegen 退役；队列走前端列表筛选） | （已删） | — | M03.F07.I01 | - | 已废弃 |
 | M03.F07.I02 | SampleReceiptController#receiptsGetReceipt / SampleReceiptService#get | GET /api/receipts/{id} | sample_receipts（issuance 视角，含 issued_at） | M03.F07.I02 | - | 已上线 |
-| M03.F07.I03 | ReportFlowController#reportFlowSubmitFlowAction / ReportFlowService#submitAction | POST /api/receipts/flow | sample_receipts.flow_status（issuance → archived/退回 approval） | M03.F07.I03 | - | 已上线 |
-| M03.F08.I01 | ReportFlowController#reportFlowListFlowQueue / ReportFlowService#flowQueue | GET /api/receipts/flow/queue?stage=archived | sample_receipts（按 stage=archived 过滤） | M03.F08.I01 | - | 已上线 |
+| M03.F07.I03 | 无（并入 M03.F07.I05 act 端点，ReportFlowService#actFlowIssuance） | POST /api/receipts/issuance/act（挂 M03.F07.I05） | — | M03.F07.I03 | - | 已废弃 |
+| M03.F08.I01 | 无（端点 2026-09-17 删，ReportFlowController 随 codegen 退役；队列走前端列表筛选） | （已删） | — | M03.F08.I01 | - | 已废弃 |
 | M03.F08.I02 | SampleReceiptController#receiptsGetReceipt / SampleReceiptService#get | GET /api/receipts/{id} | sample_receipts（archived 视角） | M03.F08.I02 | - | 已上线 |
-| M03.F08.I03 | ReportFlowController#reportFlowSubmitFlowAction / ReportFlowService#submitAction | POST /api/receipts/flow | sample_receipts.flow_status（archived → 终态/退回 issuance） | M03.F08.I03 | - | 已上线 |
+| M03.F08.I03 | 无（并入 M03.F08.I05 act 端点，ReportFlowService#actFlowArchived） | POST /api/receipts/archived/act（挂 M03.F08.I05） | — | M03.F08.I03 | - | 已废弃 |
 | M03.F09.I01 | SampleReceiptController#receiptsGetReceipt / SampleReceiptService#get | GET /api/receipts/{id} | sample_receipts（含 flow_history）+ 客户端组合 samples + test_records 展示 | M03.F09.I01 | - | 已上线 |
 
 > B11 说明：F-级状态统一从「规划」翻「已上线」（M00.F01/F02 + M01.F04/F05 + M02.F01 +

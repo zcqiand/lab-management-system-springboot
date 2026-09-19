@@ -6,6 +6,7 @@ import io.xr.lab.shared.api.SamplesApi;
 import io.xr.lab.shared.dto.CreateSampleRequest;
 import io.xr.lab.shared.dto.Sample;
 import io.xr.lab.shared.dto.SamplesListSamples200Response;
+import io.xr.lab.shared.dto.UpdateSampleExtRequest;
 import io.xr.lab.shared.dto.UpdateSampleRequest;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -32,8 +33,8 @@ public class SampleController implements SamplesApi {
     return ResponseEntity.ok(
         new SamplesListSamples200Response()
             .items(list)
-            .page(page == null ? 1 : page)
-            .pageSize(pageSize == null ? 20 : pageSize)
+            .page(page == null ? Integer.valueOf(1) : page)
+            .pageSize(pageSize == null ? Integer.valueOf(20) : pageSize)
             .total((long) list.size()));
   }
 
@@ -59,6 +60,16 @@ public class SampleController implements SamplesApi {
             InspectionCatalogController.currentTenantIdOrDefaultStatic(directory),
             id,
             updateSampleRequest));
+  }
+
+  @Override
+  public ResponseEntity<Sample> samplesUpdateSampleExt(
+      String id, UpdateSampleExtRequest updateSampleExtRequest) {
+    return ResponseEntity.ok(
+        service.updateExt(
+            InspectionCatalogController.currentTenantIdOrDefaultStatic(directory),
+            id,
+            updateSampleExtRequest));
   }
 
   @Override
