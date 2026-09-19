@@ -24,7 +24,8 @@ import org.springframework.web.client.RestClient;
  * <p>请求体 application/json（saas 端契约源自 TypeSpec,saas-springboot Controller 收 JSON）。{@code client_id}
  * / {@code clientSecret} 走 body,不再加 Authorization Basic 头（saas 双接受,body 简单）。
  *
- * <p>本类不直接 @Component，由 {@link io.xr.lab.platform.config.SsoBeansConfig} 按 profile 选 real/noop 实现。
+ * <p>本类不直接 @Component，由 {@link io.xr.lab.platform.config.SsoBeansConfig} 无条件注册真实现（no-sso 降级 profile
+ * 已按 2026-09-20 人裁移除）。
  *
  * <p>构造期 fail-fast（env 缺失即抛 IllegalStateException 阻断 bean 创建）—— CT_CONSTRUCTOR_THROW 是 SpotBugs
  * 已知误报（final 字段单赋值场景），已在 spotbugs-exclude.xml 全局豁免。
@@ -65,7 +66,7 @@ public class SaasAuthClient {
     this.serviceClientId = serviceClientId;
   }
 
-  /** 无参构造器（用于 Noop 子类继承,跳过 env 校验）。 */
+  /** 无参构造器（用于测试替身子类继承,跳过 env 校验）。 */
   protected SaasAuthClient() {
     this.http = null;
     this.clientId = null;

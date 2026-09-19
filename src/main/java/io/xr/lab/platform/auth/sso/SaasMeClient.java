@@ -15,7 +15,8 @@ import org.springframework.web.client.RestClient;
  * <p>lab 拿到 saas access token 后,必须用 Bearer 头鉴权才能拿 CurrentUser(里面含 email + memberships + tenantId)。
  * saas 这两个端点不要求 tenant_id 路径参数,直接走 Bearer 即可。
  *
- * <p>本类不直接 @Component，由 {@link io.xr.lab.platform.config.SsoBeansConfig} 按 profile 选 real/noop 实现。
+ * <p>本类不直接 @Component，由 {@link io.xr.lab.platform.config.SsoBeansConfig} 无条件注册真实现（no-sso 降级 profile
+ * 已按 2026-09-20 人裁移除）。
  *
  * <p>构造期 fail-fast（env 缺失即抛 IllegalStateException 阻断 bean 创建）—— CT_CONSTRUCTOR_THROW 是 SpotBugs
  * 已知误报（final 字段单赋值场景），已在 spotbugs-exclude.xml 全局豁免。
@@ -42,7 +43,7 @@ public class SaasMeClient {
     this.http = SaasHttp.build(saasBase);
   }
 
-  /** 无参构造器（用于 Noop 子类继承,跳过 env 校验）。 */
+  /** 无参构造器（用于测试替身子类继承,跳过 env 校验）。 */
   protected SaasMeClient() {
     this.http = null;
   }

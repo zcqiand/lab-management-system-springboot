@@ -13,7 +13,6 @@ import io.xr.lab.platform.auth.sso.SaasAuthClient;
 import io.xr.lab.platform.auth.sso.SaasMeClient;
 import io.xr.lab.platform.auth.sso.SaasMenuMapper;
 import io.xr.lab.platform.config.LabConfig;
-import io.xr.lab.platform.config.SsoBeansConfig;
 import io.xr.lab.platform.directory.ConfigUserDirectory;
 import io.xr.lab.shared.dto.CurrentUserSession;
 import io.xr.lab.shared.dto.LoginRequest;
@@ -29,8 +28,8 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 /**
  * AuthService 单测（B1 认证域 9 I 级，真后端）。
  *
- * <p>用 noop saas beans（{@link SsoBeansConfig.NoopSaasAuthClient} + NoopSaasMeClient），无需 saas 联通。JWT
- * 走真 HMAC HS256 签发，SecretKey ≥32B 满足。
+ * <p>用 noop saas 测试替身（{@link NoopSaasClients.NoopSaasAuthClient} + NoopSaasMeClient，原
+ * SsoBeansConfig Noop 内部类迁移件），无需 saas 联通。JWT 走真 HMAC HS256 签发，SecretKey ≥32B 满足。
  */
 class AuthServiceTest {
 
@@ -52,8 +51,8 @@ class AuthServiceTest {
               "lab-management")); // 5.33：服务账号登录 clientId（LoginRequest 契约必填）
 
   private final LabJwtSigner jwt = new LabJwtSigner(SECRET, "lab-test", 3600, 604800);
-  private final SaasAuthClient saasAuth = new SsoBeansConfig.NoopSaasAuthClient();
-  private final SaasMeClient saasMe = new SsoBeansConfig.NoopSaasMeClient();
+  private final SaasAuthClient saasAuth = new NoopSaasClients.NoopSaasAuthClient();
+  private final SaasMeClient saasMe = new NoopSaasClients.NoopSaasMeClient();
 
   private final AuthService service =
       new AuthService(
@@ -365,7 +364,7 @@ class AuthServiceTest {
   void ssoCallback_tenantListUnavailable_degradesToTenantId() {
     // saas /admin/tenants 5xx：登录不阻塞，name/code 降级回 tenantId
     io.xr.lab.platform.auth.sso.SaasMeClient failing =
-        new SsoBeansConfig.NoopSaasMeClient() {
+        new NoopSaasClients.NoopSaasMeClient() {
           @Override
           public java.util.List<io.xr.lab.platform.auth.sso.SaasMeClient.SaasPlatformTenant>
               listPlatformTenants(String saasAccessToken) {

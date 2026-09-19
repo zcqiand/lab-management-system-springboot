@@ -2,16 +2,6 @@ spring:
   application:
     name: lab-management-system-springboot
 
-  # 默认 profile=sso（真 SaasAuthClient/SaasMeClient，调 saas OAuth）。
-  # 4 个 saas env（LAB_SAAS_BASE/CLIENT_ID/CLIENT_SECRET/DEFAULT_TENANT_ID）必填，
-  # 缺一启动即被 fail-fast 拒绝（SsoBeansConfig）。
-  # 离线 dev：LAB_PROFILE=no-sso 切回 NoopSaasAuthClient。
-  # 注意用 spring.profiles.default 而不是 spring.config.activate.on-profile：
-  # 后者是「条件包含本配置文档」的守卫，且 profile 名不解析占位符 ——
-  # 写在那会把整份 application.yml（含 datasource）变成永不加载。
-  profiles:
-    default: ${LAB_PROFILE:sso}
-
   # postgres 直连（ADR-0025/ADR-0033 DB-First）：schema 真源 = shared src/db/schema.ts
   # （db:generate → migrate-db 物化/应用），本仓只读不写；镜像产物 =
   # scripts/scaffold-entities.sh → entity/Generated/（入 git，git diff 漂移检测）。
@@ -49,11 +39,10 @@ logging:
     root: INFO
     io.xr.lab: DEBUG
 
-# B1 真后端 OAuth 2.0 + JWT 签发配置（ADR-0008）。
+# B1 真后端 OAuth 2.0 + JWT 签发配置（ADR-0008）。恒真链（no-sso 降级 profile 已按
+# 2026-09-20 人裁移除，ADR-0008 §6 有废止注记）。
 # - Jwt 密钥 ≥32B（HS256），dev 默认占位即可；prod 必走 env。
 # - Sso 4 字段 saas-base/client-id/client-secret/default-tenant-id 缺一不可。
-# - dev 默认 profile=no-sso（NoopSaasAuthClient），无需 saas 也跑通。
-# - prod/CI 切 default profile 走真 saas。
 lab:
   jwt:
     # ADR-0019：issuer/ttl 字面默认值删,要求 @ConfigurationProperties 显式声明。

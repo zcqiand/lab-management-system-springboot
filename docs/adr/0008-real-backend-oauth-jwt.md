@@ -66,6 +66,10 @@ lab-management-system 多仓家族长期在 B1 "鉴权占位" 状态:
 
 ### 6. dev 降级:`no-sso` profile
 
+> **废止注记（2026-09-20）**:本节 no-sso 降级模式已按人裁整体移除——lab 家族恒 real SSO + 恒真库,
+> `SsoBeansConfig` 无条件注册真 HTTP 客户端,`LAB_PROFILE` 开关、`spring.profiles.default` 覆盖与
+> Noop 假客户端全部删除。Consequences 中「dev 离线模式保留」一条随之作废。原方案留档如下。
+
 - `application.yml` 加 `spring.config.activate.on-profile: ${LAB_PROFILE:no-sso}` 默认值
 - `no-sso` 模式:`SsoBeansConfig` 注册 `NoopSaasAuthClient` + `NoopSaasMeClient`,行为固定为 admin session + 3 租户种子(镜像 lab-msw handlers-extra.ts)
 - `default` 模式:注册真 HTTP `SaasAuthClient`(RestClient 调用)
