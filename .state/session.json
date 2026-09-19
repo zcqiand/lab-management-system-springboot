@@ -1,19 +1,22 @@
 {
   "schema": 1,
   "project": "lab-management-system-springboot",
-  "current_task": "REQ-2026-001：unlink 幂等 204——已上线",
+  "current_task": "2026-09-19 family-leftovers wave 收口（Task 6）：--all 三轮全绿（含 act WIP 工作树）；act WIP 归另一会话收口",
   "done": [
     "unlinkParamInterface NSEE→404 改幂等（契约 void 语义）",
-    "单测 unlinkParamInterface_missing_idempotent204 同 commit 对齐；commit fc8a5bc"
+    "单测 unlinkParamInterface_missing_idempotent204 同 commit 对齐；commit fc8a5bc",
+    "Task 6：三轮全绿实证（WIP 树不阻门）"
   ],
   "next": [
-    "其余 6 组 junction unlink 幂等化候选"
+    "act WIP 收口归另一会话：AuthService.java:39 javadoc 与 :331 矛盾、function-tree 三份预拿语义校正、M03.F01.I07/I08 提交（5.17 联动）"
   ],
   "open_questions": [],
   "dont": [
     "python 文本模式重写 .java 会 CRLF→LF 破坏 spotless——改后必跑 mvn spotless:apply",
-    "资源不存在抛 NSEE→404 约定已被本 REQ 局部修改（仅 param-interface link）——推广前先对齐契约语义"
+    "资源不存在抛 NSEE→404 约定已被本 REQ 局部修改（仅 param-interface link）——推广前先对齐契约语义",
+    "本仓工作树的 act WIP 8 文件属另一会话——不要代提交、不要 checkout 还原"
   ],
   "active_branch": "master",
-  "last_session_at": "2026-09-14"
+  "last_session_at": "2026-09-19",
+  "last_session_summary": "无本批代码改动：R1/R2/R3 --all 全绿（工作树含另一会话 M03.F01.I07/I08 act WIP 8 文件，B 段 live 栈 5205 即跑在该 WIP 树上）"
 }
