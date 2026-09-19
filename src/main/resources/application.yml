@@ -79,6 +79,9 @@ lab:
     # 身份,login() 后用它登 saas /auth/login 换 token 拉 /me/menus。
     service-user: ${LAB_SAAS_SERVICE_USER:}
     service-password: ${LAB_SAAS_SERVICE_PASSWORD:}
+    # 服务账号登录的 LoginRequest.clientId（saas 契约必填,2026-09-19 5.33 补；
+    # oauth_client code 形 = lab-management,与 OAuth code 流的 client-id 分开配）
+    service-client-id: ${LAB_SAAS_SERVICE_CLIENT_ID:}
   auth:
     dev-password: ${LAB_AUTH_DEV_PASSWORD:}
   cors:

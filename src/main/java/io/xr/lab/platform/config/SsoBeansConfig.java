@@ -48,13 +48,18 @@ public class SsoBeansConfig {
               + "Set in .env.local (dev) or env (prod).");
     }
     // SSO 凭据（service account 任何 profile 都需要,no-sso 也调 serviceLogin）
+    // 2026-09-19 5.33：service-client-id 补必填（saas LoginRequest.clientId 契约必填,
+    // 业务身份字段禁字面默认值——ADR-0019）
     if (labConfig.sso() == null
         || labConfig.sso().serviceUser() == null
         || labConfig.sso().serviceUser().isBlank()
         || labConfig.sso().servicePassword() == null
-        || labConfig.sso().servicePassword().isBlank()) {
+        || labConfig.sso().servicePassword().isBlank()
+        || labConfig.sso().serviceClientId() == null
+        || labConfig.sso().serviceClientId().isBlank()) {
       throw new IllegalStateException(
-          "lab.sso.{service-user,service-password} 必填 (ADR-0019 禁 \"alice\"/\"dev123456\" 字面默认值). "
+          "lab.sso.{service-user,service-password,service-client-id} 必填 (ADR-0019 禁"
+              + " \"alice\"/\"dev123456\" 字面默认值). "
               + "Set in .env.local (dev) or env (prod).");
     }
   }
@@ -78,7 +83,8 @@ public class SsoBeansConfig {
         labConfig.sso().saasBase(),
         labConfig.sso().clientId(),
         labConfig.sso().clientSecret(),
-        labConfig.sso().defaultTenantId());
+        labConfig.sso().defaultTenantId(),
+        labConfig.sso().serviceClientId());
   }
 
   @Bean

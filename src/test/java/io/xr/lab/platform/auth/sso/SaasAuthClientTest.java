@@ -43,7 +43,8 @@ class SaasAuthClientTest {
             server.url("").toString().replaceAll("/$", ""),
             "lab-client-id",
             "lab-client-secret",
-            "00000000-0000-0000-0000-000000000001");
+            "00000000-0000-0000-0000-000000000001",
+            "lab-management");
   }
 
   @AfterEach
@@ -118,20 +119,53 @@ class SaasAuthClientTest {
   }
 
   @Test
+  @Fn({"M01.F05.I01"})
+  void serviceLogin_bodyHasClientId_noTenantCode() throws Exception {
+    // 2026-09-19 5.33：saas LoginRequest = {username, password, clientId}（shared tsp
+    // routes/sessions.tsp，clientId 必填）。修前 body 缺 clientId 且带契约已删的
+    // tenantCode → saas 400 fieldErrors.clientId → 菜单快照 503。
+    server.enqueue(
+        new MockResponse()
+            .setBody(
+                "{\"accessToken\":\"svc-at\",\"refreshToken\":\"svc-rt\","
+                    + "\"tokenType\":\"Bearer\",\"expiresIn\":3600,\"scope\":\"openid\"}")
+            .addHeader("Content-Type", "application/json"));
+
+    SaasAuthClient.TokenResponse resp = client.serviceLogin("alice", "dev123456");
+
+    assertEquals("svc-at", resp.getAccessToken());
+
+    RecordedRequest sent = server.takeRequest();
+    String body = sent.getBody().readUtf8();
+    assertTrue(body.contains("\"username\":\"alice\""));
+    assertTrue(
+        body.contains("\"clientId\":\"lab-management\""),
+        "LoginRequest clientId 必填（saas sessions.tsp 契约），修前缺 clientId 致 saas 400 fieldErrors");
+    assertTrue(!body.contains("\"tenantCode\""), "tenantCode 是契约已不存在的陈旧字段，不得再发");
+  }
+
+  @Test
   @Fn({"M01.F05.I03"})
   void constructor_validatesRequiredEnv() {
-    assertThrows(IllegalStateException.class, () -> new SaasAuthClient("", "id", "sec", "tid"));
     assertThrows(
-        IllegalStateException.class, () -> new SaasAuthClient("http://x", "", "sec", "tid"));
+        IllegalStateException.class, () -> new SaasAuthClient("", "id", "sec", "tid", "svc-id"));
     assertThrows(
-        IllegalStateException.class, () -> new SaasAuthClient("http://x", "id", "", "tid"));
+        IllegalStateException.class,
+        () -> new SaasAuthClient("http://x", "", "sec", "tid", "svc-id"));
     assertThrows(
-        IllegalStateException.class, () -> new SaasAuthClient("http://x", "id", "sec", ""));
+        IllegalStateException.class,
+        () -> new SaasAuthClient("http://x", "id", "", "tid", "svc-id"));
+    assertThrows(
+        IllegalStateException.class,
+        () -> new SaasAuthClient("http://x", "id", "sec", "", "svc-id"));
+    // 5.33：serviceClientId 是业务身份字段（ADR-0019），缺失必须 fail-fast
+    assertThrows(
+        IllegalStateException.class, () -> new SaasAuthClient("http://x", "id", "sec", "tid", ""));
   }
 
   @Test
   void constructor_acceptsValidArgs() {
-    SaasAuthClient c = new SaasAuthClient("http://localhost:3000", "id", "sec", "tid");
+    SaasAuthClient c = new SaasAuthClient("http://localhost:3000", "id", "sec", "tid", "svc-id");
     assertNotNull(c);
   }
 }

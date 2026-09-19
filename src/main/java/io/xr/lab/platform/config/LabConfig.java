@@ -21,6 +21,8 @@ public record LabConfig(Jwt jwt, Sso sso) {
    *     API 域名上）。空则回落 saasBase（dev 时 nextjs 同源）
    * @param serviceUser saas 服务账号（lab 密码登录后替 dev 用户拉 /me/menus 快照用；dev 默认 alice）
    * @param servicePassword 服务账号密码（dev 默认 dev123456；prod 走 env 不得带出本机）
+   * @param serviceClientId 服务账号登录的 LoginRequest.clientId（saas 契约必填；oauth_client code 形 =
+   *     lab-management。 2026-09-19 5.33 补，与 OAuth code 流的 clientId 分开配）
    */
   public record Sso(
       String saasBase,
@@ -30,7 +32,8 @@ public record LabConfig(Jwt jwt, Sso sso) {
       String defaultTenantId,
       String callbackRedirectBase,
       String serviceUser,
-      String servicePassword) {
+      String servicePassword,
+      String serviceClientId) {
 
     public String effectiveLoginUrl() {
       return loginUrl == null || loginUrl.isBlank() ? saasBase : loginUrl;

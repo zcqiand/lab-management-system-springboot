@@ -77,6 +77,8 @@ if [ ! -f "$BASE/springboot.env" ]; then
       fi
       printf 'LAB_SAAS_SERVICE_USER=%s\n' "$LAB_SAAS_SERVICE_USER"
       printf 'LAB_SAAS_SERVICE_PASSWORD=%s\n' "$LAB_SAAS_SERVICE_PASSWORD"
+      # 5.33 服务账号登录 LoginRequest.clientId(saas 契约必填;非 secret,oauth_client code 形固定值)
+      printf 'LAB_SAAS_SERVICE_CLIENT_ID=lab-management\n'
       # JWT 三件套显式写(值=契约文件值;禁 yml 占位默认值静默兜底)
       printf 'JWT_ISSUER=lab-management-system\n'
       printf 'JWT_AUDIENCE=lab-management-system-clients\n'
@@ -276,6 +278,8 @@ if [ -f "$BASE/springboot.env" ]; then
     append_if_missing LAB_SAAS_SERVICE_USER "$LAB_SAAS_SERVICE_USER"
     append_if_missing LAB_SAAS_SERVICE_PASSWORD "$LAB_SAAS_SERVICE_PASSWORD"
   fi
+  # 5.33 服务账号登录 LoginRequest.clientId:非 secret,固定 code 形字面量补(存量 env-file 迁移)
+  append_if_missing LAB_SAAS_SERVICE_CLIENT_ID 'lab-management'
 fi
 
 echo "→ image: $IMAGE"

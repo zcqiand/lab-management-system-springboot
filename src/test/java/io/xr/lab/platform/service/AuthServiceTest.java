@@ -48,7 +48,8 @@ class AuthServiceTest {
               "00000000-0000-0000-0000-000000000001",
               "http://localhost:5202/api/auth/sso/callback",
               "alice", // 服务账号（密码登录拉菜单快照用，noop saas 下不触网）
-              "dev123456"));
+              "dev123456",
+              "lab-management")); // 5.33：服务账号登录 clientId（LoginRequest 契约必填）
 
   private final LabJwtSigner jwt = new LabJwtSigner(SECRET, "lab-test", 3600, 604800);
   private final SaasAuthClient saasAuth = new SsoBeansConfig.NoopSaasAuthClient();

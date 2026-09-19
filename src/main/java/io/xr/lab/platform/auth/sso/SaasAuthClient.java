@@ -35,9 +35,14 @@ public class SaasAuthClient {
   private final String clientId;
   private final String clientSecret;
   private final String defaultTenantId;
+  private final String serviceClientId;
 
   public SaasAuthClient(
-      String saasBase, String clientId, String clientSecret, String defaultTenantId) {
+      String saasBase,
+      String clientId,
+      String clientSecret,
+      String defaultTenantId,
+      String serviceClientId) {
     if (saasBase == null || saasBase.isEmpty()) {
       throw new IllegalStateException("lab.sso.saas-base required");
     }
@@ -50,10 +55,14 @@ public class SaasAuthClient {
     if (defaultTenantId == null || defaultTenantId.isEmpty()) {
       throw new IllegalStateException("LAB_SAAS_DEFAULT_TENANT_ID required");
     }
+    if (serviceClientId == null || serviceClientId.isEmpty()) {
+      throw new IllegalStateException("LAB_SAAS_SERVICE_CLIENT_ID required");
+    }
     this.http = SaasHttp.build(saasBase);
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.defaultTenantId = defaultTenantId;
+    this.serviceClientId = serviceClientId;
   }
 
   /** 无参构造器（用于 Noop 子类继承,跳过 env 校验）。 */
@@ -62,18 +71,23 @@ public class SaasAuthClient {
     this.clientId = null;
     this.clientSecret = null;
     this.defaultTenantId = null;
+    this.serviceClientId = null;
   }
 
   /**
    * saas /api/v1/auth/login 密码登录（服务账号用）。lab 密码登录的 dev 用户无 saas 身份， login() 成功后用本方法以 env
    * 配置的服务账号（LAB_SAAS_SERVICE_USER/PASSWORD，dev 默认 alice/dev123456） 换 saas accessToken 再拉 /me/menus
    * 快照。失败映射与 OAuth 端点同款。
+   *
+   * <p>2026-09-19 5.33：body 对齐 saas LoginRequest 契约 {username, password, clientId}——clientId 取
+   * LAB_SAAS_SERVICE_CLIENT_ID（oauth_client code 形，dev/prod = lab-management）；陈旧字段 tenantCode
+   * 删（契约无此字段， 修前 saas 回 fieldErrors.clientId Required → 菜单快照 503）。
    */
   public TokenResponse serviceLogin(String username, String password) {
     LinkedHashMap<String, String> body = new LinkedHashMap<>();
     body.put("username", username);
     body.put("password", password);
-    body.put("tenantCode", defaultTenantId);
+    body.put("clientId", serviceClientId);
     try {
       return http.post()
           .uri("/api/v1/auth/login")
