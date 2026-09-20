@@ -133,9 +133,18 @@ public class SampleReceiptService {
     } else if (action == FlowAction.WITHDRAW) {
       entity.setLastSubmittedBy(null);
     }
+    // 5.75 history 记 action 真值（SSOT = lab-nextjs db-queries.ts:256-259）：
+    // return/withdraw 条目也必须写 wire 值 return/withdraw，不许字面量 "submit"
+    // （FlowAction @JsonValue 即 wire 值）。assignReceipt 的 "M03.F02 任务分配" 写
+    // "submit" 是真 submit 转移（receiving→assigning），不在本修复范围。
     entity.setFlowHistory(
         SampleReceiptMapper.appendHistory(
-            entity.getFlowHistory(), "submit", operator, from.getValue(), to.getValue(), reason));
+            entity.getFlowHistory(),
+            action.getValue(),
+            operator,
+            from.getValue(),
+            to.getValue(),
+            reason));
     entity.setUpdatedAt(nowIso());
     return SampleReceiptMapper.toDto(repo.save(entity));
   }

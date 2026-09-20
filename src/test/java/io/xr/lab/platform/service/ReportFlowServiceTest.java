@@ -136,6 +136,36 @@ class ReportFlowServiceTest {
             org.mockito.ArgumentMatchers.isNull());
   }
 
+  // 5.75 operator 契约必填边缘对齐（SSOT = lab-nextjs act-route.ts:39-44）：
+  // 缺失与空串都 400 —— service 层对空串抛 IllegalArgumentException
+  // （GlobalExceptionHandler → 400 {code:"BAD_REQUEST", message:"operator is required"}）；
+  // null 已由 FlowActionRequest @NotNull 在 controller 层 400 拦截，此处防御兜底。
+  @Test
+  @Fn({"M03.F01.I08"})
+  void actReceiving_blankOperator_throwsIllegalArgument() {
+    SampleReceiptEntity existing = entity("R-001", FlowStatus.RECEIVING);
+    when(repo.findByTenantIdAndId(TENANT, "R-001")).thenReturn(Optional.of(existing));
+    FlowActionRequest req =
+        new FlowActionRequest().ids(List.of("R-001")).action(FlowAction.SUBMIT).operator("");
+    IllegalArgumentException ex =
+        org.junit.jupiter.api.Assertions.assertThrows(
+            IllegalArgumentException.class, () -> service.actReceiving(TENANT, req));
+    assertEquals("operator is required", ex.getMessage());
+  }
+
+  @Test
+  @Fn({"M03.F08.I05"})
+  void actArchived_blankOperator_throwsIllegalArgument() {
+    SampleReceiptEntity existing = entity("R-001", FlowStatus.ARCHIVED);
+    when(repo.findByTenantIdAndId(TENANT, "R-001")).thenReturn(Optional.of(existing));
+    FlowActionRequest req =
+        new FlowActionRequest().ids(List.of("R-001")).action(FlowAction.SUBMIT).operator("");
+    IllegalArgumentException ex =
+        org.junit.jupiter.api.Assertions.assertThrows(
+            IllegalArgumentException.class, () -> service.actArchived(TENANT, req));
+    assertEquals("operator is required", ex.getMessage());
+  }
+
   private static SampleReceiptEntity entity(String id, FlowStatus stage) {
     SampleReceiptEntity e = new SampleReceiptEntity();
     e.setId(id);

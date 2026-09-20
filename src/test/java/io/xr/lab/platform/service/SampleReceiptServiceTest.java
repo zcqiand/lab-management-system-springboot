@@ -216,6 +216,36 @@ class SampleReceiptServiceTest {
     assertEquals("user-uuid-002", captor.getValue().getLastSubmittedBy());
   }
 
+  // 5.75 history action 真值（SSOT = lab-nextjs db-queries.ts:256-259）：
+  //   return/withdraw 转移的 history 条目必须记 action 真值（submit/return/withdraw），
+  //   不许字面量 "submit"（5.69 评审发现的分叉，人裁 2026-09-20 对齐 nextjs）。
+  @Test
+  @Fn({"M03.F01.I06"})
+  void transitionTo_return_writesActionTruthInHistory() {
+    SampleReceiptEntity existing = entity("R-001");
+    existing.setFlowStatus(FlowStatus.TASK_ASSIGNMENT);
+    when(repo.findByTenantIdAndId(TENANT, "R-001")).thenReturn(Optional.of(existing));
+    when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+    service.transitionTo(
+        TENANT,
+        "R-001",
+        FlowStatus.TASK_ASSIGNMENT,
+        FlowStatus.RECEIVING,
+        FlowAction.RETURN,
+        "user-uuid-001",
+        null);
+
+    ArgumentCaptor<SampleReceiptEntity> captor = ArgumentCaptor.forClass(SampleReceiptEntity.class);
+    verify(repo).save(captor.capture());
+    String history = captor.getValue().getFlowHistory();
+    assertTrue(
+        history.contains("\"action\":\"return\""),
+        () -> "history 应记 action 真值 return，实得: " + history);
+    assertTrue(
+        !history.contains("\"action\":\"submit\""), () -> "history 不应出现字面量 submit，实得: " + history);
+  }
+
   // M03.F01.I06 history
 
   @Test
