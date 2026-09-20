@@ -5,6 +5,7 @@ import io.xr.lab.platform.repository.ContractRepository;
 import io.xr.lab.platform.repository.SampleReceiptRepository;
 import io.xr.lab.shared.dto.AssignTaskRequest;
 import io.xr.lab.shared.dto.CreateSampleReceiptRequest;
+import io.xr.lab.shared.dto.FlowAction;
 import io.xr.lab.shared.dto.FlowHistoryEntry;
 import io.xr.lab.shared.dto.FlowStatus;
 import io.xr.lab.shared.dto.SampleReceipt;
@@ -111,13 +112,27 @@ public class SampleReceiptService {
 
   /** M03.F06 等阶段推进：把 receipt 推到 target stage 并写 history。 */
   public SampleReceipt transitionTo(
-      String tenantId, String id, FlowStatus from, FlowStatus to, String operator, String reason) {
+      String tenantId,
+      String id,
+      FlowStatus from,
+      FlowStatus to,
+      FlowAction action,
+      String operator,
+      String reason) {
     var entity = getEntity(tenantId, id);
     if (entity.getFlowStatus() != from) {
       throw new IllegalStateException(
           "Receipt " + id + " not in expected stage " + from + " but " + entity.getFlowStatus());
     }
     entity.setFlowStatus(to);
+    // 5.69 last_submitted_by 对齐（SSOT = lab-nextjs db-queries.ts:271-276）：
+    // submit 写当前操作人（前端登录态 user.id ?? user.username）；withdraw 清空；
+    // return 保留原值。archived audit 自转移按 submit 语义走（actArchived 传 SUBMIT）。
+    if (action == FlowAction.SUBMIT) {
+      entity.setLastSubmittedBy(operator);
+    } else if (action == FlowAction.WITHDRAW) {
+      entity.setLastSubmittedBy(null);
+    }
     entity.setFlowHistory(
         SampleReceiptMapper.appendHistory(
             entity.getFlowHistory(), "submit", operator, from.getValue(), to.getValue(), reason));

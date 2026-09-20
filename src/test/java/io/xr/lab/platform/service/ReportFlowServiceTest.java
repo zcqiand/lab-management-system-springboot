@@ -54,6 +54,7 @@ class ReportFlowServiceTest {
             org.mockito.ArgumentMatchers.anyString(),
             org.mockito.ArgumentMatchers.any(FlowStatus.class),
             org.mockito.ArgumentMatchers.any(FlowStatus.class),
+            org.mockito.ArgumentMatchers.any(FlowAction.class),
             org.mockito.ArgumentMatchers.anyString(),
             org.mockito.ArgumentMatchers.any()))
         .thenAnswer(inv -> invocationReturn(inv));
@@ -65,6 +66,74 @@ class ReportFlowServiceTest {
     List<FlowActionResult> results = service.actReceiving(TENANT, req);
     assertEquals(1, results.size());
     assertTrue(results.get(0).getOk());
+  }
+
+  // 5.69 last_submitted_by 写/清对齐（SSOT = lab-nextjs db-queries.ts:271-276）：
+  //   submit → 写当前操作人；withdraw → 清空（null）；return → 保留原值。
+  // 身份取 FlowActionRequest.operator（前端登录态 user.id ?? user.username，
+  // nextjs act-route.ts:39-46 同款必填校验），禁字面量兜底（ADR-0019）。
+  @Test
+  @Fn({"M03.F01.I08"})
+  void actReceiving_submit_writesLastSubmittedByFromOperator() {
+    SampleReceiptEntity existing = entity("R-001", FlowStatus.RECEIVING);
+    when(repo.findByTenantIdAndId(TENANT, "R-001")).thenReturn(Optional.of(existing));
+    when(receiptService.transitionTo(
+            org.mockito.ArgumentMatchers.anyString(),
+            org.mockito.ArgumentMatchers.anyString(),
+            org.mockito.ArgumentMatchers.any(FlowStatus.class),
+            org.mockito.ArgumentMatchers.any(FlowStatus.class),
+            org.mockito.ArgumentMatchers.any(FlowAction.class),
+            org.mockito.ArgumentMatchers.anyString(),
+            org.mockito.ArgumentMatchers.any()))
+        .thenAnswer(inv -> invocationReturn(inv));
+    FlowActionRequest req =
+        new FlowActionRequest()
+            .ids(List.of("R-001"))
+            .action(FlowAction.SUBMIT)
+            .operator("user-uuid-001");
+    service.actReceiving(TENANT, req);
+
+    org.mockito.Mockito.verify(receiptService)
+        .transitionTo(
+            org.mockito.ArgumentMatchers.eq(TENANT),
+            org.mockito.ArgumentMatchers.eq("R-001"),
+            org.mockito.ArgumentMatchers.eq(FlowStatus.RECEIVING),
+            org.mockito.ArgumentMatchers.eq(FlowStatus.TASK_ASSIGNMENT),
+            org.mockito.ArgumentMatchers.eq(FlowAction.SUBMIT),
+            org.mockito.ArgumentMatchers.eq("user-uuid-001"),
+            org.mockito.ArgumentMatchers.isNull());
+  }
+
+  @Test
+  @Fn({"M03.F01.I08"})
+  void actReceiving_withdraw_passesActionThroughForClearing() {
+    SampleReceiptEntity existing = entity("R-001", FlowStatus.RECEIVING);
+    when(repo.findByTenantIdAndId(TENANT, "R-001")).thenReturn(Optional.of(existing));
+    when(receiptService.transitionTo(
+            org.mockito.ArgumentMatchers.anyString(),
+            org.mockito.ArgumentMatchers.anyString(),
+            org.mockito.ArgumentMatchers.any(FlowStatus.class),
+            org.mockito.ArgumentMatchers.any(FlowStatus.class),
+            org.mockito.ArgumentMatchers.any(FlowAction.class),
+            org.mockito.ArgumentMatchers.anyString(),
+            org.mockito.ArgumentMatchers.any()))
+        .thenAnswer(inv -> invocationReturn(inv));
+    FlowActionRequest req =
+        new FlowActionRequest()
+            .ids(List.of("R-001"))
+            .action(FlowAction.WITHDRAW)
+            .operator("user-uuid-001");
+    service.actReceiving(TENANT, req);
+
+    org.mockito.Mockito.verify(receiptService)
+        .transitionTo(
+            org.mockito.ArgumentMatchers.eq(TENANT),
+            org.mockito.ArgumentMatchers.eq("R-001"),
+            org.mockito.ArgumentMatchers.eq(FlowStatus.RECEIVING),
+            org.mockito.ArgumentMatchers.eq(FlowStatus.RECEIVING),
+            org.mockito.ArgumentMatchers.eq(FlowAction.WITHDRAW),
+            org.mockito.ArgumentMatchers.eq("user-uuid-001"),
+            org.mockito.ArgumentMatchers.isNull());
   }
 
   private static SampleReceiptEntity entity(String id, FlowStatus stage) {

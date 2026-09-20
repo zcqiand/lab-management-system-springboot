@@ -15,6 +15,7 @@ import io.xr.lab.platform.repository.ContractRepository;
 import io.xr.lab.platform.repository.SampleReceiptRepository;
 import io.xr.lab.shared.dto.AssignTaskRequest;
 import io.xr.lab.shared.dto.CreateSampleReceiptRequest;
+import io.xr.lab.shared.dto.FlowAction;
 import io.xr.lab.shared.dto.FlowStatus;
 import io.xr.lab.shared.dto.UpdateSampleReceiptRequest;
 import java.util.List;
@@ -145,6 +146,74 @@ class SampleReceiptServiceTest {
     when(repo.findByTenantIdAndId(TENANT, "R-001")).thenReturn(Optional.of(existing));
     service.delete(TENANT, "R-001");
     verify(repo, times(1)).delete(existing);
+  }
+
+  // 5.69 last_submitted_by 写/清（SSOT = lab-nextjs db-queries.ts:271-276）：
+  //   submit → 写当前操作人；withdraw → 清空（null）；return → 保留原值。
+  @Test
+  @Fn({"M03.F01.I08"})
+  void transitionTo_submit_setsLastSubmittedBy() {
+    SampleReceiptEntity existing = entity("R-001");
+    when(repo.findByTenantIdAndId(TENANT, "R-001")).thenReturn(Optional.of(existing));
+    when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+    service.transitionTo(
+        TENANT,
+        "R-001",
+        FlowStatus.RECEIVING,
+        FlowStatus.TASK_ASSIGNMENT,
+        FlowAction.SUBMIT,
+        "user-uuid-001",
+        null);
+
+    ArgumentCaptor<SampleReceiptEntity> captor = ArgumentCaptor.forClass(SampleReceiptEntity.class);
+    verify(repo).save(captor.capture());
+    assertEquals("user-uuid-001", captor.getValue().getLastSubmittedBy());
+  }
+
+  @Test
+  @Fn({"M03.F01.I08"})
+  void transitionTo_withdraw_clearsLastSubmittedBy() {
+    SampleReceiptEntity existing = entity("R-001");
+    existing.setLastSubmittedBy("user-uuid-002");
+    when(repo.findByTenantIdAndId(TENANT, "R-001")).thenReturn(Optional.of(existing));
+    when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+    service.transitionTo(
+        TENANT,
+        "R-001",
+        FlowStatus.RECEIVING,
+        FlowStatus.RECEIVING,
+        FlowAction.WITHDRAW,
+        "user-uuid-001",
+        null);
+
+    ArgumentCaptor<SampleReceiptEntity> captor = ArgumentCaptor.forClass(SampleReceiptEntity.class);
+    verify(repo).save(captor.capture());
+    assertEquals(null, captor.getValue().getLastSubmittedBy());
+  }
+
+  @Test
+  @Fn({"M03.F01.I08"})
+  void transitionTo_return_keepsLastSubmittedBy() {
+    SampleReceiptEntity existing = entity("R-001");
+    existing.setFlowStatus(FlowStatus.TASK_ASSIGNMENT);
+    existing.setLastSubmittedBy("user-uuid-002");
+    when(repo.findByTenantIdAndId(TENANT, "R-001")).thenReturn(Optional.of(existing));
+    when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+    service.transitionTo(
+        TENANT,
+        "R-001",
+        FlowStatus.TASK_ASSIGNMENT,
+        FlowStatus.RECEIVING,
+        FlowAction.RETURN,
+        "user-uuid-001",
+        null);
+
+    ArgumentCaptor<SampleReceiptEntity> captor = ArgumentCaptor.forClass(SampleReceiptEntity.class);
+    verify(repo).save(captor.capture());
+    assertEquals("user-uuid-002", captor.getValue().getLastSubmittedBy());
   }
 
   // M03.F01.I06 history

@@ -205,6 +205,53 @@ class RepositoryPgTest {
   }
 
   @Test
+  void submitWritesLastSubmittedBy_filterSubmittedHitsRow() {
+    // 5.69 写路径对齐（SSOT = lab-nextjs db-queries.ts:271-276）：submit 写 last_submitted_by
+    // 后，filter=submitted 不传 flowStatus 必须命中该单；withdraw 清空后从 submitted 消失。
+    contracts.save(contract("1"));
+    receipts.saveAndFlush(receipt("LS", FlowStatus.RECEIVING, Category));
+
+    var receiptService = new io.xr.lab.platform.service.SampleReceiptService(receipts, contracts);
+    var flow = new io.xr.lab.platform.service.ReportFlowService(receiptService, receipts);
+
+    var submitted =
+        flow.actReceiving(
+            Tenant,
+            new io.xr.lab.shared.dto.FlowActionRequest()
+                .ids(java.util.List.of("RCP-PG-LS"))
+                .action(io.xr.lab.shared.dto.FlowAction.SUBMIT)
+                .operator("alice-pg"));
+    org.assertj.core.api.Assertions.assertThat(submitted.get(0).getOk()).isTrue();
+    receipts.flush();
+
+    assertThat(receipts.filterThreeState(Tenant, "", "", "", "submitted"))
+        .extracting(SampleReceiptEntity::getId)
+        .containsExactly("RCP-PG-LS");
+
+    // return 回 receiving → withdraw 清空 last_submitted_by → 从 submitted 消失
+    var returned =
+        flow.actAssigning(
+            Tenant,
+            new io.xr.lab.shared.dto.FlowActionRequest()
+                .ids(java.util.List.of("RCP-PG-LS"))
+                .action(io.xr.lab.shared.dto.FlowAction.RETURN)
+                .operator("alice-pg"));
+    org.assertj.core.api.Assertions.assertThat(returned.get(0).getOk()).isTrue();
+    receipts.flush();
+    var withdrawn =
+        flow.actReceiving(
+            Tenant,
+            new io.xr.lab.shared.dto.FlowActionRequest()
+                .ids(java.util.List.of("RCP-PG-LS"))
+                .action(io.xr.lab.shared.dto.FlowAction.WITHDRAW)
+                .operator("alice-pg"));
+    org.assertj.core.api.Assertions.assertThat(withdrawn.get(0).getOk()).isTrue();
+    receipts.flush();
+
+    assertThat(receipts.filterThreeState(Tenant, "", "", "", "submitted")).isEmpty();
+  }
+
+  @Test
   void summary_dateRangeAndCategoryFilters() {
     contracts.save(contract("1"));
     receipts.save(receipt("A", FlowStatus.RECEIVING, Category));

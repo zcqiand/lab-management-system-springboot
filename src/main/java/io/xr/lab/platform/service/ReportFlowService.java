@@ -122,11 +122,13 @@ public class ReportFlowService {
           continue;
         }
         // 写 history 当 audit，状态保持 archived
+        // archived audit 自转移语义 = submit（SSOT db-queries.ts：submit 写 lastSubmittedBy）
         receiptService.transitionTo(
             tenantId,
             id,
             FlowStatus.ARCHIVED,
             FlowStatus.ARCHIVED,
+            FlowAction.SUBMIT,
             operator,
             reason != null ? reason : "archived: post-archive audit");
         results.add(ok(id, FlowStatus.ARCHIVED));
@@ -176,7 +178,8 @@ public class ReportFlowService {
           results.add(err(id, "Invalid transition from " + current + " with " + req.getAction()));
           continue;
         }
-        receiptService.transitionTo(tenantId, id, current, target, operator, reason);
+        receiptService.transitionTo(
+            tenantId, id, current, target, req.getAction(), operator, reason);
         results.add(ok(id, target));
       } catch (Exception e) {
         results.add(err(id, e.getMessage()));
