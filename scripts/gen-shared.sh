@@ -25,6 +25,9 @@ echo "[gen-shared] step 2/2 — springboot: openapi-generator → src/main/java/
 # npx 解析 @openapitools/openapi-generator-cli（与 shared 仓同一工具链）。
 # 参数镜像 saas-identity-platform-springboot 的 gen-shared.sh（v0.2.0 定案）：
 # spring-boot library, interfaceOnly, useSpringBoot3, dateLibrary=java8。
+# hideGenerationTimestamp=true（5.70）：@Generated 不再注入 date=时间戳，
+# 否则每次 regen 154 文件全量 diff，污染 marker-only 惯例。生成器内置开关，
+# 生成的注解缩为 @Generated(value=..., comments="Generator version: ...")，语义不变。
 npx --yes @openapitools/openapi-generator-cli generate \
   -g spring \
   -i "$OPENAPI" \
@@ -33,7 +36,7 @@ npx --yes @openapitools/openapi-generator-cli generate \
   --model-package io.xr.lab.shared.dto \
   --api-package io.xr.lab.shared.api \
   --invoker-package io.xr.lab.shared \
-  --additional-properties useTags=true,interfaceOnly=true,skipDefaultInterface=true,useBeanValidation=true,useSpringBoot3=true,dateLibrary=java8
+  --additional-properties useTags=true,interfaceOnly=true,skipDefaultInterface=true,useBeanValidation=true,useSpringBoot3=true,dateLibrary=java8,hideGenerationTimestamp=true
 
 # 把生成的 dto + api 挪进 springboot 源码树。
 # 目录必须与包名一致（io.xr.lab.shared.api → shared/api/）：2026-09-02 前错位拷进

@@ -19,7 +19,6 @@ import org.springframework.lang.Nullable;
         "AuthContext 数据契约。方法(login/logout/refresh/switchTenant/hasPermission/onChange)由消费方实现,TS 签名见 .state/decision-log.md §2.2")
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-20T15:32:05.122166700+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public class AuthContext {
 

@@ -9,7 +9,6 @@ import java.util.*;
 /** Gets or Sets RequirementVerificationStatus */
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-20T15:32:05.122166700+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public enum RequirementVerificationStatus {
   DRAFT("draft"),
