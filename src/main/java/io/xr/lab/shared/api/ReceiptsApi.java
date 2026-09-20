@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-18T22:23:36.149543100+08:00[Asia/Shanghai]",
+    date = "2026-09-20T15:32:05.122166700+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 @Validated
 @Tag(name = "receipts", description = "the receipts API")
@@ -520,6 +520,7 @@ public interface ReceiptsApi {
    * @param keyword (optional)
    * @param contractId (optional)
    * @param flowStatus (optional)
+   * @param filter (optional)
    * @return The request has succeeded. (status code 200) or An unexpected error response. (status
    *     code 200)
    */
@@ -573,7 +574,12 @@ public interface ReceiptsApi {
           @Valid
           @RequestParam(value = "flowStatus", required = false)
           @Nullable
-          FlowStatus flowStatus);
+          FlowStatus flowStatus,
+      @Parameter(name = "filter", description = "", in = ParameterIn.QUERY)
+          @Valid
+          @RequestParam(value = "filter", required = false)
+          @Nullable
+          String filter);
 
   String PATH_RECEIPTS_UPDATE_RECEIPT = "/api/receipts/{id}";
 

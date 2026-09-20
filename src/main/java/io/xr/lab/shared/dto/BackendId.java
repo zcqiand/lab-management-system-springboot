@@ -9,7 +9,7 @@ import java.util.*;
 /** 已废弃 (ADR-0014);3 个槽位,id 锁定避免拼写漂移。msw 成员 2026-09-17 随 msw 仓剔除删除 */
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-18T22:23:36.149543100+08:00[Asia/Shanghai]",
+    date = "2026-09-20T15:32:05.122166700+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public enum BackendId {
   NEXTJS("nextjs"),

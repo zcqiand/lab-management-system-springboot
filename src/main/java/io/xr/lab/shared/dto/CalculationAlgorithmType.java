@@ -9,7 +9,7 @@ import java.util.*;
 /** Gets or Sets CalculationAlgorithmType */
 @Generated(
     value = "org.openapitools.codegen.languages.SpringCodegen",
-    date = "2026-09-18T22:23:36.149543100+08:00[Asia/Shanghai]",
+    date = "2026-09-20T15:32:05.122166700+08:00[Asia/Shanghai]",
     comments = "Generator version: 7.24.0")
 public enum CalculationAlgorithmType {
   SIMPLE_AVG("simple_avg"),

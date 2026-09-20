@@ -49,6 +49,25 @@ class SampleReceiptServiceTest {
     assertEquals(1, service.list(TENANT, null, null, null).size());
   }
 
+  @Test
+  @Fn({"M03.F01.I01"})
+  void list_filterThreeStateRoutesToNativePredicate() {
+    // 5.57 三态 filter：not_yet/submitted 走 jsonb 谓词路径（语义 SSOT = lab-nextjs db-queries.ts）
+    when(repo.filterThreeState(TENANT, "", "receiving", "", "not_yet"))
+        .thenReturn(List.of(entity("R-001")));
+    assertEquals(1, service.list(TENANT, null, FlowStatus.RECEIVING, null, "not_yet").size());
+    verify(repo).filterThreeState(TENANT, "", "receiving", "", "not_yet");
+  }
+
+  @Test
+  @Fn({"M03.F01.I01"})
+  void list_unknownFilterEqualsAbsent() {
+    // TSP 注记：filter 其余值不参与过滤（等同不传）—— 走原 JPQL 路径
+    when(repo.filter(TENANT, "", null, "")).thenReturn(List.of());
+    assertEquals(0, service.list(TENANT, null, null, null, "bogus").size());
+    verify(repo, times(0)).filterThreeState(any(), any(), any(), any(), any());
+  }
+
   // M03.F01.I02 get
   // 同一 service.get(...) 同时支撑 F01.I02 + F05.I02 + F06.I02 + F07.I02 + F08.I02 + F09.I01
   // （M03 5 阶段详情视图共享一条 GET 端点 → 后端用 receiptService.get 返回 DTO）

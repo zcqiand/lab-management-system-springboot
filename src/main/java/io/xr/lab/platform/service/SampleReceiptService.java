@@ -29,6 +29,21 @@ public class SampleReceiptService {
 
   public List<SampleReceipt> list(
       String tenantId, String contractId, FlowStatus flowStatus, String keyword) {
+    return list(tenantId, contractId, flowStatus, keyword, null);
+  }
+
+  /**
+   * 列表 + 三态 filter（5.57 入契约，语义 SSOT = lab-nextjs db-queries.ts:53-58）。filter 仅认
+   * "not_yet"/"submitted"，其它值（含 null）等同不传 —— 走原 JPQL 路径。
+   */
+  public List<SampleReceipt> list(
+      String tenantId, String contractId, FlowStatus flowStatus, String keyword, String filter) {
+    if ("not_yet".equals(filter) || "submitted".equals(filter)) {
+      String stage = flowStatus == null ? "" : flowStatus.getValue();
+      return repo.filterThreeState(tenantId, n(contractId), stage, n(keyword), filter).stream()
+          .map(SampleReceiptMapper::toDto)
+          .toList();
+    }
     return repo.filter(tenantId, n(contractId), flowStatus, n(keyword)).stream()
         .map(SampleReceiptMapper::toDto)
         .toList();

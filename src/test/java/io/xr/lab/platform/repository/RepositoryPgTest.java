@@ -169,6 +169,42 @@ class RepositoryPgTest {
   }
 
   @Test
+  void receiptsFilterThreeState_notYetAndSubmitted() {
+    // 5.57 三态 filter（SSOT = lab-nextjs db-queries.ts:53-58）真 PG 语义锁：
+    // jsonb 谓词（jsonb_array_length / jsonb_array_elements）native SQL 只能在真库验证。
+    contracts.save(contract("1"));
+    // 新单：无流转记录（flow_history='[]'），停在 receiving
+    receipts.save(receipt("NY", FlowStatus.RECEIVING, Category));
+    // 已提交单：从 receiving submit 至 task_assignment（history 有 submit from=receiving）
+    var moved = receipt("SB", FlowStatus.TASK_ASSIGNMENT, Category);
+    moved.setFlowHistory(
+        "[{\"action\":\"submit\",\"from\":\"receiving\",\"to\":\"task_assignment\","
+            + "\"operator\":\"alice\",\"at\":\"2026-09-20T00:00:00Z\",\"reason\":\"pg-test\"}]");
+    moved.setLastSubmittedBy("alice");
+    receipts.saveAndFlush(moved);
+
+    // 不带 flowStatus：not_yet = 无流转记录新单；submitted = 有流转记录且记录了提交人
+    assertThat(receipts.filterThreeState(Tenant, "", "", "", "not_yet"))
+        .extracting(SampleReceiptEntity::getId)
+        .containsExactly("RCP-PG-NY");
+    assertThat(receipts.filterThreeState(Tenant, "", "", "", "submitted"))
+        .extracting(SampleReceiptEntity::getId)
+        .containsExactly("RCP-PG-SB");
+
+    // 带 flowStatus=receiving：not_yet = 停在本环节；submitted = 已从本环节 submit 至下一环节
+    assertThat(receipts.filterThreeState(Tenant, "", "receiving", "", "not_yet"))
+        .extracting(SampleReceiptEntity::getId)
+        .containsExactly("RCP-PG-NY");
+    assertThat(receipts.filterThreeState(Tenant, "", "receiving", "", "submitted"))
+        .extracting(SampleReceiptEntity::getId)
+        .containsExactly("RCP-PG-SB");
+
+    // keyword / contractId 与 filter 叠加（AND 语义）
+    assertThat(receipts.filterThreeState(Tenant, "", "", "comm-ny", "not_yet")).hasSize(1);
+    assertThat(receipts.filterThreeState(Tenant, "CTR-PG-1", "", "", "submitted")).hasSize(1);
+  }
+
+  @Test
   void summary_dateRangeAndCategoryFilters() {
     contracts.save(contract("1"));
     receipts.save(receipt("A", FlowStatus.RECEIVING, Category));
