@@ -39,7 +39,6 @@ import io.xr.lab.shared.dto.StandardParameterLink;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +48,8 @@ import org.springframework.stereotype.Service;
  * <p>每个 junction 表 1 link + 1 unlink 端点 = 14 端点。其中 param_interface_links config 是 jsonb
  * 走 @JdbcTypeCode(SqlTypes.JSON)，写库序列化 String。
  *
- * <p>link 全部走 save()（upsert 语义：同 PK 重复时覆盖），unlink 用 existsById + deleteById 兜底 404。
+ * <p>link 全部走 save()（upsert 语义：同 PK 重复时覆盖），unlink 幂等 204（REQ-2026-001 推广，Task 2.6：existsById 命中才
+ * deleteById，未命中静默 no-op）。
  */
 @Service
 public class InspectionJunctionService {
@@ -102,14 +102,11 @@ public class InspectionJunctionService {
   public void unlinkSpecialtyObject(SpecialtyObjectLink body) {
     SpecialtyObjectKey key =
         new SpecialtyObjectKey(body.getInspectionSpecialtyCode(), body.getInspectionObjectCode());
-    if (!specialtyObjectRepo.existsById(key)) {
-      throw new NoSuchElementException(
-          "SpecialtyObject link not found: "
-              + key.getInspectionSpecialtyCode()
-              + "/"
-              + key.getInspectionObjectCode());
+    // 幂等 204（Task 2.6 推广 REQ-2026-001 四方一致：msw/nextjs/aspnetcore 未命中也 204，
+    // 契约 unlink = void；NSEE→404 是「资源不存在」语义，不适用于幂等 unlink）
+    if (specialtyObjectRepo.existsById(key)) {
+      specialtyObjectRepo.deleteById(key);
     }
-    specialtyObjectRepo.deleteById(key);
   }
 
   /** B7 — 按专项 code 过滤专项↔项目 junction。null 返回全量。 */
@@ -151,14 +148,10 @@ public class InspectionJunctionService {
 
   public void unlinkObjectParameter(String inspectionObjectCode, String inspectionParameterCode) {
     ObjectParameterKey key = new ObjectParameterKey(inspectionObjectCode, inspectionParameterCode);
-    if (!objectParameterRepo.existsById(key)) {
-      throw new NoSuchElementException(
-          "ObjectParameter link not found: "
-              + inspectionObjectCode
-              + "/"
-              + inspectionParameterCode);
+    // 幂等 204（Task 2.6 推广 REQ-2026-001 语义，同 unlinkSpecialtyObject 注）
+    if (objectParameterRepo.existsById(key)) {
+      objectParameterRepo.deleteById(key);
     }
-    objectParameterRepo.deleteById(key);
   }
 
   /** B7 — 项目↔参数 junction list（按 objectCode 与/或 parameterCode 过滤）。 */
@@ -208,16 +201,10 @@ public class InspectionJunctionService {
       String inspectionObjectCode, String inspectionStandardCode, InspectionStandardRole role) {
     ObjectStandardKey key =
         new ObjectStandardKey(inspectionObjectCode, inspectionStandardCode, role);
-    if (!objectStandardRepo.existsById(key)) {
-      throw new NoSuchElementException(
-          "ObjectStandard link not found: "
-              + inspectionObjectCode
-              + "/"
-              + inspectionStandardCode
-              + "/"
-              + role);
+    // 幂等 204（Task 2.6 推广 REQ-2026-001 语义，同 unlinkSpecialtyObject 注）
+    if (objectStandardRepo.existsById(key)) {
+      objectStandardRepo.deleteById(key);
     }
-    objectStandardRepo.deleteById(key);
   }
 
   /** B7 — 项目↔标准 junction list（按 objectCode 与/或 role 过滤）。 */
@@ -261,14 +248,10 @@ public class InspectionJunctionService {
     StandardParameterKey key =
         new StandardParameterKey(
             body.getInspectionStandardCode(), body.getInspectionParameterCode());
-    if (!standardParameterRepo.existsById(key)) {
-      throw new NoSuchElementException(
-          "StandardParameter link not found: "
-              + key.getInspectionStandardCode()
-              + "/"
-              + key.getInspectionParameterCode());
+    // 幂等 204（Task 2.6 推广 REQ-2026-001 语义，同 unlinkSpecialtyObject 注）
+    if (standardParameterRepo.existsById(key)) {
+      standardParameterRepo.deleteById(key);
     }
-    standardParameterRepo.deleteById(key);
   }
 
   /** B7 — 标准↔参数 junction list（按 standardCode 与/或 parameterCode 过滤）。 */
@@ -311,11 +294,10 @@ public class InspectionJunctionService {
 
   public void unlinkObjectReportName(String inspectionObjectCode, String reportNameCode) {
     ObjectReportNameKey key = new ObjectReportNameKey(inspectionObjectCode, reportNameCode);
-    if (!objectReportNameRepo.existsById(key)) {
-      throw new NoSuchElementException(
-          "ObjectReportName link not found: " + inspectionObjectCode + "/" + reportNameCode);
+    // 幂等 204（Task 2.6 推广 REQ-2026-001 语义，同 unlinkSpecialtyObject 注）
+    if (objectReportNameRepo.existsById(key)) {
+      objectReportNameRepo.deleteById(key);
     }
-    objectReportNameRepo.deleteById(key);
   }
 
   public List<ObjectReportNameLink> listObjectReportNameLinks(
@@ -361,16 +343,10 @@ public class InspectionJunctionService {
       String reportNameCode, String inspectionStandardCode, InspectionStandardRole role) {
     ReportNameStandardKey key =
         new ReportNameStandardKey(reportNameCode, inspectionStandardCode, role);
-    if (!reportNameStandardRepo.existsById(key)) {
-      throw new NoSuchElementException(
-          "ReportNameStandard link not found: "
-              + reportNameCode
-              + "/"
-              + inspectionStandardCode
-              + "/"
-              + role);
+    // 幂等 204（Task 2.6 推广 REQ-2026-001 语义，同 unlinkSpecialtyObject 注）
+    if (reportNameStandardRepo.existsById(key)) {
+      reportNameStandardRepo.deleteById(key);
     }
-    reportNameStandardRepo.deleteById(key);
   }
 
   public List<ReportNameStandardLink> listReportNameStandardLinks(
@@ -412,11 +388,10 @@ public class InspectionJunctionService {
   public void unlinkReportNameParameter(String reportNameCode, String inspectionParameterCode) {
     ReportNameParameterKey key =
         new ReportNameParameterKey(reportNameCode, inspectionParameterCode);
-    if (!reportNameParameterRepo.existsById(key)) {
-      throw new NoSuchElementException(
-          "ReportNameParameter link not found: " + reportNameCode + "/" + inspectionParameterCode);
+    // 幂等 204（Task 2.6 推广 REQ-2026-001 语义，同 unlinkSpecialtyObject 注）
+    if (reportNameParameterRepo.existsById(key)) {
+      reportNameParameterRepo.deleteById(key);
     }
-    reportNameParameterRepo.deleteById(key);
   }
 
   public List<ReportNameParameterLink> listReportNameParameterLinks(

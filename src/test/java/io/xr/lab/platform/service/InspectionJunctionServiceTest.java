@@ -1,7 +1,6 @@
 package io.xr.lab.platform.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -40,7 +39,6 @@ import io.xr.lab.shared.dto.ReportNameStandardLink;
 import io.xr.lab.shared.dto.SpecialtyObjectLink;
 import io.xr.lab.shared.dto.StandardParameterLink;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -113,11 +111,11 @@ class InspectionJunctionServiceTest {
 
   @Test
   @Fn({"M06.F02.I06"})
-  void unlinkSpecialtyObject_missing_throws404() {
+  void unlinkSpecialtyObject_missing_idempotent204() {
+    // REQ-2026-001 推广（Task 2.6）：unlink 幂等 204（契约 unlink = void，未命中不抛；
+    // 原 NSEE→404 断言随 unlink 语义变更同 commit 移除）
     when(specialtyObjectRepo.existsById(any())).thenReturn(false);
-    assertThrows(
-        NoSuchElementException.class,
-        () -> service.unlinkSpecialtyObject(new SpecialtyObjectLink("S-1", "OBJ-1")));
+    service.unlinkSpecialtyObject(new SpecialtyObjectLink("S-1", "OBJ-1"));
     verify(specialtyObjectRepo, never()).deleteById(any());
   }
 
@@ -173,9 +171,12 @@ class InspectionJunctionServiceTest {
 
   @Test
   @Fn({"M06.F02.I08"})
-  void unlinkObjectParameter_missing_throws404() {
+  void unlinkObjectParameter_missing_idempotent204() {
+    // REQ-2026-001 推广（Task 2.6）：unlink 幂等 204（契约 unlink = void，未命中不抛；
+    // 原 NSEE→404 断言随 unlink 语义变更同 commit 移除）
     when(objectParameterRepo.existsById(any())).thenReturn(false);
-    assertThrows(NoSuchElementException.class, () -> service.unlinkObjectParameter("OBJ-1", "P-1"));
+    service.unlinkObjectParameter("OBJ-1", "P-1");
+    verify(objectParameterRepo, never()).deleteById(any());
   }
 
   @Test
@@ -228,11 +229,12 @@ class InspectionJunctionServiceTest {
 
   @Test
   @Fn({"M06.F01.I06"})
-  void unlinkObjectStandard_missing_throws404() {
+  void unlinkObjectStandard_missing_idempotent204() {
+    // REQ-2026-001 推广（Task 2.6）：unlink 幂等 204（契约 unlink = void，未命中不抛；
+    // 原 NSEE→404 断言随 unlink 语义变更同 commit 移除）
     when(objectStandardRepo.existsById(any())).thenReturn(false);
-    assertThrows(
-        NoSuchElementException.class,
-        () -> service.unlinkObjectStandard("OBJ-1", "GB/T", InspectionStandardRole.TESTING));
+    service.unlinkObjectStandard("OBJ-1", "GB/T", InspectionStandardRole.TESTING);
+    verify(objectStandardRepo, never()).deleteById(any());
   }
 
   @Test
@@ -274,11 +276,12 @@ class InspectionJunctionServiceTest {
 
   @Test
   @Fn({"M06.F03.I06"})
-  void unlinkStandardParameter_missing_throws404() {
+  void unlinkStandardParameter_missing_idempotent204() {
+    // REQ-2026-001 推广（Task 2.6）：unlink 幂等 204（契约 unlink = void，未命中不抛；
+    // 原 NSEE→404 断言随 unlink 语义变更同 commit 移除）
     when(standardParameterRepo.existsById(any())).thenReturn(false);
-    assertThrows(
-        NoSuchElementException.class,
-        () -> service.unlinkStandardParameter(new StandardParameterLink("X", "Y")));
+    service.unlinkStandardParameter(new StandardParameterLink("X", "Y"));
+    verify(standardParameterRepo, never()).deleteById(any());
   }
 
   @Test
