@@ -63,6 +63,14 @@ sed -i '/^    public String getKind();$/d' "$DEST/io/xr/lab/shared/dto/AuthState
 # 剥离引入构造侧 NPE 面，不动）。
 sed -i 's/private Map<String, String> ext = new HashMap<>();/private Map<String, String> ext;/' \
   "$DEST/io/xr/lab/shared/dto/UpdateSampleExtRequest.java"
+# fail-loud（终审 M2）：sed 无匹配时静默 exit 0，生成器输出漂移（升级/排版变化）会让
+# 初始化器悄悄回归 → 缺 ext 200 复发且唯一拦截后移到 lab-ct live。镜像 ASP
+# patch-generated.py 的 SystemExit：修补后必须恰剩无初始化器形态，否则中止让人看。
+if ! grep -q 'private Map<String, String> ext;' "$DEST/io/xr/lab/shared/dto/UpdateSampleExtRequest.java" \
+  || grep -q 'private Map<String, String> ext = new HashMap' "$DEST/io/xr/lab/shared/dto/UpdateSampleExtRequest.java"; then
+  echo "gen-shared 修补② 失配：UpdateSampleExtRequest.ext 初始化器剥离未生效（生成器输出漂移？）" >&2
+  exit 3
+fi
 
 # L1 前置：生成器排版不过 google-java-format（L1 门会拦），
 # codegen 末端统一 apply，保证产物落地即 gate-ready（saas 仓是手动补的，这里进脚本）。
