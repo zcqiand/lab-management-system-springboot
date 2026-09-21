@@ -16,7 +16,9 @@ import org.springframework.lang.Nullable;
     comments = "Generator version: 7.24.0")
 public class UpdateSampleExtRequest {
 
-  private Map<String, String> ext = new HashMap<>();
+  // 5.89（gen-shared.sh 修补②，重跑 codegen 幂等补回）：剥离生成器默认初始化器 ——
+  // 否则缺 ext 绑定成空 map 非 null，SampleService.updateExt 的 IAE→400 守卫失效。
+  private Map<String, String> ext;
 
   public UpdateSampleExtRequest() {
     super();

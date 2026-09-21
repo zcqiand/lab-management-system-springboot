@@ -55,6 +55,15 @@ rm -rf "$ROOT/.openapi-tmp"
 # @JsonTypeInfo/@JsonSubTypes 注解驱动，接口方法本身无人消费，删掉即净。
 sed -i '/^    public String getKind();$/d' "$DEST/io/xr/lab/shared/dto/AuthState.java"
 
+# 5.89 生成器已知缺陷修补②：openapi-generator 给必填 Map 属性带 `= new HashMap<>()`
+# 字段初始化器 —— 缺键 Jackson 绑定后仍是空 map 非 null，@Required(readonly 只影
+# 响 API 文档) + 服务层 null 守卫（SampleService.updateExt IAE→400）全部失效，
+# 缺 ext 静默清空返 200（lab-ct 断言锁定）。剥离初始化器让缺键绑定成 null。
+# 只动 UpdateSampleExtRequest（Sample 响应 DTO 同款初始化器但出参不进绑定路径，
+# 剥离引入构造侧 NPE 面，不动）。
+sed -i 's/private Map<String, String> ext = new HashMap<>();/private Map<String, String> ext;/' \
+  "$DEST/io/xr/lab/shared/dto/UpdateSampleExtRequest.java"
+
 # L1 前置：生成器排版不过 google-java-format（L1 门会拦），
 # codegen 末端统一 apply，保证产物落地即 gate-ready（saas 仓是手动补的，这里进脚本）。
 mvn -q spotless:apply

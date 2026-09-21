@@ -54,6 +54,11 @@ public class SampleService {
 
   /** M03.F01.I07 ext 补录：整体替换 ext（合并是前端职责，react ReportPreviewModal 提交前已合并）。 */
   public Sample updateExt(String tenantId, String id, UpdateSampleExtRequest req) {
+    // 5.89：契约 ext 必填（sample.tsp UpdateSampleExtRequest.ext 无 ?）——缺省 IAE→400
+    // （GlobalExceptionHandler 家族约定），不再让 HashMap 构造吃 null 抛 NPE→500。
+    if (req == null || req.getExt() == null) {
+      throw new IllegalArgumentException("ext is required");
+    }
     var entity =
         repo.findByTenantIdAndId(tenantId, id)
             .orElseThrow(() -> new NoSuchElementException("Sample not found: " + id));
