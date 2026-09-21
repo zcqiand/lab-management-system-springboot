@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "project": "lab-management-system-springboot",
-  "current_task": "2026-09-19 family-leftovers wave 收口（Task 6）：--all 三轮全绿（含 act WIP 工作树）；act WIP 归另一会话收口",
+  "current_task": "终审 M2 闭账：gen-shared.sh 修补② 后置 grep 双条件 fail-loud（724acee）；批尾 unit gate r1 EXIT=0",
   "done": [
     "unlinkParamInterface NSEE→404 改幂等（契约 void 语义）",
     "单测 unlinkParamInterface_missing_idempotent204 同 commit 对齐；commit fc8a5bc",
@@ -17,6 +17,6 @@
     "本仓工作树的 act WIP 8 文件属另一会话——不要代提交、不要 checkout 还原"
   ],
   "active_branch": "master",
-  "last_session_at": "2026-09-19",
-  "last_session_summary": "无本批代码改动：R1/R2/R3 --all 全绿（工作树含另一会话 M03.F01.I07/I08 act WIP 8 文件，B 段 live 栈 5205 即跑在该 WIP 树上）"
+  "last_session_at": "2026-09-21",
+  "last_session_summary": "UpdateSampleExtRequest.ext 初始化器剥离失配时 exit 3 中止（镜像 ASP patch-generated.py SystemExit），防生成器输出漂移静默回归缺 ext 200 复发"
 }
