@@ -253,12 +253,20 @@ echo "→ sso env effective: LAB_SAAS_BASE_URL=$(grep '^LAB_SAAS_BASE_URL=' "$BA
 # .env.production 全集(suite L0.5 check_deploy_parity 锁死)。service 账号是
 # secret 类:老文件已有则保留;没有则从 env 传入,fail-fast 不兜底。
 if [ -f "$BASE/springboot.env" ]; then
+  # append_if_missing 双模：缺 key 追加；key 在但值为空（^key=$ 或 ^key=\s*$）也覆盖——
+  # 否则 v0.1.43 lab-springboot deploy 假绿根因：env-file 早期被半填充（SSH 转发
+  # 链路改 LAB_SAAS_SERVICE_USER 等值后,env-file 留有 LAB_SAAS_SERVICE_USER=
+  # 空行）,append_if_missing 见行存在跳过 → 容器 @PostConstruct 校验
+  # serviceUser.isBlank() → IllegalStateException → exit 1 → 120s 上限 kill。
   append_if_missing() {
     key="$1"; val="$2"
     if ! grep -q "^${key}=" "$BASE/springboot.env"; then
       echo "→ append ${key} to existing $BASE/springboot.env"
       umask 077
       printf '%s=%s\n' "$key" "$val" >> "$BASE/springboot.env"
+    elif grep -qE "^${key}=$|^${key}=\s*$" "$BASE/springboot.env"; then
+      echo "→ reconcile ${key} in $BASE/springboot.env (空值 → 契约值)"
+      sed -i "s#^${key}=.*#${key}=${val}#" "$BASE/springboot.env"
     fi
   }
   append_if_missing DATABASE_NAME 'lab_prod'
