@@ -1,6 +1,7 @@
 package io.xr.lab.platform.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -93,7 +94,8 @@ class AuthServiceTest {
   @Test
   @Fn({"M01.F05.I02"})
   void ssoAuthorize_returnsAuthorizeUrlAndEchoesState() {
-    AuthService.SsoAuthResult result = service.ssoAuthorize("/dashboard", "frontend-csrf-state");
+    AuthService.SsoAuthResult result =
+        service.ssoAuthorize("http://localhost:5201/login", "frontend-csrf-state");
     assertNotNull(result.redirect().getAuthorizeUrl());
     // 2026-08-29 standardized: lab backend no longer pre-fetches code from saas authorize.
     assertTrue(
@@ -104,6 +106,33 @@ class AuthServiceTest {
         "expected state echo in authorize url");
     // RFC 6749 §10.12：前端 state 原样透传 saas 回显，前端比对
     assertEquals("frontend-csrf-state", result.redirect().getState());
+  }
+
+  /**
+   * 2026-09-23 跨前端事故：ssoAuthorize 忽略调用方 redirect_uri、硬用 env LAB_SSO_CALLBACK_REDIRECT（值=lab-react
+   * :5202），lab-nextjs(:5201) 选 springboot 时 saas 把 code 送去了 lab-react → 本前端永远拿不到 token → 全部鉴权请求
+   * 401、接样管理空列表。 对齐 aspnetcore AuthService.SsoAuthorize：回显调用方 redirect_uri 且 URL 编码。
+   */
+  @Test
+  @Fn({"M01.F05.I02"})
+  void ssoAuthorize_echoesCallerRedirectUri_urlEncoded() {
+    AuthService.SsoAuthResult result =
+        service.ssoAuthorize("http://localhost:5201/login", "frontend-csrf-state");
+    String url = result.redirect().getAuthorizeUrl();
+    assertTrue(
+        url.contains("redirect_uri=http%3A%2F%2Flocalhost%3A5201%2Flogin"),
+        "expected caller redirect_uri echoed URL-encoded, got " + url);
+    assertFalse(
+        url.contains("redirect_uri=http://localhost:5202"),
+        "must not leak configured callback base into authorize url, got " + url);
+  }
+
+  /** ADR-0019 禁兜底：redirect_uri 缺失必须 throw（aspnetcore 同款），不许静默落 env 值。 */
+  @Test
+  @Fn({"M01.F05.I02"})
+  void ssoAuthorize_blankRedirectUri_throws() {
+    assertThrows(
+        IllegalArgumentException.class, () -> service.ssoAuthorize("", "frontend-csrf-state"));
   }
 
   @Test

@@ -1,0 +1,44 @@
+[scaffold-entities] step 1/4 — node scripts/scaffold-entities.mjs
+[scaffold-entities] 连接 postgresql://postgres:***@100.79.128.25:5432/lab_dev
+[scaffold-entities] 发现 24 张表
+[scaffold-entities]   → contracts → entity/Generated/Contracts.java (21 字段)
+[scaffold-entities]   → inspection_brands → entity/Generated/InspectionBrands.java (8 字段)
+[scaffold-entities]   → inspection_calculation_methods → entity/Generated/InspectionCalculationMethods.java (13 字段, composite PK inspection_object_code+inspection_parameter_code)
+[scaffold-entities]   → inspection_calculation_methods → entity/Generated/InspectionCalculationMethodsId.java (PK mirror for inspection_object_code+inspection_parameter_code)
+[scaffold-entities]   → inspection_grades → entity/Generated/InspectionGrades.java (8 字段)
+[scaffold-entities]   → inspection_models → entity/Generated/InspectionModels.java (8 字段)
+[scaffold-entities]   → inspection_object_parameters → entity/Generated/InspectionObjectParameters.java (7 字段, composite PK inspection_object_code+inspection_parameter_code)
+[scaffold-entities]   → inspection_object_parameters → entity/Generated/InspectionObjectParametersId.java (PK mirror for inspection_object_code+inspection_parameter_code)
+[scaffold-entities]   → inspection_object_report_names → entity/Generated/InspectionObjectReportNames.java (5 字段, composite PK inspection_object_code+report_name_code)
+[scaffold-entities]   → inspection_object_report_names → entity/Generated/InspectionObjectReportNamesId.java (PK mirror for inspection_object_code+report_name_code)
+[scaffold-entities]   → inspection_object_standards → entity/Generated/InspectionObjectStandards.java (6 字段, composite PK inspection_object_code+inspection_standard_code+role)
+[scaffold-entities]   → inspection_object_standards → entity/Generated/InspectionObjectStandardsId.java (PK mirror for inspection_object_code+inspection_standard_code+role)
+[scaffold-entities]   → inspection_objects → entity/Generated/InspectionObjects.java (11 字段)
+[scaffold-entities]   → inspection_param_interface_links → entity/Generated/InspectionParamInterfaceLinks.java (6 字段, composite PK inspection_parameter_code+param_interface_code)
+[scaffold-entities]   → inspection_param_interface_links → entity/Generated/InspectionParamInterfaceLinksId.java (PK mirror for inspection_parameter_code+param_interface_code)
+[scaffold-entities]   → inspection_param_interfaces → entity/Generated/InspectionParamInterfaces.java (9 字段)
+[scaffold-entities]   → inspection_parameters → entity/Generated/InspectionParameters.java (11 字段)
+[scaffold-entities]   → inspection_report_name_parameters → entity/Generated/InspectionReportNameParameters.java (5 字段, composite PK report_name_code+inspection_parameter_code)
+[scaffold-entities]   → inspection_report_name_parameters → entity/Generated/InspectionReportNameParametersId.java (PK mirror for report_name_code+inspection_parameter_code)
+[scaffold-entities]   → inspection_report_name_standards → entity/Generated/InspectionReportNameStandards.java (6 字段, composite PK report_name_code+inspection_standard_code+role)
+[scaffold-entities]   → inspection_report_name_standards → entity/Generated/InspectionReportNameStandardsId.java (PK mirror for report_name_code+inspection_standard_code+role)
+[scaffold-entities]   → inspection_report_names → entity/Generated/InspectionReportNames.java (10 字段)
+[scaffold-entities]   → inspection_specialties → entity/Generated/InspectionSpecialties.java (8 字段)
+[scaffold-entities]   → inspection_specialty_objects → entity/Generated/InspectionSpecialtyObjects.java (5 字段, composite PK inspection_specialty_code+inspection_object_code)
+[scaffold-entities]   → inspection_specialty_objects → entity/Generated/InspectionSpecialtyObjectsId.java (PK mirror for inspection_specialty_code+inspection_object_code)
+[scaffold-entities]   → inspection_specs → entity/Generated/InspectionSpecs.java (8 字段)
+[scaffold-entities]   → inspection_standard_parameters → entity/Generated/InspectionStandardParameters.java (4 字段, composite PK inspection_standard_code+inspection_parameter_code)
+[scaffold-entities]   → inspection_standard_parameters → entity/Generated/InspectionStandardParametersId.java (PK mirror for inspection_standard_code+inspection_parameter_code)
+[scaffold-entities]   → inspection_standards → entity/Generated/InspectionStandards.java (9 字段)
+[scaffold-entities]   → inspection_technical_requirements → entity/Generated/InspectionTechnicalRequirements.java (26 字段, composite PK inspection_object_code+inspection_parameter_code+judgment_standard_code)
+[scaffold-entities]   → inspection_technical_requirements → entity/Generated/InspectionTechnicalRequirementsId.java (PK mirror for inspection_object_code+inspection_parameter_code+judgment_standard_code)
+[scaffold-entities]   → sample_receipts → entity/Generated/SampleReceipts.java (45 字段)
+[scaffold-entities]   → samples → entity/Generated/Samples.java (23 字段)
+[scaffold-entities]   → test_records → entity/Generated/TestRecords.java (11 字段)
+[scaffold-entities] OK — 24 镜像类已生成到 D:\qiand-life\1-projects\xr-code-suite\output\lab-management-system-springboot\src\main\java\io\xr\lab\platform\entity\Generated
+[scaffold-entities] step 2/4 — mvn spotless:apply（消除 scaffold 触发的 L1 格式漂移）
+[scaffold-entities] step 3/4 — git diff + untracked entity/Generated/
+[scaffold-entities] step 4/4 — OK
+[scaffold-entities]    entity 镜像已与 DB 同步；DB-First sync 绿
+[marker] db_synced_sha unchanged (88a9b32b2cac...) - zero write, keep timestamp (5.77)
+[scaffold-entities]    ADR-0026 marker sha 未变，零写入（5.77 同 sha 不刷时间戳）: /d/qiand-life/1-projects/xr-code-suite/output/lab-management-system-springboot/.state/last-gen-shared.json

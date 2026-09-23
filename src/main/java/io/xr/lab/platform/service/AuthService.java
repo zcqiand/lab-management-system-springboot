@@ -21,6 +21,8 @@ import io.xr.lab.shared.dto.RefreshTokenRequest;
 import io.xr.lab.shared.dto.SsoCallbackRequest;
 import io.xr.lab.shared.dto.SsoRedirect;
 import io.xr.lab.shared.dto.SwitchTenantRequest;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -327,6 +329,15 @@ public class AuthService {
    * @return SsoRedirect{authorizeUrl, state}
    */
   public SsoAuthResult ssoAuthorize(String businessRedirect, String frontendState) {
+    // ADR-0019 禁兜底 + RFC 6749 §4.1.1：redirect_uri/state 由调用方（前端）发起，
+    // 缺失 fail-fast，不落 env 兜底值。2026-09-23 跨前端事故：此前忽略调用方
+    // redirect_uri、硬用 env LAB_SSO_CALLBACK_REDIRECT（值=lab-react :5202），
+    // lab-nextjs(:5201) 选 springboot 后端时 saas 把 code 送去了 lab-react →
+    // 本前端永远拿不到 token → 全部鉴权请求 401、接样管理等数据页空列表。
+    // 对齐 aspnetcore AuthService.SsoAuthorize：回显调用方 redirect_uri 且 URL 编码。
+    if (businessRedirect == null || businessRedirect.isBlank()) {
+      throw new IllegalArgumentException("missing redirect_uri");
+    }
     String state = frontendState == null ? "" : frontendState;
     // 2026-08-29 标准化: 不再调 saas authorize 预拿 code。
     //   - saas-springboot authorize 不要求 saas session(confidential client 模式 work),
@@ -334,17 +345,17 @@ public class AuthService {
     //   - 跟 lab-aspnetcore v0.2.11 同款改造: 直接 302 跳 saas 登录页(带 redirect_uri + state)。
     //   - saas-vue/saas-react LoginPage 已支持 ?redirect_uri=&state= 参数:
     //     用户登录 → saas 写 session cookie → saas-react 自动调 saas /oauth/authorize
-    //     拿 code → 302 跳回 lab-callback?code=&state= → lab 前端 POST
-    //     /api/auth/sso/callback {code, state} → ssoCallback 用 clientSecret
-    //     调 saas /token 拿 access_token + refresh_token。
+    //     拿 code → 302 跳回 redirect_uri?code=&state= → lab 前端 POST
+    //     /api/auth/sso/callback {code, state, redirect_uri} → ssoCallback
+    //     用 clientSecret 调 saas /token 拿 access_token + refresh_token。
     String authorizeUrl =
         labConfig.sso().effectiveLoginUrl()
             + "/login?redirect_uri="
-            + labConfig.sso().callbackRedirectBase()
+            + URLEncoder.encode(businessRedirect, StandardCharsets.UTF_8)
             + "&state="
-            + state
+            + URLEncoder.encode(state, StandardCharsets.UTF_8)
             + "&client_id="
-            + labConfig.sso().clientId();
+            + URLEncoder.encode(labConfig.sso().clientId(), StandardCharsets.UTF_8);
     return new SsoAuthResult(new SsoRedirect().authorizeUrl(authorizeUrl).state(state));
   }
 
