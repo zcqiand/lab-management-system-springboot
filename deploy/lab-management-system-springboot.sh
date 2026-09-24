@@ -66,7 +66,7 @@ if [ ! -f "$BASE/springboot.env" ]; then
       # 登录 UI 同栈匹配：lab-react 后端是 lab-springboot → 登录页指 saas-react
       #（2026-08-29 前指 saas-nextjs；saas-react LoginPage 已补 OAuth code 回跳）
       printf 'LAB_SSO_LOGIN_URL=https://saas-react.xiangru.uk\n'
-      printf 'LAB_SAAS_CLIENT_ID=11111111-1111-1111-1111-111111111111\n'
+      printf 'LAB_SAAS_CLIENT_ID=lab-management\n'
       printf 'LAB_SAAS_CLIENT_SECRET=%s\n' "$LAB_SAAS_CLIENT_SECRET"
       printf 'LAB_SAAS_DEFAULT_TENANT_ID=%s\n' "${LAB_SAAS_DEFAULT_TENANT_ID:-00000000-0000-0000-0000-000000000001}"
       printf 'LAB_SSO_CALLBACK_REDIRECT=https://lab-react.xiangru.uk/login\n'
@@ -227,8 +227,16 @@ fi
 if ! grep -q '^LAB_SAAS_CLIENT_ID=' "$BASE/springboot.env"; then
   echo "→ append LAB_SAAS_CLIENT_ID to existing $BASE/springboot.env"
   umask 077
-  printf 'LAB_SAAS_CLIENT_ID=11111111-1111-1111-1111-111111111111\n' >> "$BASE/springboot.env"
+  printf 'LAB_SAAS_CLIENT_ID=lab-management\n' >> "$BASE/springboot.env"
 fi
+# OAuth clientId 漂移修正（2026-09-25 线上 400 事故根因镜像修法）：
+  # 历史 deploy 脚本把 clientId 写成 oauth_client.id UUID,saas authorize 查
+  # oauth_client.client_id 列(varchar code 形如 'lab-management')必 INVALID_CLIENT 400。
+  # append_if_missing 只补缺失不动 stale UUID,先 reconcile 再 append。
+  if grep -qE '^LAB_SAAS_CLIENT_ID=11111111-[0-9a-f-]+$' "$BASE/springboot.env"; then
+    echo "→ reconcile LAB_SAAS_CLIENT_ID in $BASE/springboot.env (UUID → lab-management, ADR-0019 + 登录 clientId 是字符串不是行 id)"
+    sed -i -E 's#^LAB_SAAS_CLIENT_ID=11111111-[0-9a-f-]+$#LAB_SAAS_CLIENT_ID=lab-management#' "$BASE/springboot.env"
+  fi
 if ! grep -q '^LAB_SAAS_DEFAULT_TENANT_ID=' "$BASE/springboot.env"; then
   echo "→ append LAB_SAAS_DEFAULT_TENANT_ID to existing $BASE/springboot.env"
   umask 077
