@@ -1,5 +1,7 @@
 package io.xr.lab.platform.entity.enums;
 
+// @impl M03.F01.I08 — book anchor (xr-know-007)
+
 import io.xr.lab.shared.dto.FlowStatus;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

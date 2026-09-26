@@ -1,5 +1,9 @@
 package io.xr.lab.platform.service;
 
+// @impl M03.F03.I11 — book anchor (xr-know-007)
+
+// @impl M03.F03.I08 — book anchor (xr-know-007)
+
 import io.xr.lab.platform.entity.TestRecordEntity;
 import io.xr.lab.platform.mapper.TestRecordMapper;
 import io.xr.lab.platform.repository.TestRecordRepository;

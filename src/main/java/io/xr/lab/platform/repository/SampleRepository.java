@@ -1,5 +1,7 @@
 package io.xr.lab.platform.repository;
 
+// @impl M03.F03.I01 — book anchor (xr-know-007)
+
 import io.xr.lab.platform.entity.SampleEntity;
 import java.util.List;
 import java.util.Optional;

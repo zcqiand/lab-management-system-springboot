@@ -1,5 +1,7 @@
 package io.xr.lab.platform.entity;
 
+// @impl M02.F01.I01 — book anchor (xr-know-007)
+
 import io.xr.lab.platform.entity.enums.ContractStatusConverter;
 import io.xr.lab.shared.dto.ContractStatus;
 import jakarta.persistence.Column;

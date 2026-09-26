@@ -1,5 +1,7 @@
 package io.xr.lab.platform.controller;
 
+// @impl M03.F03.I06 — book anchor (xr-know-007)
+
 import io.xr.lab.platform.directory.ConfigUserDirectory;
 import io.xr.lab.platform.service.TestRecordService;
 import io.xr.lab.shared.api.TestRecordsApi;

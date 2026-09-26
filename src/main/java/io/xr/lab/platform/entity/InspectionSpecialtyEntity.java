@@ -1,5 +1,7 @@
 package io.xr.lab.platform.entity;
 
+// @impl M06.F01.I01 — book anchor (xr-know-007)
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

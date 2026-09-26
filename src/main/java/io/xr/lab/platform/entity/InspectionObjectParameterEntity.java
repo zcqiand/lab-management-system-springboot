@@ -1,5 +1,7 @@
 package io.xr.lab.platform.entity;
 
+// @impl M06.F02.I10 — book anchor (xr-know-007)
+
 import io.xr.lab.platform.entity.enums.ObjectParameterKey;
 import io.xr.lab.shared.dto.QualificationLevel;
 import jakarta.persistence.Column;

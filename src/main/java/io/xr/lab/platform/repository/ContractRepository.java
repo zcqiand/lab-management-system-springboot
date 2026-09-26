@@ -1,5 +1,7 @@
 package io.xr.lab.platform.repository;
 
+// @impl M02.F01.I01 — book anchor (xr-know-007)
+
 import io.xr.lab.platform.entity.ContractEntity;
 import io.xr.lab.shared.dto.ContractStatus;
 import java.util.List;

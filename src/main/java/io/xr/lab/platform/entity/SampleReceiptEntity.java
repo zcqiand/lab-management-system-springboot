@@ -1,5 +1,7 @@
 package io.xr.lab.platform.entity;
 
+// @impl M03.F01.I01 — book anchor (xr-know-007)
+
 import io.xr.lab.platform.entity.enums.FlowStatusConverter;
 import io.xr.lab.platform.entity.enums.ReceiptResultConverter;
 import io.xr.lab.shared.dto.FlowStatus;

@@ -1,5 +1,7 @@
 package io.xr.lab.platform.entity;
 
+// @impl M06.F03.I01 — book anchor (xr-know-007)
+
 import io.xr.lab.platform.entity.enums.InspectionParameterSourceTypeConverter;
 import io.xr.lab.shared.dto.InspectionParameterSourceType;
 import jakarta.persistence.Column;

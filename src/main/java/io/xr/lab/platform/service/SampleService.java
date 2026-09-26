@@ -1,5 +1,7 @@
 package io.xr.lab.platform.service;
 
+// @impl M03.F01.I07 — book anchor (xr-know-007)
+
 import io.xr.lab.platform.mapper.SampleMapper;
 import io.xr.lab.platform.repository.SampleReceiptRepository;
 import io.xr.lab.platform.repository.SampleRepository;

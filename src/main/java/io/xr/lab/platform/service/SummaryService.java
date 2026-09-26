@@ -1,5 +1,7 @@
 package io.xr.lab.platform.service;
 
+// @impl M05.F01.I01 — book anchor (xr-know-007)
+
 import io.xr.lab.platform.entity.InspectionReportNameEntity;
 import io.xr.lab.platform.entity.SampleReceiptEntity;
 import io.xr.lab.platform.repository.ContractRepository;
