@@ -1,6 +1,5 @@
 package io.xr.lab.platform.entity.Generated;
 
-
 import java.time.OffsetDateTime;
 
 /**

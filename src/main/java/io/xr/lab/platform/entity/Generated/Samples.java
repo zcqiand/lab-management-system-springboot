@@ -1,7 +1,5 @@
 package io.xr.lab.platform.entity.Generated;
 
-
-
 /**
  * DB-First 镜像：samples（ADR-0025/ADR-0033）。 由 scripts/scaffold-entities.mjs 从 lab_dev 真库反推生成——<b>纯
  * POJO 镜像， 无 &#64;Entity，不参与运行时</b>；手写运行时 entity 见上级 io.xr.lab.platform.entity（带 &#64;Convert
