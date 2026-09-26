@@ -1,8 +1,6 @@
 package io.xr.lab.platform.entity.Generated;
 
-// @impl M03.F01.I07 — book anchor (xr-know-007)
 
-// @impl M03.F03.I03 — book anchor (xr-know-007)
 
 /**
  * DB-First 镜像：samples（ADR-0025/ADR-0033）。 由 scripts/scaffold-entities.mjs 从 lab_dev 真库反推生成——<b>纯

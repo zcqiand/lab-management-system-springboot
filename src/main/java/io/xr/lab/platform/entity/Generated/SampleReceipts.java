@@ -1,6 +1,5 @@
 package io.xr.lab.platform.entity.Generated;
 
-// @impl M03.F01.I01 — book anchor (xr-know-007)
 
 import java.time.OffsetDateTime;
 
