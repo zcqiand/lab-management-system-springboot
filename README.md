@@ -2,7 +2,7 @@
 
 建筑工程实验室管理系统的 Java 后端 —— codegen Controller + 手写 Service，对接 lab_prod PostgreSQL。
 
-本仓为《（书稿信息待补）》案例（待补）的可运行配套工程，是书稿代码块的 **source of truth**。
+本仓为《Spring Boot 从入门到项目实践》（亚马逊电子书）案例一「实验室管理系统」（第 37-46 章）的可运行配套工程，是书稿代码块的 **source of truth**。
 
 ## 快速开始
 
@@ -33,9 +33,25 @@ mvn spring-boot:run           # 本地起服务
 
 ## 配套书籍及章节映射
 
+> 同一案例仓后续接入其他书籍时，在此节下新增书籍小节。
+
+### 《Spring Boot 从入门到项目实践》（亚马逊电子书）
+
+- 书稿基线：tag `v0.1.47-20260926`（冻结，正文代码清单以此为准）
+- 书稿定位：案例一「实验室管理系统」，覆盖第 37-46 章
+
 | 章 | 主题 | 对应源文件 |
 | :--- | :--- | :--- |
-| （待补） | | |
+| 37 | 项目立项与需求分析：从检测业务到功能清单 | `src/main/java/io/xr/lab/platform/entity/ContractEntity.java`、`src/main/java/io/xr/lab/platform/entity/SampleReceiptEntity.java` |
+| 38 | 架构设计：分层架构与数据模型骨架 | `src/main/java/io/xr/lab/platform/controller/TestRecordController.java`、`src/main/java/io/xr/lab/platform/repository/SampleRepository.java`、`src/main/resources/application.yml` |
+| 39 | 检测字典管理：专项、检测项目与参数的实体设计 | `src/main/java/io/xr/lab/platform/entity/InspectionSpecialtyEntity.java`、`src/main/java/io/xr/lab/platform/entity/InspectionObjectEntity.java`、`src/main/java/io/xr/lab/platform/entity/InspectionParameterEntity.java` |
+| 40 | 接样登记与流程状态机：提交、退回与流转历史 | `src/main/java/io/xr/lab/platform/entity/SampleReceiptEntity.java`、`src/main/java/io/xr/lab/platform/entity/enums/FlowStatusConverter.java`、`src/main/java/io/xr/lab/platform/service/SampleReceiptService.java` |
+| 41 | 检测记录管理：数据录入、更新与结果改判 | `src/main/java/io/xr/lab/platform/controller/TestRecordController.java`、`src/main/java/io/xr/lab/platform/repository/TestRecordRepository.java`、`src/main/java/io/xr/lab/platform/service/TestRecordService.java` |
+| 42 | 报告审核流程：审核提交与流程服务设计 | `src/main/java/io/xr/lab/platform/service/ReportFlowService.java` |
+| 43 | 统计汇总接口：报告汇总与状态聚合查询 | `src/main/java/io/xr/lab/platform/service/SummaryService.java` |
+| 44 | 检测标准目录：标准、参数界面与连接表设计 | `src/main/java/io/xr/lab/platform/entity/InspectionStandardEntity.java`、`src/main/java/io/xr/lab/platform/entity/ParamInterfaceEntity.java`、`src/main/java/io/xr/lab/platform/entity/InspectionObjectParameterEntity.java` |
+| 45 | Docker 部署实战：镜像构建与 VPS 交付脚本 | `Dockerfile`、`deploy/setup-vps.sh`、`deploy/nginx-vps.conf.example` |
+| 46 | 项目总结：从需求到交付的全链路复盘 | — |
 
 ## 快速链接
 
