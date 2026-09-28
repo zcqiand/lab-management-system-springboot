@@ -219,6 +219,45 @@ public interface AuthApi {
       @Parameter(name = "AuthLogoutRequest", description = "", required = true) @Valid @RequestBody
           AuthLogoutRequest authLogoutRequest);
 
+  String PATH_AUTH_NATIVE_LOGIN = "/api/auth/native-login";
+
+  /**
+   * POST /api/auth/native-login
+   *
+   * @param loginRequest (required)
+   * @return The request has succeeded. (status code 200) or An unexpected error response. (status
+   *     code 200)
+   */
+  @Operation(
+      operationId = "authNativeLogin",
+      tags = {"auth"},
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "The request has succeeded.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = LoginResponse.class))
+            }),
+        @ApiResponse(
+            responseCode = "default",
+            description = "An unexpected error response.",
+            content = {
+              @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class))
+            })
+      })
+  @RequestMapping(
+      method = RequestMethod.POST,
+      value = AuthApi.PATH_AUTH_NATIVE_LOGIN,
+      produces = {"application/json"},
+      consumes = {"application/json"})
+  ResponseEntity<LoginResponse> authNativeLogin(
+      @Parameter(name = "LoginRequest", description = "", required = true) @Valid @RequestBody
+          LoginRequest loginRequest);
+
   String PATH_AUTH_REFRESH = "/api/auth/refresh";
 
   /**

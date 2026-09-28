@@ -59,6 +59,13 @@ public class AuthController implements AuthApi {
     return ResponseEntity.ok(service.login(loginRequest));
   }
 
+  // M01.F05.I06 原生登录（REQ-2026-003 Q4-C）：非浏览器客户端密码通道，
+  // 校验与签发口径与 authLogin 同源（service.login，service-account 链路）。
+  @Override
+  public ResponseEntity<LoginResponse> authNativeLogin(LoginRequest loginRequest) {
+    return ResponseEntity.ok(service.login(loginRequest));
+  }
+
   @Override
   public ResponseEntity<Void> authLogout(AuthLogoutRequest authLogoutRequest) {
     service.logout(authLogoutRequest);

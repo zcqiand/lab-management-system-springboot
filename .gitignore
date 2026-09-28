@@ -45,3 +45,6 @@ spotless-format*
 
 # 2026-09-23 补：.env.local 此前漏列（仅列 .env.production）
 .env.local
+
+# gen-shared.sh 构建自检日志（本地产物）
+.gen-shared-build.log
