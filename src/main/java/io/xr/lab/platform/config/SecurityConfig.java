@@ -40,7 +40,10 @@ public class SecurityConfig {
                     // M01.F05.I06 原生登录（REQ-2026-003 Q4-C）：非浏览器密码通道，
                     // 与 login 同为匿名入口（漏放行 = JWT 过滤器先 401，controller 到不了）。
                     .requestMatchers(
-                            "/api/auth/login", "/api/auth/native-login", "/api/auth/refresh", "/api/auth/sso/**")
+                        "/api/auth/login",
+                        "/api/auth/native-login",
+                        "/api/auth/refresh",
+                        "/api/auth/sso/**")
                     .permitAll()
                     // /actuator/health 是 Docker HEALTHCHECK + deploy 脚本探针，必须匿名。
                     // 教训（saas-springboot v0.1.7）：漏了这行探针 401，deploy 120 次
