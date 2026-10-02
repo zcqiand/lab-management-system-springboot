@@ -2,6 +2,7 @@
   "version_lock": {
     "java": "21",
     "spring-boot": "3.4.1",
+    "springdoc-openapi": "2.8.9（pom 钉版；swagger-annotations-jakarta 2.2.30 与 springdoc 传递的 swagger-core 对齐）",
     "postgresql-driver": "（随 spring-boot-starter-parent）",
     "junit5": "（随 starter-test）",
     "spotless-maven-plugin": "2.2.22? （见 pom.xml）",

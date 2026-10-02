@@ -65,11 +65,26 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-        <!-- codegen 产物运行时依赖（对齐 saas-springboot v0.2.0）：@Schema/@Tag 注解 + JsonNullable。 -->
+        <!-- codegen 产物运行时依赖（对齐 saas-springboot v0.2.0）：@Schema/@Tag 注解 + JsonNullable。
+             版本必须与 springdoc 传递的 swagger-core 同版（nearest-wins 压制规则）：低于它时
+             Schema$SchemaResolution 等新内部类缺失 → /v3/api-docs NoClassDefFoundError。
+             2.8.9 springdoc → swagger-core 2.2.30（saas-springboot pom 注释同款先例）。 -->
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations-jakarta</artifactId>
-            <version>2.2.22</version>
+            <version>2.2.30</version>
+        </dependency>
+        <!--
+          REQ-2026-001：本仓此前只有 codegen 用的 swagger 注解，无 Swagger UI 页面可跳；
+          补 springdoc-openapi-starter-webmvc-ui 提供页面（/swagger-ui.html → /swagger-ui/index.html、
+          /v3/api-docs）。版本钉 2.8.9 = saas-springboot 生产验证过的安全参照：spring-web 6.2
+          （Boot 3.4 自带）删除了 ControllerAdviceBean.<init>(Object)，springdoc < 2.7.0 调它会
+          NoSuchMethodError（springdoc #2687）；2.8.x 支持 Boot 3.4/3.5。
+        -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.8.9</version>
         </dependency>
         <dependency>
             <groupId>org.openapitools</groupId>

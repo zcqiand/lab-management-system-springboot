@@ -5,7 +5,7 @@
 | 提出人 | 用户 |
 | 提出日期 | 2026-10-02 |
 | 优先级 | P2 |
-| 状态 | 待评审 |
+| 状态 | 开发中 |
 | 关联 ADR | ADR-0027（消费树 ⊆ BASE subset invariant，本需求据以不登记功能树，见 §4） |
 
 ## 1. 需求描述
@@ -51,9 +51,10 @@
 
 | 任务 ID | 任务描述 | 类型 | 负责人 | 预估 | 状态 |
 |---|---|---|---|---|---|
-| T-1 | 补 `springdoc-openapi-starter-webmvc-ui` 依赖（版本对齐 saas-springboot 先例 2.8.x：<2.7 在新 Boot 有 NoSuchMethodError 前科）；SecurityConfig 同批 permitAll `/`、`/swagger-ui/**`、`/v3/api-docs/**` | 开发 | 待定 | S | 待开始 |
-| T-2 | 根路径跳转：`GET /` → `/swagger-ui.html`（302，匿名，不进 openapi 文档面） | 开发 | 待定 | XS | 待开始 |
-| T-3 | L1-L4 门禁回归 + curl 三验（302、跟随 200、/api/* 不回归） | 门禁 | 待定 | XS | 待开始 |
+| T-1 | 补 `springdoc-openapi-starter-webmvc-ui` 依赖（版本对齐 saas-springboot 先例 2.8.x：<2.7 在新 Boot 有 NoSuchMethodError 前科）；SecurityConfig 同批 permitAll `/`、`/swagger-ui/**`、`/v3/api-docs/**` | 开发 | Claude | S | 已完成（pom 钉 2.8.9 + swagger-annotations-jakarta 对齐 2.2.30；证据：`RootRedirectIntegrationTest.swaggerUiIsReachableAnonymously` / `apiDocsExposeOpenapiDocumentAnonymously` 绿，gate exit 0） |
+| T-2 | 根路径跳转：`GET /` → `/swagger-ui.html`（302，匿名，不进 openapi 文档面） | 开发 | Claude | XS | 已完成（`RootRedirectConfig` addRedirectViewController；证据：`RootRedirectIntegrationTest.rootRedirectsAnonymouslyToSwaggerUiHtml` 绿） |
+| T-3 | L1-L4 门禁回归 + curl 三验（302、跟随 200、/api/* 不回归） | 门禁 | Claude | XS | 已完成（`python scripts/gate.py -p lab-management-system-springboot` exit 0 门禁全绿，2026-10-02；TDD 红→绿证据：实现前 4/4 红 401，实现后 4/4 绿） |
+| T-4 | 对齐项（用户已批准）：裸 `/health` 家族统一形状 `{"status":"ok"}`（aspnetcore 双仓先例），匿名 200，`@Hidden` 不进 openapi 文档面 | 开发 | Claude | XS | 已完成（`HealthController`；证据：`RootRedirectIntegrationTest.healthEndpointReturnsFamilyShapeAnonymously` 绿） |
 
 ## 4. 功能影响（需求与功能对齐的唯一位置）
 

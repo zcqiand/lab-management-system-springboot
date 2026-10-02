@@ -50,6 +50,17 @@ public class SecurityConfig {
                     // wget 全失败，看起来像 wait 太短，根因在此。
                     .requestMatchers("/actuator/**")
                     .permitAll()
+                    // REQ-2026-001：根路径跳转 + Swagger UI 匿名入口（基础设施端点，不进功能树）。
+                    // 与 /actuator/** 同性质：metadata/跳转，无业务副作用；漏放行 = UI 401 而
+                    // controller 200 的家族已知指纹。
+                    .requestMatchers(
+                        "/",
+                        "/swagger-ui",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/health")
+                    .permitAll()
                     .anyRequest()
                     .authenticated())
         .oauth2ResourceServer(o -> o.jwt(jwt -> {}));
