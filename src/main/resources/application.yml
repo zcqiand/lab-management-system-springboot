@@ -25,6 +25,10 @@ server:
   # SERVER_PORT 是全家族统一监听 key（Spring relaxed binding 原生支持）。
   # ADR-0019：缺失 throw,不允许 "5205" 兜底。dev 期用 .env.local / env-file 显式声明。
   port: ${SERVER_PORT:}
+  # TLS 终结在 VPS nginx（模板已发 X-Forwarded-Proto $scheme）：framework 策略让
+  # redirect/Location 等自生成 URL 尊重外层 scheme——根路径跳 Swagger 的 Location
+  # 由 http://… 收敛为 https://…（2026-10-03 用户裁定 polish，REQ-2026-001 §6 遗留）。
+  forward-headers-strategy: framework
 
 # 健康探针只暴露 health（Docker HEALTHCHECK + deploy 脚本 wget 用）。
 # 不开 metrics/env/heapdump 等敏感面（同 saas-springboot）。
