@@ -86,3 +86,9 @@
 | prod 暴露面认知：裸域名直达 API 文档 | 安全姿态认知 | Swagger 本就全环境暴露（家族现状「prod 暂全开」），本需求不改变暴露姿态；后续 prod 收口时跳转随 UI gating 同步收口 | revert 跳由 commit，恢复 404 现状 |
 
 无数据面、无契约面变更。
+
+**追记（2026-10-03）**：prod 复验发现 302 Location 为 `http://…`（TLS 终结在 nginx，
+后端自生成 URL 不知外层 scheme）。用户裁定 polish 修复：application.yml 增
+`server.forward-headers-strategy: framework`（nginx 模板已发 `X-Forwarded-Proto $scheme`），
+tag v0.1.50-20261003 部署后 curl 复验 `location: https://lab-springboot.xiangru.uk/swagger-ui.html`，
+跟随 200。
