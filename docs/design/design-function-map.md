@@ -109,6 +109,8 @@
 > msw fixtures 切到本仓后端时复用此 entry 锚点）。
 | M05.F01.I01 | SummaryController#summaryGetReportSummary / SummaryService#getReportSummary | GET /api/summary?categoryCode=&dateFrom=&dateTo= | sample_receipts（按 commissionDate DESC + categoryCode 过滤） | M05.F01.I01 | - | 已上线 |
 | M05.F01.I06 | SummaryController#summaryGetDashboardStats / SummaryService#getDashboardStats | GET /api/summary/stats | sample_receipts / contracts / samples 计数 | M05.F01.I06 | - | 已上线 |
+| M05.F01.I03 | SummaryService#getDashboardStats（todayTestCount/qualifiedRateByMaterial/reportOutputByStatus 段） | GET /api/summary/stats | sample_receipts + inspection_report_names（码表预载 summaryName 关键词映射，全量预载防 N+1） | M05.F01.I03 | REQ-2026-021，镜像 aspnetcore 同名行 | 开发中 |
+| M05.F01.I04 | SummaryService#getDashboardStats（funnelByStage 段） | GET /api/summary/stats | sample_receipts（flowStatus + reportCode 六段分桶） | M05.F01.I04 | REQ-2026-021，镜像 aspnetcore 同名行 | 开发中 |
 | M06.F01.I01 | InspectionDictionaryController#inspectionDictionaryListSpecialties / InspectionDictionaryService#listSpecialties | GET /api/inspection/specialties?keyword= | inspection_specialties（V008，平台级） | M06.F01.I01 | - | 已上线 |
 | M06.F01.I02 | InspectionDictionaryController#inspectionDictionaryCreateSpecialty / InspectionDictionaryService#createSpecialty | POST /api/inspection/specialties | inspection_specialties | M06.F01.I02 | - | 已上线 |
 | M06.F01.I03 | InspectionDictionaryController#inspectionDictionaryUpdateSpecialty / InspectionDictionaryService#updateSpecialty | PUT /api/inspection/specialties/{code} | inspection_specialties | M06.F01.I03 | - | 已上线 |
