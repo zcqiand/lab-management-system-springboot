@@ -55,7 +55,7 @@ if [ ! -f "$BASE/springboot.env" ]; then
       # 2026-08-28 断链修复：老名无读者，prod 曾静默回落 dev 默认密钥）。
       printf 'JWT_SIGNING_KEY=%s\n' "$JWT_SIGNING_KEY"
       # CORS 白名单：lab 前端两仓 + 本地 dev。运维可在 setup-vps 之后手工追加 origin。
-      printf 'LAB_CORS_ALLOWED_ORIGINS=https://lab-react.xiangru.uk,https://lab-vue.xiangru.uk,http://localhost:5201,http://localhost:5202,http://localhost:5203\n'
+      printf 'LAB_CORS_ALLOWED_ORIGINS=https://lab-react.xiangru.uk,https://lab-vue.xiangru.uk,https://lab-flutter.xiangru.uk,http://localhost:5201,http://localhost:5202,http://localhost:5203\n'
       # SSO 跳板：v0.1.x 接 saas-springboot v0.2.0 真 OAuth IdP（同栈匹配）。
       # ClientId 用固定 UUID 11111111-... 不是字符串 'lab-management'，原因同 lab-aspnetcore
       # v0.1.9 — shared/openapi.yaml TypeSpec @format("uuid") 让 springboot UUID 接 Guid,
@@ -178,8 +178,21 @@ fi
 if ! grep -q '^LAB_CORS_ALLOWED_ORIGINS=' "$BASE/springboot.env"; then
   echo "→ append LAB_CORS_ALLOWED_ORIGINS to existing $BASE/springboot.env"
   umask 077
-  printf 'LAB_CORS_ALLOWED_ORIGINS=https://lab-react.xiangru.uk,https://lab-vue.xiangru.uk,http://localhost:5201,http://localhost:5202,http://localhost:5203\n' >> "$BASE/springboot.env"
+  printf 'LAB_CORS_ALLOWED_ORIGINS=https://lab-react.xiangru.uk,https://lab-vue.xiangru.uk,https://lab-flutter.xiangru.uk,http://localhost:5201,http://localhost:5202,http://localhost:5203\n' >> "$BASE/springboot.env"
 fi
+
+# origin 级无损追加（家族同款，lab-rails/lab-fastapi 同形）：lab 三前端 + flutter prod
+# 都可跨源调本后端，存量 env-file 缺哪个 origin 就补哪个（不整值覆盖，运维手工 origin 保留）。
+for cors_origin in "https://${NGINX_DOMAIN}" \
+                   "https://lab-nextjs.xiangru.uk" \
+                   "https://lab-react.xiangru.uk" \
+                   "https://lab-vue.xiangru.uk" \
+                   "https://lab-flutter.xiangru.uk"; do
+  if grep -q '^LAB_CORS_ALLOWED_ORIGINS=' "$BASE/springboot.env" && ! grep '^LAB_CORS_ALLOWED_ORIGINS=' "$BASE/springboot.env" | grep -qF "$cors_origin"; then
+    sed -i "s#^\(LAB_CORS_ALLOWED_ORIGINS=.*\)#\1,${cors_origin}#" "$BASE/springboot.env"
+    echo "→ reconcile LAB_CORS_ALLOWED_ORIGINS: 追加缺失 origin ${cors_origin}（origin 级，不整值覆盖）"
+  fi
+done
 
 # v0.1.14 起: IdP 登录页 = saas 前端域名（不是 API 域名，API /login 404）。
 # 早期 env 只有 LAB_SAAS_BASE，authorizeUrl 曾拼出 {API}/login 404。append-only 补。
