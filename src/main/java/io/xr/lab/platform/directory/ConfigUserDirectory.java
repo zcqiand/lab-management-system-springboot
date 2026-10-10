@@ -5,7 +5,6 @@ import io.xr.lab.shared.dto.MyTenant;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -21,7 +20,7 @@ import org.springframework.stereotype.Component;
  *   <li>运行时 upsert：不在 seed 里的 SSO 用户落到 {@code upserted} 内存 Map
  * </ul>
  *
- * <p>口令可用 lab.auth.dev-password 覆盖（避免硬编码扩散到测试）。
+ * <p>REQ-2026-023：口令校验已代理 saas IdP，本目录只承担 SSO/refresh/me 的用户与租户查找。
  */
 @Component
 public class ConfigUserDirectory implements UserDirectory {
@@ -47,23 +46,13 @@ public class ConfigUserDirectory implements UserDirectory {
               .name("第三方检测实验室")
               .roleIds(List.of("viewer")));
 
-  private final String devPassword;
   private final ConcurrentHashMap<String, CurrentUser> upserted = new ConcurrentHashMap<>();
   // 2026-09-03 租户体系对齐：per-user saas refresh_token（menus/me cache-miss reload 用；
   // saas rotate-once 消费即作废，reload 后必须存回新的）。镜像 aspnetcore 同名机制。
   private final ConcurrentHashMap<String, String> saasRefreshTokens = new ConcurrentHashMap<>();
 
-  public ConfigUserDirectory(
-      // ADR-0019：删除 @Value 字面默认值,空串占位,缺失由 SsoBeansConfig @PostConstruct 校验 fail-fast。
-      // dev 期 .env.local 或 env-file 显式声明 LAB_AUTH_DEV_PASSWORD。
-      @Value("${lab.auth.dev-password:}") String devPassword) {
-    if (devPassword == null || devPassword.isBlank()) {
-      throw new IllegalStateException(
-          "lab.auth.dev-password 必填 (ADR-0019 禁 \"dev123456\" 字面默认值). "
-              + "Set in .env.local (dev) or env (prod).");
-    }
-    this.devPassword = devPassword;
-  }
+  // REQ-2026-023：devPassword/checkPassword 随本地校验路径退役（账密校验代理 saas IdP）。
+  public ConfigUserDirectory() {}
 
   @Override
   public Optional<CurrentUser> findByUsername(String username) {
@@ -96,11 +85,6 @@ public class ConfigUserDirectory implements UserDirectory {
       return Optional.of(DEMO_USER);
     }
     return upserted.values().stream().filter(u -> id.equals(u.getId())).findFirst();
-  }
-
-  @Override
-  public boolean checkPassword(String username, String password) {
-    return DEMO_USER.getUsername().equals(username) && devPassword.equals(password);
   }
 
   @Override

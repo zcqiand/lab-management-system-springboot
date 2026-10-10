@@ -46,4 +46,16 @@ class GlobalExceptionHandlerTest {
     assertEquals(HttpStatus.BAD_GATEWAY, resp.getStatusCode());
     assertEquals("SAAS_UPSTREAM_ERROR", resp.getBody().getCode());
   }
+
+  @Test
+  @Fn({"M01.F05.I01"})
+  void loginSaasIdpUnavailable_maps502SaasUnavailable() {
+    // REQ-2026-023：登录路径 saas 不可达 → 502 SAAS_UNAVAILABLE（五仓统一码，
+    // 与 sso 路径的 SAAS_UPSTREAM_ERROR 分开，避免语义混线）。
+    ResponseEntity<ErrorResponse> resp =
+        handler.saasIdpUnavailable(
+            new io.xr.lab.platform.service.SaasIdpUnavailableException("saas connect failed"));
+    assertEquals(HttpStatus.BAD_GATEWAY, resp.getStatusCode());
+    assertEquals("SAAS_UNAVAILABLE", resp.getBody().getCode());
+  }
 }

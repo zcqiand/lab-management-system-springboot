@@ -2,6 +2,7 @@ package io.xr.lab.platform.config;
 
 import io.xr.lab.platform.auth.sso.SaasAuthException;
 import io.xr.lab.platform.service.MenusUnavailableException;
+import io.xr.lab.platform.service.SaasIdpUnavailableException;
 import io.xr.lab.shared.dto.ErrorResponse;
 import java.util.NoSuchElementException;
 import org.springframework.http.HttpStatus;
@@ -48,6 +49,15 @@ public class GlobalExceptionHandler {
       return respond(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", e.getMessage());
     }
     return respond(HttpStatus.BAD_GATEWAY, "SAAS_UPSTREAM_ERROR", e.getMessage());
+  }
+
+  /**
+   * REQ-2026-023：登录路径 saas IdP 不可达/5xx → 502 SAAS_UNAVAILABLE（五仓统一码，与 sso 路径 SAAS_UPSTREAM_ERROR
+   * 分流）。
+   */
+  @ExceptionHandler(SaasIdpUnavailableException.class)
+  public ResponseEntity<ErrorResponse> saasIdpUnavailable(SaasIdpUnavailableException e) {
+    return respond(HttpStatus.BAD_GATEWAY, "SAAS_UNAVAILABLE", e.getMessage());
   }
 
   @ExceptionHandler(NoSuchElementException.class)

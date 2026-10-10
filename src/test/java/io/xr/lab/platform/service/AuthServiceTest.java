@@ -11,6 +11,7 @@ import io.xr.lab.platform.auth.jwt.LabJwtSigner;
 import io.xr.lab.platform.auth.jwt.NimbusLabJwtDecoderFactory;
 import io.xr.lab.platform.auth.sso.MenuSnapshotCache;
 import io.xr.lab.platform.auth.sso.SaasAuthClient;
+import io.xr.lab.platform.auth.sso.SaasAuthException;
 import io.xr.lab.platform.auth.sso.SaasMeClient;
 import io.xr.lab.platform.auth.sso.SaasMenuMapper;
 import io.xr.lab.platform.config.LabConfig;
@@ -57,7 +58,7 @@ class AuthServiceTest {
 
   private final AuthService service =
       new AuthService(
-          new ConfigUserDirectory("dev123456"),
+          new ConfigUserDirectory(),
           jwt,
           saasAuth,
           saasMe,
@@ -86,9 +87,25 @@ class AuthServiceTest {
   @Test
   @Fn({"M01.F05.I01"})
   void login_badPassword_throwsUnauthorized() {
+    // REQ-2026-023：错凭证由 saas 4xx 拒绝映射 401 INVALID_CREDENTIALS
+    // （本地 checkPassword 路径已随代理化退役）。
+    AuthService svc =
+        new AuthService(
+            new ConfigUserDirectory(),
+            jwt,
+            new NoopSaasClients.NoopSaasAuthClient() {
+              @Override
+              public SaasAuthClient.LoginBody userLogin(String username, String password) {
+                throw new SaasAuthException.InvalidGrant("saas 401 wrong password");
+              }
+            },
+            saasMe,
+            labConfig,
+            new MenuSnapshotCache(),
+            new SaasMenuMapper());
     assertThrows(
         SecurityException.class,
-        () -> service.login(new LoginRequest().username("alice").password("wrong")));
+        () -> svc.login(new LoginRequest().username("alice").password("wrong")));
   }
 
   @Test
@@ -252,7 +269,7 @@ class AuthServiceTest {
             new MenuNode().id("grp-res").label("资源管理").icon("resource")));
     AuthService ssoService =
         new AuthService(
-            new ConfigUserDirectory("dev123456"),
+            new ConfigUserDirectory(),
             jwt,
             saasAuth,
             saasMe,
@@ -281,7 +298,7 @@ class AuthServiceTest {
     MenuSnapshotCache cache = new MenuSnapshotCache();
     AuthService pwdService =
         new AuthService(
-            new ConfigUserDirectory("dev123456"),
+            new ConfigUserDirectory(),
             jwt,
             saasAuth,
             saasMe,
@@ -403,7 +420,7 @@ class AuthServiceTest {
         };
     AuthService degraded =
         new AuthService(
-            new ConfigUserDirectory("dev123456"),
+            new ConfigUserDirectory(),
             jwt,
             saasAuth,
             failing,

@@ -25,9 +25,6 @@ public interface UserDirectory {
   /** 按 id 找用户；JWT sub claim 解析主路径。 */
   Optional<CurrentUser> findById(String id);
 
-  /** 校验口令。命中返回 true。 */
-  boolean checkPassword(String username, String password);
-
   /** 用户关联的租户列表（demo 用户关联全部 3 个）。 */
   List<MyTenant> tenantsOf(String username);
 

@@ -145,6 +145,54 @@ class SaasAuthClientTest {
   }
 
   @Test
+  @Fn({"M01.F05.I01"})
+  void userLogin_sendsOAuthClientId_andPassthroughCredentials() throws Exception {
+    // REQ-2026-023 T-2：原生登录代理——userLogin 用 OAuth clientId（LAB_SAAS_CLIENT_ID，
+    // 构造器第 2 参），不是服务账号的 serviceClientId（第 5 参）；账密原值透传。
+    server.enqueue(
+        new MockResponse()
+            .setBody(
+                "{\"user\":{\"id\":\"u1\",\"username\":\"bob\",\"email\":\"b@x.y\","
+                    + "\"status\":\"active\"},\"availableTenants\":[{\"tenantId\":\"t1\","
+                    + "\"roleIds\":[\"admin\"],\"status\":\"active\"}],\"accessToken\":\"at\","
+                    + "\"refreshToken\":\"rt\",\"userId\":\"u1\",\"clientId\":\"lab-management\","
+                    + "\"tokenType\":\"Bearer\",\"expiresIn\":3600}")
+            .addHeader("Content-Type", "application/json"));
+
+    SaasAuthClient.LoginBody resp = client.userLogin("bob", "pw-123");
+
+    assertEquals("at", resp.getAccessToken());
+    assertEquals("u1", resp.getUser().getId());
+    assertEquals("bob", resp.getUser().getUsername());
+    assertEquals(1, resp.getAvailableTenants().size());
+    assertEquals("t1", resp.getAvailableTenants().get(0).getTenantId());
+
+    RecordedRequest sent = server.takeRequest();
+    assertEquals("/api/v1/auth/login", sent.getPath());
+    String reqBody = sent.getBody().readUtf8();
+    assertTrue(reqBody.contains("\"username\":\"bob\""), "账密原值透传");
+    assertTrue(reqBody.contains("\"password\":\"pw-123\""), "账密原值透传");
+    assertTrue(
+        reqBody.contains("\"clientId\":\"lab-client-id\""),
+        "userLogin 必须发 OAuth clientId（LAB_SAAS_CLIENT_ID），不是服务账号 clientId");
+  }
+
+  @Test
+  @Fn({"M01.F05.I01"})
+  void userLogin_4xx_mapsToClientError() {
+    server.enqueue(new MockResponse().setResponseCode(401).setBody("{\"code\":\"UNAUTHORIZED\"}"));
+    assertThrows(
+        SaasAuthException.UnauthorizedClient.class, () -> client.userLogin("bob", "wrong"));
+  }
+
+  @Test
+  @Fn({"M01.F05.I01"})
+  void userLogin_5xx_mapsToUpstreamUnavailable() {
+    server.enqueue(new MockResponse().setResponseCode(503).setBody("unavailable"));
+    assertThrows(SaasAuthException.UpstreamUnavailable.class, () -> client.userLogin("bob", "pw"));
+  }
+
+  @Test
   @Fn({"M01.F05.I03"})
   void constructor_validatesRequiredEnv() {
     assertThrows(

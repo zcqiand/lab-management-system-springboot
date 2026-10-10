@@ -115,7 +115,7 @@ public class AuthService {
     this.menuMapper = menuMapper;
   }
 
-  // === M01.F05.I01 密码登录 ===
+  // === M01.F05.I01 密码登录（REQ-2026-023：账密校验代理 saas IdP，本地 dev 密码路径退役） ===
 
   public LoginResponse login(LoginRequest body) {
     String username = body == null || body.getUsername() == null ? "" : body.getUsername().trim();
@@ -123,14 +123,85 @@ public class AuthService {
     if (username.isEmpty() || password.isEmpty()) {
       throw new IllegalArgumentException("username and password are required");
     }
-    if (!directory.checkPassword(username, password)) {
+    // REQ-2026-023：账密校验委托 saas IdP（clientId=LAB_SAAS_CLIENT_ID，账密原值透传）。
+    // 错误映射五仓统一：saas 4xx → 401 INVALID_CREDENTIALS（不透传内部码）；
+    // 5xx/不可达 → 502 SAAS_UNAVAILABLE。
+    SaasAuthClient.LoginBody saasLogin;
+    try {
+      saasLogin = saasAuth.userLogin(username, password);
+    } catch (SaasAuthException.UpstreamUnavailable e) {
+      throw new SaasIdpUnavailableException("saas IdP unavailable: " + e.getMessage());
+    } catch (SaasAuthException e) {
+      // 4xx（InvalidGrant/UnauthorizedClient）统一 401，不透传 saas 内部码
       throw new SecurityException("Invalid username or password");
     }
-    CurrentUser user = directory.findByUsername(username).orElseThrow(SecurityException::new);
-    // 密码登录的 dev 用户无 saas 身份 → 用服务账号拉菜单快照（demo 兜底已删，
-    // miss 时 /menus 会 503）。失败不阻塞登录（warn），用户重登/SSO 可补。
+    SaasAuthClient.SaasLoginUser u =
+        saasLogin.getUser() != null ? saasLogin.getUser() : new SaasAuthClient.SaasLoginUser();
+    String saasUserId = firstNonEmpty(u.getId(), saasLogin.getUserId());
+    // 租户名富化（admin/tenants，best-effort 降级 name=tenantId，不阻塞登录）
+    Map<String, SaasMeClient.SaasPlatformTenant> nameById =
+        fetchTenantNames(saasUserId, saasLogin.getAccessToken());
+    List<MyTenant> tenants = tenantsFromLogin(saasLogin.getAvailableTenants(), nameById);
+    // user 映射自 saas 响应；回退链 firstNonEmpty（||，防 saas displayName 空串陷阱）
+    CurrentUser user =
+        new CurrentUser()
+            .id(firstNonEmpty(u.getId(), saasLogin.getUserId(), "unknown"))
+            .username(firstNonEmpty(u.getUsername(), u.getEmail(), "unknown"))
+            .displayName(firstNonEmpty(u.getDisplayName(), u.getUsername(), u.getEmail(), "未知用户"))
+            .roleCode(firstNonEmpty(roleCodeOf(tenants), "member"));
+    // 菜单快照仍走服务账号 serviceLogin（REQ-2026-023 非目标，行为不动）
     cacheMenusWithServiceAccount(user.getId());
-    return session(user, null, null);
+    membershipCache.put(user.getId(), tenants);
+    // tenant_id claim：saas currentTenantId 优先，缺省落首租户
+    String tenantId =
+        firstNonEmpty(
+            saasLogin.getCurrentTenantId(),
+            tenants.isEmpty() ? null : tenants.get(0).getTenantId());
+    // saasRefresh=null → refresh 维持 dev-placeholder（REQ-2026-023 非目标）
+    return session(user, tenantId, tenants, null);
+  }
+
+  private static String firstNonEmpty(String... values) {
+    for (String v : values) {
+      if (v != null && !v.isEmpty()) {
+        return v;
+      }
+    }
+    return null;
+  }
+
+  private static String roleCodeOf(List<MyTenant> tenants) {
+    if (tenants.isEmpty()
+        || tenants.get(0).getRoleIds() == null
+        || tenants.get(0).getRoleIds().isEmpty()) {
+      return null;
+    }
+    return tenants.get(0).getRoleIds().get(0);
+  }
+
+  /**
+   * saas 登录响应 availableTenants → MyTenant。nameById 命中 → code=tenantKey/name=name； miss → 降级
+   * code=name=tenantId（与 {@link #tenantsFrom} 同款降级语义）。
+   */
+  private List<MyTenant> tenantsFromLogin(
+      List<SaasAuthClient.SaasAvailableTenant> available,
+      Map<String, SaasMeClient.SaasPlatformTenant> nameById) {
+    if (available == null) {
+      return List.of();
+    }
+    return available.stream()
+        .filter(t -> t.getTenantId() != null && !"removed".equals(t.getStatus()))
+        .map(
+            t -> {
+              SaasMeClient.SaasPlatformTenant pt = nameById.get(t.getTenantId());
+              return new MyTenant()
+                  .tenantId(t.getTenantId())
+                  .code(
+                      pt != null && pt.getTenantKey() != null ? pt.getTenantKey() : t.getTenantId())
+                  .name(pt != null && pt.getName() != null ? pt.getName() : t.getTenantId())
+                  .roleIds(t.getRoleIds() == null ? List.of() : t.getRoleIds());
+            })
+        .toList();
   }
 
   // === M01.F05.I04 刷新 token ===

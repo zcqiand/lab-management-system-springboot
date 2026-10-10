@@ -39,6 +39,37 @@ final class NoopSaasClients {
       t.setExpiresIn(3600);
       return t;
     }
+
+    /**
+     * REQ-2026-023：userLogin 替身——与旧 demo 目录同形（USER-A/alice/三 demo 租户）， 存量 login
+     * 消费测试（success/refresh round-trip/menus 快照/me demo 租户）零改动。
+     */
+    @Override
+    public SaasAuthClient.LoginBody userLogin(String username, String password) {
+      SaasAuthClient.SaasLoginUser u = new SaasAuthClient.SaasLoginUser();
+      u.setId("USER-A");
+      u.setUsername("alice");
+      u.setEmail("alice@saas.local");
+      SaasAuthClient.SaasAvailableTenant t1 = new SaasAuthClient.SaasAvailableTenant();
+      t1.setTenantId("TENANT-001");
+      t1.setRoleIds(List.of("admin"));
+      t1.setStatus("active");
+      SaasAuthClient.SaasAvailableTenant t2 = new SaasAuthClient.SaasAvailableTenant();
+      t2.setTenantId("TENANT-002");
+      t2.setRoleIds(List.of("technician"));
+      t2.setStatus("active");
+      SaasAuthClient.SaasAvailableTenant t3 = new SaasAuthClient.SaasAvailableTenant();
+      t3.setTenantId("TENANT-003");
+      t3.setRoleIds(List.of("viewer"));
+      t3.setStatus("active");
+      SaasAuthClient.LoginBody b = new SaasAuthClient.LoginBody();
+      b.setUser(u);
+      b.setAvailableTenants(List.of(t1, t2, t3));
+      b.setAccessToken("dev-access-token");
+      b.setRefreshToken("dev-refresh-token");
+      b.setUserId("USER-A");
+      return b;
+    }
   }
 
   /** whoami/tenants 返回固定 saas UUID 体系身份 + ACME Corp 显示名；listMyMenus 恒空树。 */
