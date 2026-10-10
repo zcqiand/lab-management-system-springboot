@@ -151,6 +151,15 @@ public class AuthService {
             .roleCode(firstNonEmpty(roleCodeOf(tenants), "member"));
     // 菜单快照仍走服务账号 serviceLogin（REQ-2026-023 非目标，行为不动）
     cacheMenusWithServiceAccount(user.getId());
+    // REQ-2026-023 live 回归（2026-10-11 五目标 401 指纹）：密码登录用户落
+    // directory（镜像 ssoCallback upsert 链）——me/switchTenant 的 resolveUser
+    // 按 sub=saas user id 解析，不落目录必 unknown user 401。email 缺失降级
+    // username 作 upsert 键（与 ssoCallback 的 email 主键约定同形）。
+    directory.upsert(
+        user.getId(),
+        firstNonEmpty(u.getEmail(), u.getUsername()),
+        user.getDisplayName(),
+        user.getRoleCode());
     membershipCache.put(user.getId(), tenants);
     // tenant_id claim：saas currentTenantId 优先，缺省落首租户
     String tenantId =
@@ -266,29 +275,28 @@ public class AuthService {
   public CurrentUserSession me(Map<String, Object> claims) {
     CurrentUser user = resolveUser(claims);
     // 2026-09-03 租户体系对齐（specs/2026-09-03-me-tenant-alignment-design.md §3）：
-    // SSO 用户（有 per-user saas refresh token）必须返回 saas memberships 租户，
-    // 与 ssoCallback 同体系 —— 否则前端 hydrateAuth 的 tenants.find(saas UUID)
-    // 跨体系失配 → awaiting_tenant → 卡「检查登录态…」死锁。
-    // miss（重启/TTL 过期）抛 401，前端 catch 走 /api/auth/refresh 自愈。
-    // 密码登录用户（无 per-user token）保持 demo 租户。
-    String saasRefresh = directory.getSaasRefreshToken(user.getId());
-    if (saasRefresh != null && !saasRefresh.isEmpty()) {
-      List<MyTenant> cachedTenants =
-          membershipCache
-              .get(user.getId())
-              .orElseThrow(
-                  () ->
-                      new SecurityException(
-                          "membership snapshot unavailable for user "
-                              + user.getId()
-                              + " (cache miss); refresh required"));
+    // 登录会话租户必须与登录响应同体系（前端 hydrateAuth 的 tenants.find(saas UUID)
+    // 必命中 → 否则 awaiting_tenant 卡「检查登录态…」死锁）。
+    // REQ-2026-023：密码登录与 SSO 同写 membership 快照（登录响应租户=saas 体系），
+    // 快照 hit 优先返回——两类用户同链；miss 时：SSO 用户（有 per-user saas refresh
+    // token）抛 401 走 /api/auth/refresh 自愈；密码用户（无 per-user token）降级
+    // demo 租户（重启/TTL 后可恢复态，重登即重建快照）。
+    var cachedTenants = membershipCache.get(user.getId());
+    if (cachedTenants.isPresent()) {
       Object tenantClaim = claims.get("tenant_id");
       String currentTenantId =
-          tenantClaim != null ? tenantClaim.toString() : cachedTenants.get(0).getTenantId();
+          tenantClaim != null ? tenantClaim.toString() : cachedTenants.get().get(0).getTenantId();
       return new CurrentUserSession()
           .user(user)
-          .tenants(cachedTenants)
+          .tenants(cachedTenants.get())
           .currentTenantId(currentTenantId);
+    }
+    String saasRefresh = directory.getSaasRefreshToken(user.getId());
+    if (saasRefresh != null && !saasRefresh.isEmpty()) {
+      throw new SecurityException(
+          "membership snapshot unavailable for user "
+              + user.getId()
+              + " (cache miss); refresh required");
     }
     Object tenantClaim = claims.get("tenant_id");
     String currentTenantId =
@@ -304,11 +312,20 @@ public class AuthService {
   public LoginResponse switchTenant(Map<String, Object> claims, SwitchTenantRequest body) {
     CurrentUser user = resolveUser(claims);
     String tenantId = body == null || body.getTenantId() == null ? "" : body.getTenantId();
-    MyTenant target = directory.findByTenantId(tenantId).orElse(null);
+    // REQ-2026-023 live 回归：归属校验对用户当前租户集（membership 快照=登录响应
+    // 同体系，写死 demo 字面量会让密码登录用户切 saas 租户 404）；快照 miss 降级
+    // demo 目录（与 me() 降级链一致）。
+    List<MyTenant> knownTenants =
+        membershipCache.get(user.getId()).orElseGet(() -> directory.tenantsOf(user.getUsername()));
+    MyTenant target =
+        knownTenants.stream()
+            .filter(t -> tenantId.equals(t.getTenantId()))
+            .findFirst()
+            .orElse(null);
     if (target == null) {
       throw new NoSuchElementException("Tenant not found");
     }
-    return session(user, target.getTenantId(), null);
+    return session(user, target.getTenantId(), knownTenants, null);
   }
 
   /**
@@ -483,10 +500,6 @@ public class AuthService {
   }
 
   // === token 签发 ===
-
-  private LoginResponse session(CurrentUser user, String tenantId, String saasRefreshToken) {
-    return session(user, tenantId, null, saasRefreshToken);
-  }
 
   private LoginResponse session(
       CurrentUser user, String tenantId, List<MyTenant> tenants, String saasRefreshToken) {

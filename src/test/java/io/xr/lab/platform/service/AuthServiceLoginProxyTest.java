@@ -191,4 +191,56 @@ class AuthServiceLoginProxyTest {
             service(saasAuth, new EnrichingMeClient(), new MenuSnapshotCache())
                 .login(new LoginRequest().username("alice").password("pw-123")));
   }
+
+  // === REQ-2026-023 live 回归（2026-10-11 五目标同时失败指纹） ===
+  // 现场：登录响应 tenants / JWT tenant_id claim 已是 saas 租户体系，但登录链
+  // 不落 directory upsert + membership 快照 → me/switchTenant 的 resolveUser
+  // 报 unknown user 401；switchTenant 归属校验写死 demo 字面量 → saas 租户 404。
+  // 契约：登录后 me/switch 必须与登录响应同一租户体系（2026-09-03 对齐约束：
+  // tenants.find(activeTenantId) 必命中）。
+
+  /** saas 真实租户是 UUID 形（live 实测），刻意不用 TENANT-00x 字面量——会与 demo 目录撞键掩盖失配。 */
+  private static SaasAuthClient.LoginBody saasUuidLoginBody() {
+    SaasAuthClient.SaasLoginUser user = new SaasAuthClient.SaasLoginUser();
+    user.setId("00000000-0000-0000-0000-b00000000001");
+    user.setUsername("alice");
+    user.setEmail("alice@saas.local");
+    SaasAuthClient.SaasAvailableTenant t1 = new SaasAuthClient.SaasAvailableTenant();
+    t1.setTenantId("00000000-0000-0000-0000-000000000001");
+    t1.setRoleIds(List.of("admin"));
+    t1.setStatus("active");
+    SaasAuthClient.SaasAvailableTenant t2 = new SaasAuthClient.SaasAvailableTenant();
+    t2.setTenantId("00000000-0000-0000-0000-000000000002");
+    t2.setRoleIds(List.of("technician"));
+    t2.setStatus("active");
+    SaasAuthClient.LoginBody body = new SaasAuthClient.LoginBody();
+    body.setUser(user);
+    body.setAvailableTenants(List.of(t1, t2));
+    body.setAccessToken("saas-access-token");
+    body.setRefreshToken("saas-refresh-token");
+    body.setUserId("00000000-0000-0000-0000-b00000000001");
+    return body;
+  }
+
+  @Test
+  @Fn({"M00.F01.I01", "M00.F02.I01"})
+  void login_sessionCoherence_meAndSwitchTenant_stayInSaasTenantSystem() {
+    RecordingSaasAuthClient saasAuth = new RecordingSaasAuthClient();
+    saasAuth.response = saasUuidLoginBody();
+    AuthService svc = service(saasAuth, new EnrichingMeClient(), new MenuSnapshotCache());
+    LoginResponse login = svc.login(new LoginRequest().username("alice").password("pw-123"));
+    String sub = login.getUser().getId();
+    String tid = login.getTenants().get(0).getTenantId();
+
+    // me：resolveUser 必须能解析密码登录签发的 sub；租户与登录响应同体系
+    io.xr.lab.shared.dto.CurrentUserSession me = svc.me(java.util.Map.of("sub", sub));
+    assertEquals(tid, me.getTenants().get(0).getTenantId());
+    assertEquals(login.getTenants().size(), me.getTenants().size());
+
+    // switch-tenant：登录响应里的租户可切 → 200 + 3 段真 JWT（tenant_id claim=目标租户）
+    io.xr.lab.shared.dto.SwitchTenantRequest body =
+        new io.xr.lab.shared.dto.SwitchTenantRequest().tenantId(tid);
+    LoginResponse switched = svc.switchTenant(java.util.Map.of("sub", sub), body);
+    assertEquals(3, switched.getToken().split("\\.").length);
+  }
 }
