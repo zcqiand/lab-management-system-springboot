@@ -46,7 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
 @TestPropertySource(
     properties = {
       // env 可覆盖；连不上即测试失败 —— 没有兜底，没有 skip
-      "spring.datasource.url=${LAB_TEST_DATABASE_URL:jdbc:postgresql://100.79.128.25:5432/lab_test}",
+      "spring.datasource.url=${LAB_TEST_DATABASE_URL:jdbc:postgresql://127.0.0.1:54321/lab_test}",
       "spring.datasource.username=${LAB_TEST_DATABASE_USER:postgres}",
       "spring.datasource.password=${LAB_TEST_DATABASE_PASSWORD:qiand68+++}",
       // lab_test 表结构 = shared src/db/schema.ts 已 migrate（ADR-0025/0033 DB-First），

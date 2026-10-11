@@ -94,6 +94,13 @@ if [ ! -f "$BASE/springboot.env" ]; then
     exit 1
   fi
 fi
+# REQ-2026-023（2026-10-12 补齐）死键清理:LAB_AUTH_DEV_PASSWORD 随原生登录代理
+# saas IdP 退役(凭据真源=saas 库),存量 env-file 残留行删除（nextjs/rails/fastapi 同款）。
+if grep -q '^LAB_AUTH_DEV_PASSWORD=' "$BASE/springboot.env"; then
+  echo "→ drop dead key LAB_AUTH_DEV_PASSWORD from $BASE/springboot.env (REQ-2026-023 原生登录代理 saas)"
+  umask 077
+  sed -i '/^LAB_AUTH_DEV_PASSWORD=/d' "$BASE/springboot.env"
+fi
 # 校验 springboot.env 里有 DATABASE_URL + JWT_SIGNING_KEY（即使 env-file 已存在, 内容可能是上一次失败留下的）
 # 老契约迁移提示: 旧 env-file 里是 LAB_DATABASE_URL/LAB_JWT_SECRET/LAB_SAAS_BASE 等
 # 老 key 名 —— 二选一: 手工改 key 名, 或备份后删掉 env-file 带 secrets 重跑本脚本重建。
