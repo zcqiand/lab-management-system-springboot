@@ -2,9 +2,9 @@
   "db_synced_sha": "88a9b32b2cacc3a1475ca6085287a3e5222b3f82",
   "db_synced_at": "2026-09-21T00:32:26.470128+00:00",
   "db_synced_cmd": "scaffold-entities.sh",
-  "shared_sha": "166f1d2b5b88c0c56a058d226c626c33cd6d42a3",
+  "shared_sha": "c60e5862b6b8374b95ee5239880a48cd6f1cc81c",
   "consumer_repo": "lab-management-system-springboot",
-  "api_synced_sha": "166f1d2b5b88c0c56a058d226c626c33cd6d42a3",
-  "api_synced_at": "2026-10-11T06:56:45.139725+00:00",
+  "api_synced_sha": "c60e5862b6b8374b95ee5239880a48cd6f1cc81c",
+  "api_synced_at": "2026-10-11T09:37:04.002272+00:00",
   "api_synced_cmd": "gen-shared.sh"
 }
