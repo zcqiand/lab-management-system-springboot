@@ -128,7 +128,6 @@ env 变量（application.yml 占位 + ADR-0019 fail-fast，缺失即 throw，无
 | `LAB_SAAS_BASE_URL` / `LAB_SSO_LOGIN_URL` / `LAB_SAAS_CLIENT_ID` / `LAB_SAAS_CLIENT_SECRET` / `LAB_SAAS_DEFAULT_TENANT_ID` | SSO 四件套 + 登录页 | SsoBeansConfig 构造器 ISE fail-fast |
 | `LAB_SAAS_SERVICE_USER` / `LAB_SAAS_SERVICE_PASSWORD` / `LAB_SAAS_SERVICE_CLIENT_ID` | 服务账号（拉菜单快照） | 同上 |
 | `LAB_SSO_CALLBACK_REDIRECT` | SSO 回跳 base | 同上 |
-| `LAB_AUTH_DEV_PASSWORD` | dev 密码登录口令覆盖 | 待补充（`ConfigUserDirectory` 有默认 demo 口令） |
 | `LAB_CORS_ALLOWED_ORIGINS` | CORS origin 白名单 CSV（allowCredentials=true） | 空白名单 → 跨源被拦 |
 
 部署：两阶段 Dockerfile（`maven:3.9-eclipse-temurin-21` 构建 fat jar `lab-management-system-springboot-0.1.0-SNAPSHOT.jar` → `eclipse-temurin:21-jre-jammy` 运行），容器内监听 5205，`HEALTHCHECK` wget `/actuator/health`（SecurityConfig 已 permitAll `/actuator/**`）。VPS 侧 `deploy/lab-management-system-springboot.sh`（CI deploy job 远程调用，支持 tag 回滚）+ `nginx-vps.conf.example`（域名 `lab-springboot.xiangru.uk` 反代 127.0.0.1:5205，ADR-0018 单层端口）。放行纪律：全量回归绿后打 `v<MAJOR>.<MINOR>.<PATCH>-<YYYYMMDD>` tag。
