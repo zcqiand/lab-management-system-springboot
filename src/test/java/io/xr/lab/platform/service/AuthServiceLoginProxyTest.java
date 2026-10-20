@@ -130,16 +130,19 @@ class AuthServiceLoginProxyTest {
     assertEquals("alice", resp.getUser().getUsername());
     assertEquals("admin", resp.getUser().getRoleCode());
     // tenants 四字段 + 富化真名/tenantKey（TENANT-002 不在平台列表 → 降级 tenantId）
+    // 2026-10-20 租户标识=tenant_key（人裁「对外交互用 key」）：平台列表命中的租户
+    // tenantId=tenantKey（TENANT-001→city-lab）；miss 降级原 tenantId 不变。
     assertEquals(2, resp.getTenants().size());
-    assertEquals("TENANT-001", resp.getTenants().get(0).getTenantId());
+    assertEquals("city-lab", resp.getTenants().get(0).getTenantId());
     assertEquals("city-lab", resp.getTenants().get(0).getCode());
     assertEquals("市住建工程质量检测中心", resp.getTenants().get(0).getName());
+    assertEquals("TENANT-002", resp.getTenants().get(1).getTenantId());
     assertEquals("TENANT-002", resp.getTenants().get(1).getCode());
     assertEquals("TENANT-002", resp.getTenants().get(1).getName());
-    // lab 自家 JWT 重签：可被本仓 signer 验签，tenant_id 落首租户
+    // lab 自家 JWT 重签：可被本仓 signer 验签，tenant_id 落首租户（tenant_key）
     java.util.Map<String, Object> claims = jwt.verify(resp.getToken());
     assertEquals("saas-user-alice", claims.get("sub"));
-    assertEquals("TENANT-001", claims.get("tenant_id"));
+    assertEquals("city-lab", claims.get("tenant_id"));
     // refresh 维持 dev-placeholder（不透传 saas refreshToken）
     String refreshPayload =
         new String(

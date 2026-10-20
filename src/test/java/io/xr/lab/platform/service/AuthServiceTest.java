@@ -165,10 +165,11 @@ class AuthServiceTest {
     LoginResponse resp = service.ssoCallback(body);
 
     // 2026-09-03 Noop saas fixture 改 UUID 体系：SSO 用户是 upsert 的 saas 身份，
-    // 租户来自 saas memberships（1 条 UUID），非 demo TENANT-00x
+    // 租户来自 saas memberships（1 条 UUID），非 demo TENANT-00x。
+    // 2026-10-20 租户标识=tenant_key（人裁「对外交互用 key」）：tenantId=tenantKey（acme）。
     assertEquals("00000000-0000-0000-0000-b00000000001", resp.getUser().getId());
     assertEquals(1, resp.getTenants().size());
-    assertEquals("00000000-0000-0000-0000-000000000001", resp.getTenants().get(0).getTenantId());
+    assertEquals("acme", resp.getTenants().get(0).getTenantId());
     assertNotNull(resp.getToken());
     // refresh token 嵌 saas refresh token
     String refreshPayload =
@@ -383,7 +384,8 @@ class AuthServiceTest {
             .state("st-tenant-name-1");
     LoginResponse resp = service.ssoCallback(body);
 
-    assertEquals("00000000-0000-0000-0000-000000000001", resp.getTenants().get(0).getTenantId());
+    // 2026-10-20 tenant_key 人裁：tenantId/code=tenantKey（acme），name 富化不变
+    assertEquals("acme", resp.getTenants().get(0).getTenantId());
     assertEquals("ACME Corp", resp.getTenants().get(0).getName());
     assertEquals("acme", resp.getTenants().get(0).getCode());
   }
