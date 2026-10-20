@@ -163,11 +163,12 @@ public class AuthService {
     membershipCache.put(user.getId(), tenants);
     // tenant_id claim：saas currentTenantId 优先，缺省落首租户。
     // 2026-10-20 租户标识=tenant_key（人裁「对外交互用 key」）：平台列表命中 → tenantKey。
-    String tenantId = resolveTenantKey(
-        firstNonEmpty(
-            saasLogin.getCurrentTenantId(),
-            tenants.isEmpty() ? null : tenants.get(0).getTenantId()),
-        nameById);
+    String tenantId =
+        resolveTenantKey(
+            firstNonEmpty(
+                saasLogin.getCurrentTenantId(),
+                tenants.isEmpty() ? null : tenants.get(0).getTenantId()),
+            nameById);
     // saasRefresh=null → refresh 维持 dev-placeholder（REQ-2026-023 非目标）
     return session(user, tenantId, tenants, null);
   }
@@ -191,8 +192,8 @@ public class AuthService {
   }
 
   /**
-   * saas 登录响应 availableTenants → MyTenant。nameById 命中 → tenantId/code=tenantKey、name=name； miss → 降级
-   * 原值 tenantId（2026-10-20 tenant_key 人裁；与 {@link #tenantsFrom} 同款降级语义）。
+   * saas 登录响应 availableTenants → MyTenant。nameById 命中 → tenantId/code=tenantKey、name=name； miss →
+   * 降级 原值 tenantId（2026-10-20 tenant_key 人裁；与 {@link #tenantsFrom} 同款降级语义）。
    */
   private List<MyTenant> tenantsFromLogin(
       List<SaasAuthClient.SaasAvailableTenant> available,
@@ -571,9 +572,8 @@ public class AuthService {
   }
 
   /**
-   * 2026-10-20 tenant_key 人裁：对外交互用 key，不用 UUID。平台租户列表命中且 tenantKey 非空 →
-   * tenantKey；miss/lookup 失败降级原标识（与 {@link #tenantsFromLogin}/{@link #tenantsFrom}
-   * 同款 best-effort 降级语义）。
+   * 2026-10-20 tenant_key 人裁：对外交互用 key，不用 UUID。平台租户列表命中且 tenantKey 非空 → tenantKey；miss/lookup
+   * 失败降级原标识（与 {@link #tenantsFromLogin}/{@link #tenantsFrom} 同款 best-effort 降级语义）。
    */
   private static String resolveTenantKey(
       String saasTenantId, Map<String, SaasMeClient.SaasPlatformTenant> nameById) {
