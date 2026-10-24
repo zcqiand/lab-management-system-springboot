@@ -35,7 +35,7 @@ mvn spring-boot:run           # 本地起服务
 
 > 同一案例仓后续接入其他书籍时，在此节下新增书籍小节。
 
-### 《Spring Boot 从入门到项目实践》（亚马逊电子书）
+### 书一《Spring Boot 从入门到项目实践》（亚马逊电子书）
 
 - 书稿基线：tag `v0.1.47-20260926`（冻结，正文代码清单以此为准）
 - 书稿定位：案例一「实验室管理系统」，覆盖第 37-46 章
@@ -53,6 +53,17 @@ mvn spring-boot:run           # 本地起服务
 | 45 | Docker 部署实战：镜像构建与 VPS 交付脚本 | `Dockerfile`、`deploy/setup-vps.sh`、`deploy/nginx-vps.conf.example` |
 | 46 | 项目总结：从需求到交付的全链路复盘 | — |
 
+### 书二《PostgreSQL DBA 实战：从开发到数据库专家的转型指南》（第二部分）
+
+- 书稿定位：xr-know-007，第 33、34、35、36 章正文代码块挂本仓 `source=` 锚点
+- 配套版本：`v0.1.47-20260926`（registry 冻结 tag，代码以此为准）
+
+| 章 | 章题 | 对应源文件 |
+| :--- | :--- | :--- |
+| 33 | 实战一启动：检测业务系统数据库架构设计 | `src/main/java/io/xr/lab/platform/entity/ContractEntity.java` + `src/main/java/io/xr/lab/platform/repository/ContractRepository.java` + `src/main/java/io/xr/lab/platform/entity/SampleReceiptEntity.java` + `src/main/java/io/xr/lab/platform/controller/TestRecordController.java` + `src/main/java/io/xr/lab/platform/entity/SampleEntity.java` + `src/main/java/io/xr/lab/platform/repository/SampleRepository.java` + `src/main/java/io/xr/lab/platform/entity/InspectionSpecialtyEntity.java` + `src/main/java/io/xr/lab/platform/entity/InspectionObjectEntity.java` + `src/main/java/io/xr/lab/platform/entity/InspectionObjectParameterEntity.java` + `src/main/java/io/xr/lab/platform/entity/InspectionParameterEntity.java` + `src/main/java/io/xr/lab/platform/entity/InspectionStandardEntity.java` |
+| 34 | 实战一：检测数据的 JSONB 扩展字段与分区设计 | `src/main/java/io/xr/lab/platform/entity/SampleEntity.java` + `src/main/java/io/xr/lab/platform/service/SampleService.java` + `src/main/java/io/xr/lab/platform/entity/ParamInterfaceEntity.java` |
+| 35 | 状态流转与事务一致性：报告流转状态机设计 | `src/main/java/io/xr/lab/platform/entity/enums/FlowStatusConverter.java` + `src/main/java/io/xr/lab/platform/service/SampleReceiptService.java` + `src/main/java/io/xr/lab/platform/service/TestRecordService.java` + `src/main/java/io/xr/lab/platform/service/ReportFlowService.java` |
+| 36 | 实战一收官：检测业务系统交付部署与验收 | `src/main/java/io/xr/lab/platform/controller/TestRecordController.java` + `src/main/java/io/xr/lab/platform/entity/SampleEntity.java` + `src/main/java/io/xr/lab/platform/repository/SampleRepository.java` + `src/main/java/io/xr/lab/platform/repository/TestRecordRepository.java` + `src/main/java/io/xr/lab/platform/service/SummaryService.java` |
 ## 快速链接
 
 - [CLAUDE.md](CLAUDE.md) — 开发约定与编码规范
