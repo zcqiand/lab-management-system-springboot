@@ -238,7 +238,7 @@ public interface ParamInterfacesApi {
   String PATH_PARAM_INTERFACES_LIST_PARAM_INTERFACES = "/api/param-interfaces";
 
   /**
-   * GET /api/param-interfaces
+   * GET /api/param-interfaces 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
    *
    * @param page (optional)
    * @param pageSize (optional)
@@ -248,6 +248,7 @@ public interface ParamInterfacesApi {
    */
   @Operation(
       operationId = "paramInterfacesListParamInterfaces",
+      description = "分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。",
       tags = {"param-interfaces"},
       responses = {
         @ApiResponse(

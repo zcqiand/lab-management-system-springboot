@@ -77,12 +77,16 @@ public class SamplesListSamples200Response {
   }
 
   /**
-   * Get page
+   * 当前实现仅回显，不切片：参照实现返回全量，无分页语义。
    *
    * @return page
    */
   @NotNull
-  @Schema(name = "page", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
+  @Schema(
+      name = "page",
+      example = "1",
+      description = "当前实现仅回显，不切片：参照实现返回全量，无分页语义。",
+      requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("page")
   public Integer getPage() {
     return page;
@@ -99,12 +103,16 @@ public class SamplesListSamples200Response {
   }
 
   /**
-   * Get pageSize
+   * 当前实现仅回显，不切片。
    *
    * @return pageSize
    */
   @NotNull
-  @Schema(name = "pageSize", example = "20", requiredMode = Schema.RequiredMode.REQUIRED)
+  @Schema(
+      name = "pageSize",
+      example = "20",
+      description = "当前实现仅回显，不切片。",
+      requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("pageSize")
   public Integer getPageSize() {
     return pageSize;

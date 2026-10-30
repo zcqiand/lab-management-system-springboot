@@ -422,7 +422,7 @@ public interface ReportNamesApi {
   String PATH_REPORT_NAMES_LIST_REPORT_NAMES = "/api/report-names";
 
   /**
-   * GET /api/report-names
+   * GET /api/report-names 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
    *
    * @param page (optional)
    * @param pageSize (optional)
@@ -432,6 +432,7 @@ public interface ReportNamesApi {
    */
   @Operation(
       operationId = "reportNamesListReportNames",
+      description = "分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。",
       tags = {"report-names"},
       responses = {
         @ApiResponse(

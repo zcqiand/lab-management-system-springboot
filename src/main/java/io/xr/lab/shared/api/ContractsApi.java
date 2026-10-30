@@ -151,7 +151,7 @@ public interface ContractsApi {
   String PATH_CONTRACTS_LIST_CONTRACTS = "/api/contracts";
 
   /**
-   * GET /api/contracts
+   * GET /api/contracts 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
    *
    * @param page (optional)
    * @param pageSize (optional)
@@ -162,6 +162,7 @@ public interface ContractsApi {
    */
   @Operation(
       operationId = "contractsListContracts",
+      description = "分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。",
       tags = {"contracts"},
       responses = {
         @ApiResponse(

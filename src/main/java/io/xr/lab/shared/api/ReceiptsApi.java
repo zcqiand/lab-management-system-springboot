@@ -512,7 +512,7 @@ public interface ReceiptsApi {
   String PATH_RECEIPTS_LIST_RECEIPTS = "/api/receipts";
 
   /**
-   * GET /api/receipts
+   * GET /api/receipts 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
    *
    * @param page (optional)
    * @param pageSize (optional)
@@ -525,6 +525,7 @@ public interface ReceiptsApi {
    */
   @Operation(
       operationId = "receiptsListReceipts",
+      description = "分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。",
       tags = {"receipts"},
       responses = {
         @ApiResponse(

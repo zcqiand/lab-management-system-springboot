@@ -151,7 +151,7 @@ public interface SamplesApi {
   String PATH_SAMPLES_LIST_SAMPLES = "/api/samples";
 
   /**
-   * GET /api/samples
+   * GET /api/samples 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
    *
    * @param page (optional)
    * @param pageSize (optional)
@@ -162,6 +162,7 @@ public interface SamplesApi {
    */
   @Operation(
       operationId = "samplesListSamples",
+      description = "分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。",
       tags = {"samples"},
       responses = {
         @ApiResponse(

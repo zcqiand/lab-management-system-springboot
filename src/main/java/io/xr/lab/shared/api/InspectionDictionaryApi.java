@@ -617,7 +617,7 @@ public interface InspectionDictionaryApi {
   String PATH_INSPECTION_DICTIONARY_LIST_OBJECTS = "/api/inspection/objects";
 
   /**
-   * GET /api/inspection/objects
+   * GET /api/inspection/objects 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
    *
    * @param page (optional)
    * @param pageSize (optional)
@@ -628,6 +628,7 @@ public interface InspectionDictionaryApi {
    */
   @Operation(
       operationId = "inspectionDictionaryListObjects",
+      description = "分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。",
       tags = {"inspection-dictionary"},
       responses = {
         @ApiResponse(
@@ -677,7 +678,7 @@ public interface InspectionDictionaryApi {
   String PATH_INSPECTION_DICTIONARY_LIST_PARAMETERS = "/api/inspection/parameters";
 
   /**
-   * GET /api/inspection/parameters
+   * GET /api/inspection/parameters 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
    *
    * @param page (optional)
    * @param pageSize (optional)
@@ -688,6 +689,7 @@ public interface InspectionDictionaryApi {
    */
   @Operation(
       operationId = "inspectionDictionaryListParameters",
+      description = "分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。",
       tags = {"inspection-dictionary"},
       responses = {
         @ApiResponse(
@@ -737,7 +739,7 @@ public interface InspectionDictionaryApi {
   String PATH_INSPECTION_DICTIONARY_LIST_SPECIALTIES = "/api/inspection/specialties";
 
   /**
-   * GET /api/inspection/specialties
+   * GET /api/inspection/specialties 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
    *
    * @param page (optional)
    * @param pageSize (optional)
@@ -747,6 +749,7 @@ public interface InspectionDictionaryApi {
    */
   @Operation(
       operationId = "inspectionDictionaryListSpecialties",
+      description = "分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。",
       tags = {"inspection-dictionary"},
       responses = {
         @ApiResponse(
@@ -891,7 +894,7 @@ public interface InspectionDictionaryApi {
   String PATH_INSPECTION_DICTIONARY_LIST_STANDARDS = "/api/inspection/standards";
 
   /**
-   * GET /api/inspection/standards
+   * GET /api/inspection/standards 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
    *
    * @param page (optional)
    * @param pageSize (optional)
@@ -902,6 +905,7 @@ public interface InspectionDictionaryApi {
    */
   @Operation(
       operationId = "inspectionDictionaryListStandards",
+      description = "分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。",
       tags = {"inspection-dictionary"},
       responses = {
         @ApiResponse(

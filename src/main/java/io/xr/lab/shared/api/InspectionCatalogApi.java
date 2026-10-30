@@ -345,7 +345,7 @@ public interface InspectionCatalogApi {
   String PATH_CATALOG_LIST_BRANDS = "/api/catalog/brands";
 
   /**
-   * GET /api/catalog/brands
+   * GET /api/catalog/brands 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
    *
    * @param page (optional)
    * @param pageSize (optional)
@@ -356,6 +356,7 @@ public interface InspectionCatalogApi {
    */
   @Operation(
       operationId = "catalogListBrands",
+      description = "分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。",
       tags = {"inspection-catalog"},
       responses = {
         @ApiResponse(
@@ -404,7 +405,7 @@ public interface InspectionCatalogApi {
   String PATH_CATALOG_LIST_GRADES = "/api/catalog/grades";
 
   /**
-   * GET /api/catalog/grades
+   * GET /api/catalog/grades 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
    *
    * @param page (optional)
    * @param pageSize (optional)
@@ -415,6 +416,7 @@ public interface InspectionCatalogApi {
    */
   @Operation(
       operationId = "catalogListGrades",
+      description = "分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。",
       tags = {"inspection-catalog"},
       responses = {
         @ApiResponse(
@@ -463,7 +465,7 @@ public interface InspectionCatalogApi {
   String PATH_CATALOG_LIST_MODELS = "/api/catalog/models";
 
   /**
-   * GET /api/catalog/models
+   * GET /api/catalog/models 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
    *
    * @param page (optional)
    * @param pageSize (optional)
@@ -474,6 +476,7 @@ public interface InspectionCatalogApi {
    */
   @Operation(
       operationId = "catalogListModels",
+      description = "分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。",
       tags = {"inspection-catalog"},
       responses = {
         @ApiResponse(
@@ -522,7 +525,7 @@ public interface InspectionCatalogApi {
   String PATH_CATALOG_LIST_SPECS = "/api/catalog/specs";
 
   /**
-   * GET /api/catalog/specs
+   * GET /api/catalog/specs 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
    *
    * @param page (optional)
    * @param pageSize (optional)
@@ -533,6 +536,7 @@ public interface InspectionCatalogApi {
    */
   @Operation(
       operationId = "catalogListSpecs",
+      description = "分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。",
       tags = {"inspection-catalog"},
       responses = {
         @ApiResponse(

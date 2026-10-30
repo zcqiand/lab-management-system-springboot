@@ -151,7 +151,7 @@ public interface TestRecordsApi {
   String PATH_TEST_RECORDS_LIST_TEST_RECORDS = "/api/test-records";
 
   /**
-   * GET /api/test-records
+   * GET /api/test-records 分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。
    *
    * @param page (optional)
    * @param pageSize (optional)
@@ -162,6 +162,7 @@ public interface TestRecordsApi {
    */
   @Operation(
       operationId = "testRecordsListTestRecords",
+      description = "分页：当前实现仅回显不切片，参照实现返回全量，无分页语义（pageSize 同）。",
       tags = {"test-records"},
       responses = {
         @ApiResponse(
