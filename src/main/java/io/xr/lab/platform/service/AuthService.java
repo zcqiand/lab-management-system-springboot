@@ -153,11 +153,13 @@ public class AuthService {
     cacheMenusWithServiceAccount(user.getId());
     // REQ-2026-023 live 回归（2026-10-11 五目标 401 指纹）：密码登录用户落
     // directory（镜像 ssoCallback upsert 链）——me/switchTenant 的 resolveUser
-    // 按 sub=saas user id 解析，不落目录必 unknown user 401。email 缺失降级
-    // username 作 upsert 键（与 ssoCallback 的 email 主键约定同形）。
+    // 按 sub=saas user id 解析，不落目录必 unknown user 401。5.120 家族裁定：
+    // upsert 首选 username（login/me 自洽，回 9 月基线），email 缺失才降级——
+    // 目录 upsert 第二参兼作键与 username，email-first 曾让 me 报 email 而
+    // login 报 username（CT 627/628）。
     directory.upsert(
         user.getId(),
-        firstNonEmpty(u.getEmail(), u.getUsername()),
+        firstNonEmpty(u.getUsername(), u.getEmail()),
         user.getDisplayName(),
         user.getRoleCode());
     membershipCache.put(user.getId(), tenants);
