@@ -1,11 +1,11 @@
-# CLAUDE.md — 实验室管理系统SpringBoot后端
+# CLAUDE.md — 建筑工程实验室管理系统SpringBoot后端
 
 > 书稿配套仓 + harness 门禁仓双身份。入口，不是手册。L0 门强制上限 60 行。
 > 本仓为《（书稿信息待补）》案例（待补）的可运行配套工程，是书稿代码块的 **source of truth**。
 
 ## 1. 项目定位
 
-实验室管理系统的 Java 后端。Controller 与 DTO 由 shared 仓 TypeSpec codegen 全覆盖；手写 Service 与 Repository。
+建筑工程实验室管理系统的 Java 后端。Controller 与 DTO 由 shared 仓 TypeSpec codegen 全覆盖；手写 Service 与 Repository。
 真实后端之一（与 aspnetcore 对称），DB-First 消费层（ADR-0025/0033）：schema 真源 = shared `src/db/schema.ts`，
 本仓不拥有迁移（Flyway 已退役），entity 镜像 = `bash scripts/scaffold-entities.sh` → `entity/Generated/`。
 

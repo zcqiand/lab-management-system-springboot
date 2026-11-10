@@ -23,7 +23,7 @@ graph LR
     SH["shared 契约仓<br/>TypeSpec + schema.ts"]
     FE["lab 前端 x3<br/>react / vue / nextjs"]
     CT["contract-test 仓<br/>黑盒校验"]
-    SAAS["saas 身份平台<br/>IdP :5100 段"]
+    SAAS["SaaS 多租户多应用身份平台<br/>IdP :5100 段"]
   end
   subgraph 本仓
     GEN["gen-shared.sh 产物<br/>shared/api + shared/dto"]
